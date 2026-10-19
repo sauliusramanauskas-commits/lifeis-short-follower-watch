@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lifeis Short · Followers</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#07080d; --card:#12141e; --line:#232738; --txt:#eef0f7; --mut:#8b91a8;
+    --a1:#ff3d6e; --a2:#7c4dff; --ok:#22d3a6; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{
+    background:
+      radial-gradient(900px 420px at 100% -10%, rgba(124,77,255,.22), transparent 55%),
+      radial-gradient(700px 380px at -10% 110%, rgba(255,61,110,.16), transparent 50%),
+      var(--bg);
+    padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  }
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .avatar{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;
+    background:linear-gradient(135deg,var(--a1),var(--a2))}
+  h1{font-size:16px;margin:0}
+  .sub{font-size:12px;color:var(--mut);margin-top:2px}
+  .pill{font-size:12px;color:var(--mut);border:1px solid var(--line);background:var(--card);
+    padding:6px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(34,211,166,.5);animation:pulse 2s infinite}
+  .dot.err{background:#f87171;animation:none}
+  .dot.warn{background:var(--warn);animation:none}
+  @keyframes pulse{70%{box-shadow:0 0 0 10px transparent}}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--card);
+    border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:14px}
+  .hero{text-align:center;padding:28px 16px}
+  .label{text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--mut)}
+  .count{font-size:clamp(72px,22vw,120px);font-weight:900;line-height:1;margin:10px 0 4px;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#fff,#c9b8ff 55%,var(--a1));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .until{font-size:18px;font-weight:600}
+  .until b{color:var(--a1)}
+  .bar{height:14px;border-radius:999px;background:#1a1d2a;border:1px solid var(--line);overflow:hidden;margin:20px 0 8px}
+  .fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--a2),var(--a1));transition:width .8s ease}
+  .row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .stat .v{font-size:20px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+  .stat .s{font-size:11px;color:var(--mut)}
+  label{display:block;font-size:12px;color:var(--mut);margin-bottom:6px}
+  input,button,textarea{font:inherit}
+  input[type=number],input[type=password],input[type=text]{
+    width:100%;background:#0c0e16;border:1px solid var(--line);color:var(--txt);
+    border-radius:12px;padding:12px 14px;outline:none}
+  input:focus{border-color:#5b4dff}
+  .actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  button{
+    border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;flex:1;min-width:120px}
+  button.secondary{background:#1a1d2a;border:1px solid var(--line);color:var(--txt);font-weight:600}
+  button:active{transform:scale(.98)}
+  .muted{color:var(--mut);font-size:12px;line-height:1.45;margin-top:10px}
+  a{color:#9db7ff}
+  .celebrate{display:none;text-align:center;border-color:rgba(255,61,110,.45);
+    background:linear-gradient(135deg,rgba(124,77,255,.18),rgba(255,61,110,.14)),var(--card)}
+  .celebrate.on{display:block}
+  .install{display:none}
+  .install.show{display:block}
+  details{margin-top:8px}
+  summary{cursor:pointer;color:var(--mut);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="avatar">LS</div>
+    <div>
+      <h1>Lifeis Short</h1>
+      <div class="sub">Follower monitor</div>
+    </div>
+  </div>
+  <span class="pill"><span class="dot" id="dot"></span><span id="live">…</span></span>
+</header>
+
+<section class="card celebrate" id="celebrate">
+  <div style="font-size:42px">🎉</div>
+  <h2 style="margin:6px 0 0;font-size:26px">Milestone reached!</h2>
+  <div class="muted" id="hitMsg"></div>
+</section>
+
+<section class="card hero">
+  <div class="label">Followers</div>
+  <div class="count" id="count">—</div>
+  <div class="until" id="until">Loading…</div>
+  <div class="bar"><div class="fill" id="fill"></div></div>
+  <div class="row"><span id="baseLbl">0</span><span id="pct">0%</span><span id="tgtLbl">666</span></div>
+</section>
+
+<section class="card">
+  <div class="grid">
+    <div class="stat"><div class="s">Remaining</div><div class="v" id="rem">—</div></div>
+    <div class="stat"><div class="s">Milestone</div><div class="v" id="msShow">—</div></div>
+    <div class="stat"><div class="s">Last check</div><div class="v" id="checked" style="font-size:14px">—</div></div>
+    <div class="stat"><div class="s">Refresh</div><div class="v" id="tick" style="font-size:14px">20s</div></div>
+  </div>
+  <div class="actions" style="margin-top:14px">
+    <button type="button" class="secondary" id="btnRefresh">Refresh now</button>
+    <button type="button" class="secondary" id="btnNotify">Enable alerts</button>
+  </div>
+</section>
+
+<section class="card">
+  <label for="milestone">Milestone target</label>
+  <input id="milestone" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 666">
+  <div class="actions">
+    <button type="button" id="btnSave">Save milestone</button>
+    <button type="button" class="secondary" id="btnReset">Use dashboard</button>
+  </div>
+  <p class="muted">Saved on this phone. Progress and alerts use your milestone. Tap “Use dashboard” to follow the shared target from the website again.</p>
+</section>
+
+<section class="card install" id="installCard">
+  <strong>Install on Android</strong>
+  <p class="muted" style="margin-top:8px">Add this app to your home screen for a full-screen icon.</p>
+  <div class="actions"><button type="button" id="btnInstall">Install app</button></div>
+  <p class="muted">Or Chrome menu → <b>Add to Home screen</b> / <b>Install app</b>.</p>
+</section>
+
+<section class="card">
+  <details>
+    <summary>Advanced · sync milestone to shared dashboard</summary>
+    <p class="muted">Optional. Paste a GitHub personal access token with <code>repo</code> (or Contents write) on <code>lifeis-short-follower-watch</code>. This updates <code>targetFollowers</code> for the public page and the watch bot.</p>
+    <label for="token">GitHub token</label>
+    <input id="token" type="password" autocomplete="off" placeholder="ghp_…">
+    <div class="actions">
+      <button type="button" id="btnSync">Sync milestone to dashboard</button>
+    </div>
+    <p class="muted" id="syncMsg"></p>
+  </details>
+  <p class="muted" style="margin-top:14px">
+    Profile: <a id="fbLink" href="https://www.facebook.com/people/Lifeis-Short/100013159621667/" target="_blank" rel="noopener">Open Facebook</a>
+    · <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/index.html" target="_blank" rel="noopener">Web dashboard</a>
+  </p>
+</section>
+
+<script>
+const REPO = 'sauliusramanauskas-commits/lifeis-short-follower-watch';
+const STATUS_URL = `https://api.github.com/repos/${REPO}/contents/docs/status.json?ref=main`;
+const STATE_PATH = 'state.json';
+const $ = (id) => document.getElementById(id);
+const store = {
+  getMilestone() {
+    const v = localStorage.getItem('ls_milestone');
+    return v ? Number(v) : null;
+  },
+  setMilestone(n) { localStorage.setItem('ls_milestone', String(n)); },
+  clearMilestone() { localStorage.removeItem('ls_milestone'); },
+  getToken() { return localStorage.getItem('ls_gh_token') || ''; },
+  setToken(t) { if (t) localStorage.setItem('ls_gh_token', t); else localStorage.removeItem('ls_gh_token'); },
+  getNotifiedFor() { return Number(localStorage.getItem('ls_notified_for') || 0); },
+  setNotifiedFor(n) { localStorage.setItem('ls_notified_for', String(n)); },
+};
+
+let latest = null;
+let refreshIn = 20;
+let deferredPrompt = null;
+
+function ageLabel(iso) {
+  if (!iso) return 'never';
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return iso;
+  const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (mins < 1) return 'just now';
+  if (mins === 1) return '1 min ago';
+  return mins + ' min ago';
+}
+
+function effectiveTarget(s) {
+  const local = store.getMilestone();
+  if (local && local > 0) return local;
+  return Number(s.target) || 666;
+}
+
+function render(s) {
+  latest = s;
+  const target = effectiveTarget(s);
+  const cur = s.current == null ? null : Number(s.current);
+  const base = Number(s.baseline) || 0;
+  const rem = cur == null ? null : Math.max(0, target - cur);
+  const pct = cur == null ? 0 : Math.min(100, Math.round((cur / target) * 10000) / 100);
+  $('count').textContent = cur == null ? '—' : cur;
+  $('until').innerHTML = cur == null ? 'Waiting for data…'
+    : (cur >= target ? '<b>Milestone hit!</b>' : `<b>${rem}</b> to go until ${target}`);
+  $('fill').style.width = pct + '%';
+  $('pct').textContent = pct + '%';
+  $('baseLbl').textContent = String(base);
+  $('tgtLbl').textContent = String(target);
+  $('rem').textContent = rem == null ? '—' : rem;
+  $('msShow').textContent = target;
+  $('checked').textContent = ageLabel(s.lastCheckedAt);
+  const stale = (Date.now() - Date.parse(s.lastCheckedAt || 0)) > 8 * 60 * 1000;
+  $('dot').classList.toggle('err', stale);
+  $('dot').classList.toggle('warn', !stale && !!store.getMilestone());
+  $('live').textContent = stale ? 'Stale · ' + ageLabel(s.lastCheckedAt) : 'Live · ' + ageLabel(s.lastCheckedAt);
+  const hit = cur != null && cur >= target;
+  $('celebrate').classList.toggle('on', hit);
+  $('hitMsg').textContent = hit ? `${cur} followers · target ${target}` : '';
+  if (hit && store.getNotifiedFor() !== target) {
+    notify(`Lifeis Short hit ${target}!`, `Now at ${cur} followers.`);
+    store.setNotifiedFor(target);
+  }
+  if ($('milestone').value === '' || document.activeElement !== $('milestone')) {
+    $('milestone').value = String(target);
+  }
+  if (s.profileUrl) $('fbLink').href = s.profileUrl;
+}
+
+async function fetchStatus() {
+  const r = await fetch(STATUS_URL + '&t=' + Date.now(), {
+    cache: 'no-store',
+    headers: { Accept: 'application/vnd.github.raw' },
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+async function refresh() {
+  try {
+    const s = await fetchStatus();
+    render(s);
+    refreshIn = 20;
+  } catch (e) {
+    $('dot').classList.add('err');
+    $('live').textContent = 'Offline';
+  }
+}
+
+function notify(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try { new Notification(title, { body, icon: 'icon-192.png' }); } catch (_) {}
+}
+
+$('btnRefresh').onclick = () => refresh();
+$('btnSave').onclick = () => {
+  const n = Number($('milestone').value);
+  if (!Number.isFinite(n) || n < 1) { alert('Enter a valid milestone'); return; }
+  store.setMilestone(Math.round(n));
+  store.setNotifiedFor(0);
+  if (latest) render(latest);
+};
+$('btnReset').onclick = () => {
+  store.clearMilestone();
+  store.setNotifiedFor(0);
+  if (latest) {
+    $('milestone').value = String(latest.target || 666);
+    render(latest);
+  }
+};
+$('btnNotify').onclick = async () => {
+  if (!('Notification' in window)) { alert('Notifications not supported'); return; }
+  const p = await Notification.requestPermission();
+  alert(p === 'granted' ? 'Alerts enabled' : 'Alerts not enabled');
+};
+
+$('token').value = store.getToken();
+$('btnSync').onclick = async () => {
+  const token = $('token').value.trim();
+  const n = Number($('milestone').value);
+  if (!token) { $('syncMsg').textContent = 'Token required.'; return; }
+  if (!Number.isFinite(n) || n < 1) { $('syncMsg').textContent = 'Set a valid milestone first.'; return; }
+  store.setToken(token);
+  store.setMilestone(Math.round(n));
+  $('syncMsg').textContent = 'Syncing…';
+  try {
+    const meta = await fetch(`https://api.github.com/repos/${REPO}/contents/${STATE_PATH}?ref=main`, {
+      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token },
+    }).then((r) => { if (!r.ok) throw new Error('Read state ' + r.status); return r.json(); });
+    const state = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+    state.targetFollowers = Math.round(n);
+    const body = {
+      message: `Set milestone target to ${Math.round(n)} via phone app`,
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2) + '\n'))),
+      sha: meta.sha,
+      branch: 'main',
+    };
+    const put = await fetch(`https://api.github.com/repos/${REPO}/contents/${STATE_PATH}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!put.ok) throw new Error('Write state ' + put.status + ' ' + await put.text());
+    // Also refresh docs/status.json target via local expectation — watch publish will fix; patch status now
+    const stMeta = await fetch(`https://api.github.com/repos/${REPO}/contents/docs/status.json?ref=main`, {
+      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token },
+    }).then((r) => { if (!r.ok) throw new Error('Read status ' + r.status); return r.json(); });
+    const status = JSON.parse(atob(stMeta.content.replace(/\n/g, '')));
+    status.target = Math.round(n);
+    status.remaining = status.current == null ? null : Math.max(0, status.target - status.current);
+    status.progressPct = status.current == null ? 0 : Math.min(100, Math.round((status.current / status.target) * 10000) / 100);
+    const put2 = await fetch(`https://api.github.com/repos/${REPO}/contents/docs/status.json`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: `Update public status target to ${Math.round(n)}`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(status, null, 2) + '\n'))),
+        sha: stMeta.sha,
+        branch: 'main',
+      }),
+    });
+    if (!put2.ok) throw new Error('Write status ' + put2.status);
+    $('syncMsg').textContent = 'Synced. Dashboard target is now ' + Math.round(n) + '.';
+    await refresh();
+  } catch (e) {
+    $('syncMsg').textContent = 'Sync failed: ' + e.message;
+  }
+};
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('installCard').classList.add('show');
+});
+$('btnInstall').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  $('installCard').classList.remove('show');
+};
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+refresh();
+setInterval(() => {
+  refreshIn -= 1;
+  if (refreshIn <= 0) refresh();
+  else $('tick').textContent = refreshIn + 's';
+}, 1000);
+</script>
+</body>
+</html>
