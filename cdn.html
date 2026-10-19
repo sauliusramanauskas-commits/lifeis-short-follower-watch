@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lifeis Short · Road to 666</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<style>
+  :root{--bg:#07080d;--card:#11131c;--line:#1f2333;--txt:#e8eaf2;--mut:#8a90a8;--a1:#ff3d6e;--a2:#7c4dff;--ok:#22d3a6}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--txt);
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(124,77,255,.18),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(255,61,110,.14),transparent 60%),var(--bg)}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 60px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--a1),var(--a2))}
+  h1{font-size:18px;margin:0}.sub{color:var(--mut);font-size:13px}
+  .live{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);border:1px solid var(--line);padding:6px 12px;border-radius:999px;background:var(--card)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(34,211,166,.6);animation:pulse 2s infinite}
+  .dot.err{background:#f87171;animation:none}
+  @keyframes pulse{70%{box-shadow:0 0 0 10px rgba(34,211,166,0)}100%{box-shadow:0 0 0 0 rgba(34,211,166,0)}}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;margin-top:22px}
+  .hero{text-align:center;padding:44px 28px}
+  .label{text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--mut)}
+  .count{font-size:clamp(84px,18vw,168px);font-weight:900;line-height:1;margin:14px 0 6px;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#fff,#c9b8ff 50%,var(--a1));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .count.bump{animation:bump .6s ease}
+  @keyframes bump{40%{transform:scale(1.06)}}
+  .until{font-size:20px;font-weight:600}.until b{color:var(--a1)}
+  .bar{position:relative;height:18px;border-radius:999px;background:#1a1d2a;overflow:hidden;margin:26px 0 10px;border:1px solid var(--line)}
+  .fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--a2),var(--a1));transition:width 1s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 24px rgba(255,61,110,.45)}
+  .ticks{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:22px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .stat .v{font-size:22px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
+  .stat .s{font-size:12px;color:var(--mut);margin-top:4px}
+  a.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#fff;font-weight:600;font-size:14px;padding:10px 16px;border-radius:12px;background:#1877f2}
+  a.btn:hover{filter:brightness(1.1)}
+  .celebrate{display:none;text-align:center;border-color:rgba(255,61,110,.5);background:linear-gradient(135deg,rgba(124,77,255,.18),rgba(255,61,110,.18)),var(--card)}
+  .celebrate.on{display:block}
+  .celebrate h2{font-size:34px;margin:6px 0}
+  .celebrate img{max-width:100%;border-radius:14px;border:1px solid var(--line);margin-top:18px}
+  .muted{color:var(--mut);font-size:13px}
+  svg.chart{width:100%;height:180px;display:block}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;font-variant-numeric:tabular-nums}
+  td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--mut);font-weight:500}
+  footer{margin-top:28px;text-align:center;color:var(--mut);font-size:12px}
+  canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="avatar">LS</div>
+      <div><h1 id="name">Lifeis Short</h1><div class="sub">Facebook follower watch · milestone <span id="tgtH">666</span></div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="live"><span class="dot" id="dot"></span><span id="liveTxt">Connecting…</span></span>
+      <a class="btn" id="fbLink" href="https://www.facebook.com/people/Lifeis-Short/100013159621667/" target="_blank" rel="noopener">Open profile ↗</a>
+    </div>
+  </header>
+
+  <section class="card celebrate" id="celebrate">
+    <div style="font-size:48px">🎉</div>
+    <h2>666 reached!</h2>
+    <div class="muted">Milestone hit at <span id="hitAt">—</span></div>
+    <img id="shot" alt="Milestone screenshot" style="display:none">
+    <div class="muted" id="noShot" style="margin-top:12px;display:none">No milestone screenshot saved yet (screenshots/milestone-666.png).</div>
+  </section>
+
+  <section class="card hero">
+    <div class="label">Followers</div>
+    <div class="count" id="count">—</div>
+    <div class="until" id="until">Loading…</div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="ticks"><span>0</span><span id="pct">0%</span><span id="tgt">666</span></div>
+  </section>
+
+  <div class="grid">
+    <div class="stat"><div class="label">Last checked</div><div class="v" id="checked">—</div><div class="s" id="checkedAgo"></div></div>
+    <div class="stat"><div class="label">Since baseline</div><div class="v" id="delta">—</div><div class="s" id="baseTxt"></div></div>
+    <div class="stat"><div class="label">From baseline to goal</div><div class="v" id="basePct">—</div><div class="s">progress of the remaining climb</div></div>
+  </div>
+
+  <section class="card">
+    <div class="label">History</div>
+    <div id="chartWrap"><div class="muted" style="margin-top:12px">No checks recorded yet.</div></div>
+    <table id="histTbl" style="display:none"><thead><tr><th>Time</th><th>Followers</th><th>Δ</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <footer>Auto-refreshes every 20s · times shown in Europe/Berlin · <span id="srv"></span></footer>
+</div>
+
+<script>
+const TZ='Europe/Berlin';
+const fmt=ts=>ts?new Intl.DateTimeFormat('en-GB',{timeZone:TZ,dateStyle:'medium',timeStyle:'medium'}).format(new Date(ts))+' (Berlin)':'—';
+const short=ts=>new Intl.DateTimeFormat('en-GB',{timeZone:TZ,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(ts));
+function ago(ts){if(!ts)return'';const s=Math.round((Date.now()-new Date(ts))/1000);
+  if(s<60)return s+'s ago';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return Math.round(s/86400)+' d ago';}
+const $=id=>document.getElementById(id);
+let last=null,celebrated=false,lastStatus=null;
+
+async function loadStatus(){
+  try{
+    const r=await fetch('https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/status.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);
+    const s=await r.json();lastStatus=s;
+    $('dot').classList.remove('err');$('liveTxt').textContent='Live · updated '+short(Date.now());
+    $('name').textContent=s.profileName||'Lifeis Short';
+    if(s.profileUrl)$('fbLink').href=s.profileUrl;
+    $('tgt').textContent=$('tgtH').textContent=s.target;
+    const c=$('count');
+    if(last!==null&&s.current!==last){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');}
+    last=s.current;c.textContent=s.current??'—';
+    $('until').innerHTML=s.hit?'🎯 Target reached!':(s.remaining==null?'No reading yet':`<b>${s.remaining}</b> until ${s.target}`);
+    $('fill').style.width=s.progressPct+'%';$('pct').textContent=s.progressPct.toFixed(1)+'%';
+    $('checked').textContent=fmt(s.lastCheckedAt);$('checkedAgo').textContent=ago(s.lastCheckedAt);
+    const d=s.current==null?null:s.current-s.baseline;
+    $('delta').textContent=d==null?'—':(d>=0?'+':'')+d;$('baseTxt').textContent='baseline '+s.baseline;
+    $('basePct').textContent=s.progressFromBaselinePct.toFixed(0)+'%';
+    $('srv').textContent='server '+fmt(s.serverTime);
+    if(s.hit){
+      $('celebrate').classList.add('on');$('hitAt').textContent=fmt(s.hitTargetAt);
+      if(s.milestoneScreenshot){$('shot').src='https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/milestone-666.png?t='+Date.now();$('shot').style.display='';$('noShot').style.display='none';}
+      else{$('shot').style.display='none';$('noShot').style.display='';}
+      if(!celebrated){celebrated=true;confetti();}
+    }else{$('celebrate').classList.remove('on');celebrated=false;}
+  }catch(e){$('dot').classList.add('err');$('liveTxt').textContent='Server unreachable';}
+}
+
+async function loadHistory(){
+  try{
+    const h=await (await fetch('https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/history.json?t='+Date.now(),{cache:'no-store'})).json();
+    if(!h.length)return;
+    const tgt=lastStatus?.target||666;
+    const vals=h.map(x=>x.followers),min=Math.min(...vals,lastStatus?.baseline??vals[0])-2,max=Math.max(...vals,tgt)+1;
+    const W=900,H=180,P=24,n=h.length;
+    const x=i=>n===1?W/2:P+i*(W-2*P)/(n-1),y=v=>H-P-(v-min)*(H-2*P)/(max-min||1);
+    const pts=h.map((p,i)=>`${x(i).toFixed(1)},${y(p.followers).toFixed(1)}`).join(' ');
+    $('chartWrap').innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#7c4dff"/><stop offset="1" stop-color="#ff3d6e"/></linearGradient></defs>
+      <line x1="${P}" x2="${W-P}" y1="${y(tgt)}" y2="${y(tgt)}" stroke="#ff3d6e" stroke-dasharray="6 6" opacity=".6"/>
+      <text x="${W-P}" y="${y(tgt)-6}" fill="#ff3d6e" font-size="12" text-anchor="end">${tgt}</text>
+      <polyline points="${pts}" fill="none" stroke="url(#g)" stroke-width="3" stroke-linejoin="round"/>
+      ${h.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.followers)}" r="4" fill="#fff"><title>${short(p.ts)}: ${p.followers}</title></circle>`).join('')}
+    </svg>`;
+    const tb=$('histTbl');tb.style.display='';
+    tb.querySelector('tbody').innerHTML=h.slice(-12).reverse().map((p,i,a)=>{
+      const prev=a[i+1];const d=prev?p.followers-prev.followers:null;
+      return `<tr><td>${fmt(p.ts)}</td><td>${p.followers}</td><td>${d==null?'':(d>0?'+':'')+d}</td></tr>`}).join('');
+  }catch(e){}
+}
+
+function confetti(){
+  const cv=$('confetti'),ctx=cv.getContext('2d');cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#ff3d6e','#7c4dff','#22d3a6','#ffd166','#fff'];
+  const ps=Array.from({length:220},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.5,vx:(Math.random()-.5)*4,vy:2+Math.random()*4,
+    r:4+Math.random()*6,c:cols[Math.random()*cols.length|0],a:Math.random()*6.28,va:(Math.random()-.5)*.3}));
+  const end=Date.now()+6000;
+  (function f(){ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.a+=p.va;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);ctx.restore();});
+    if(Date.now()<end)requestAnimationFrame(f);else ctx.clearRect(0,0,cv.width,cv.height);})();
+}
+
+async function tick(){await loadStatus();await loadHistory();}
+tick();setInterval(tick,20000);
+setInterval(()=>{if(lastStatus)$('checkedAgo').textContent=ago(lastStatus.lastCheckedAt);},5000);
+</script>
+</body>
+</html>
