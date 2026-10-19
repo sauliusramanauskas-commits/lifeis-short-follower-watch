@@ -104,7 +104,7 @@ let last=null,celebrated=false,lastStatus=null;
 
 async function loadStatus(){
   try{
-    const r=await fetch('https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/status.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);
+    const r=await fetch('https://api.github.com/repos/sauliusramanauskas-commits/lifeis-short-follower-watch/contents/docs/status.json?ref=main&t='+Date.now(),{cache:'no-store',headers:{'Accept':'application/vnd.github.raw'}});if(!r.ok)throw new Error(r.status);
     const s=await r.json();lastStatus=s;
     $('dot').classList.remove('err');$('liveTxt').textContent='Live · updated '+short(Date.now());
     $('name').textContent=s.profileName||'Lifeis Short';
@@ -131,7 +131,7 @@ async function loadStatus(){
 
 async function loadHistory(){
   try{
-    const h=await (await fetch('https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/history.json?t='+Date.now(),{cache:'no-store'})).json();
+    const h=await (await fetch('https://api.github.com/repos/sauliusramanauskas-commits/lifeis-short-follower-watch/contents/docs/history.json?ref=main&t='+Date.now(),{cache:'no-store',headers:{'Accept':'application/vnd.github.raw'}})).json();
     if(!h.length)return;
     const tgt=lastStatus?.target||666;
     const vals=h.map(x=>x.followers),min=Math.min(...vals,lastStatus?.baseline??vals[0])-2,max=Math.max(...vals,tgt)+1;
