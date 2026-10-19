@@ -53,7 +53,7 @@
 <div class="wrap">
   <header>
     <div class="brand">
-      <div class="avatar">LS</div>
+      <div class="avatar" id="avatar">LS</div>
       <div><h1 id="name">Lifeis Short</h1><div class="sub">Facebook follower watch · milestone <span id="tgtH">666</span></div></div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -64,10 +64,10 @@
 
   <section class="card celebrate" id="celebrate">
     <div style="font-size:48px">🎉</div>
-    <h2>666 reached!</h2>
+    <h2><span id="hitTgt">666</span> reached!</h2>
     <div class="muted">Milestone hit at <span id="hitAt">—</span></div>
     <img id="shot" alt="Milestone screenshot" style="display:none">
-    <div class="muted" id="noShot" style="margin-top:12px;display:none">No milestone screenshot saved yet (screenshots/milestone-666.png).</div>
+    <div class="muted" id="noShot" style="margin-top:12px;display:none">No milestone screenshot saved yet.</div>
   </section>
 
   <section class="card hero">
@@ -111,30 +111,38 @@ const short=ts=>new Intl.DateTimeFormat('en-GB',{timeZone:TZ,month:'short',day:'
 function ago(ts){if(!ts)return'';const s=Math.round((Date.now()-new Date(ts))/1000);
   if(s<60)return s+'s ago';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return Math.round(s/86400)+' d ago';}
 const $=id=>document.getElementById(id);
+const PAGES='https://sauliusramanauskas-commits.github.io/lifeis-short-follower-watch/';
+const API='https://api.github.com/repos/sauliusramanauskas-commits/lifeis-short-follower-watch/contents/docs/';
+// GitHub Pages first (no API rate limit; ?t= bypasses the CDN cache), API as fallback (60 req/h unauthenticated).
+async function getData(f){
+  try{const r=await fetch(PAGES+f+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);return await r.json();}
+  catch(e){const r=await fetch(API+f+'?ref=main&t='+Date.now(),{cache:'no-store',headers:{'Accept':'application/vnd.github.raw'}});if(!r.ok)throw new Error(r.status);return r.json();}
+}
+function initials(n){const w=String(n||'').trim().split(/\s+/).filter(Boolean);return((w[0]||'?')[0]+(w[1]?w[1][0]:(w[0]||'')[1]||'')).toUpperCase();}
 let last=null,celebrated=false,lastStatus=null;
 
 async function loadStatus(){
   try{
-    const r=await fetch('https://api.github.com/repos/sauliusramanauskas-commits/lifeis-short-follower-watch/contents/docs/status.json?ref=main&t='+Date.now(),{cache:'no-store',headers:{'Accept':'application/vnd.github.raw'}});if(!r.ok)throw new Error(r.status);
-    const s=await r.json();lastStatus=s;
+    const s=await getData('status.json');lastStatus=s;
     $('dot').classList.toggle('err', (Date.now()-Date.parse(s.lastCheckedAt||0))>8*60*1000);
     $('liveTxt').textContent=( (Date.now()-Date.parse(s.lastCheckedAt||0))>8*60*1000 ? 'Stale · checked ' : 'Live · checked ')+ageLabel(s.lastCheckedAt);
-    $('name').textContent=s.profileName||'Lifeis Short';
+    $('name').textContent=s.profileName||'Lifeis Short';document.title=(s.profileName||'Lifeis Short')+' · Follower watch';
+    $('avatar').textContent=initials(s.profileName||'Lifeis Short');$('hitTgt').textContent=s.target;
     if(s.profileUrl)$('fbLink').href=s.profileUrl;
     $('tgt').textContent=$('tgtH').textContent=s.target;
     const c=$('count');
     if(last!==null&&s.current!==last){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');}
     last=s.current;c.textContent=s.current??'—';
     $('until').innerHTML=s.hit?'🎯 Target reached!':(s.remaining==null?'No reading yet':`<b>${s.remaining}</b> until ${s.target}`);
-    $('fill').style.width=s.progressPct+'%';$('pct').textContent=s.progressPct.toFixed(1)+'%';
+    $('fill').style.width=(s.progressPct||0)+'%';$('pct').textContent=(s.progressPct||0).toFixed(1)+'%';
     $('checked').textContent=fmt(s.lastCheckedAt);$('checkedAgo').textContent=ago(s.lastCheckedAt);
-    const d=s.current==null?null:s.current-s.baseline;
-    $('delta').textContent=d==null?'—':(d>=0?'+':'')+d;$('baseTxt').textContent='baseline '+s.baseline;
-    $('basePct').textContent=s.progressFromBaselinePct.toFixed(0)+'%';
+    const d=s.current==null||s.baseline==null?null:s.current-s.baseline;
+    $('delta').textContent=d==null?'—':(d>=0?'+':'')+d;$('baseTxt').textContent=s.baseline==null?'baseline set on first reading':'baseline '+s.baseline;
+    $('basePct').textContent=(s.progressFromBaselinePct||0).toFixed(0)+'%';
     $('srv').textContent='server '+fmt(s.serverTime);
     if(s.hit){
       $('celebrate').classList.add('on');$('hitAt').textContent=fmt(s.hitTargetAt);
-      if(s.milestoneScreenshot){$('shot').src='https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/milestone-666.png?t='+Date.now();$('shot').style.display='';$('noShot').style.display='none';}
+      if(s.milestoneScreenshot){$('shot').src='https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/'+(s.milestoneScreenshotFile||'milestone-666.png')+'?t='+Date.now();$('shot').style.display='';$('noShot').style.display='none';}
       else{$('shot').style.display='none';$('noShot').style.display='';}
       if(!celebrated){celebrated=true;confetti();}
     }else{$('celebrate').classList.remove('on');celebrated=false;}
@@ -143,8 +151,10 @@ async function loadStatus(){
 
 async function loadHistory(){
   try{
-    const h=await (await fetch('https://api.github.com/repos/sauliusramanauskas-commits/lifeis-short-follower-watch/contents/docs/history.json?ref=main&t='+Date.now(),{cache:'no-store',headers:{'Accept':'application/vnd.github.raw'}})).json();
-    if(!h.length)return;
+    const all=await getData('history.json');
+    const pid=lastStatus?.profileId||'lifeis-short';
+    const h=(Array.isArray(all)?all:[]).filter(x=>(x.profileId||'lifeis-short')===pid);
+    if(!h.length){$('chartWrap').innerHTML='<div class="muted" style="margin-top:12px">No checks recorded yet.</div>';$('histTbl').style.display='none';return;}
     const tgt=lastStatus?.target||666;
     const vals=h.map(x=>x.followers),min=Math.min(...vals,lastStatus?.baseline??vals[0])-2,max=Math.max(...vals,tgt)+1;
     const W=900,H=180,P=24,n=h.length;
