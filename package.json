@@ -1,0 +1,11 @@
+{
+  "name": "lifeis-short-follower-watch",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "bash start.sh"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

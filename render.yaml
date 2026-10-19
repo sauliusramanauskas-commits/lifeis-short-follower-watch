@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: lifeis-short-follower-watch
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: "true"
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_VERSION
+        value: "20"
+      - key: INGEST_SECRET
+        generateValue: true
