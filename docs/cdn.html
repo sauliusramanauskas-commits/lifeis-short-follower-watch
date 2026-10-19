@@ -104,7 +104,7 @@ let last=null,celebrated=false,lastStatus=null;
 
 async function loadStatus(){
   try{
-    const r=await fetch('https://cdn.jsdelivr.net/gh/sauliusramanauskas-commits/lifeis-short-follower-watch@main/docs/status.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);
+    const r=await fetch('https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/status.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);
     const s=await r.json();lastStatus=s;
     $('dot').classList.remove('err');$('liveTxt').textContent='Live · updated '+short(Date.now());
     $('name').textContent=s.profileName||'Lifeis Short';
@@ -122,7 +122,7 @@ async function loadStatus(){
     $('srv').textContent='server '+fmt(s.serverTime);
     if(s.hit){
       $('celebrate').classList.add('on');$('hitAt').textContent=fmt(s.hitTargetAt);
-      if(s.milestoneScreenshot){$('shot').src='https://cdn.jsdelivr.net/gh/sauliusramanauskas-commits/lifeis-short-follower-watch@main/docs/milestone-666.png?t='+Date.now();$('shot').style.display='';$('noShot').style.display='none';}
+      if(s.milestoneScreenshot){$('shot').src='https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/milestone-666.png?t='+Date.now();$('shot').style.display='';$('noShot').style.display='none';}
       else{$('shot').style.display='none';$('noShot').style.display='';}
       if(!celebrated){celebrated=true;confetti();}
     }else{$('celebrate').classList.remove('on');celebrated=false;}
@@ -131,7 +131,7 @@ async function loadStatus(){
 
 async function loadHistory(){
   try{
-    const h=await (await fetch('https://cdn.jsdelivr.net/gh/sauliusramanauskas-commits/lifeis-short-follower-watch@main/docs/history.json?t='+Date.now(),{cache:'no-store'})).json();
+    const h=await (await fetch('https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/history.json?t='+Date.now(),{cache:'no-store'})).json();
     if(!h.length)return;
     const tgt=lastStatus?.target||666;
     const vals=h.map(x=>x.followers),min=Math.min(...vals,lastStatus?.baseline??vals[0])-2,max=Math.max(...vals,tgt)+1;
