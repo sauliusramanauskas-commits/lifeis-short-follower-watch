@@ -113,7 +113,9 @@
   <div class="actions" style="margin-top:14px">
     <button type="button" class="secondary" id="btnRefresh">Refresh now</button>
     <button type="button" class="secondary" id="btnNotify">Enable alerts</button>
+    <button type="button" class="secondary" id="btnSound">Sound: off</button>
   </div>
+  <p class="muted">New follower → short chime + voice “new facebook follower added”. Keep the app open (or recently used) on your phone for sound; notifications can still arrive while it’s in the background on some Android builds.</p>
 </section>
 
 <section class="card">
@@ -166,7 +168,148 @@ const store = {
   setToken(t) { if (t) localStorage.setItem('ls_gh_token', t); else localStorage.removeItem('ls_gh_token'); },
   getNotifiedFor() { return Number(localStorage.getItem('ls_notified_for') || 0); },
   setNotifiedFor(n) { localStorage.setItem('ls_notified_for', String(n)); },
+  getLastFollowers() {
+    const v = localStorage.getItem('ls_last_followers');
+    if (v == null || v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  },
+  setLastFollowers(n) { localStorage.setItem('ls_last_followers', String(n)); },
+  getSoundPref() { return localStorage.getItem('ls_sound_on'); }, // '1' | '0' | null
+  setSoundOn(on) { localStorage.setItem('ls_sound_on', on ? '1' : '0'); },
 };
+
+function notifGranted() {
+  return ('Notification' in window) && Notification.permission === 'granted';
+}
+// Sound is on if explicitly enabled, or (never chosen) and notifications already granted.
+function soundOn() {
+  const p = store.getSoundPref();
+  if (p === '1') return true;
+  if (p === '0') return false;
+  return notifGranted();
+}
+
+// ---------- Audio (Web Audio API, no files) ----------
+let audioCtx = null;
+function getAudioCtx() {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    return audioCtx;
+  } catch (_) { return null; }
+}
+async function unlockAudio() {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state === 'suspended') await ctx.resume();
+    if (ctx) {
+      // Tiny silent buffer to fully unlock on iOS/Android
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf; src.connect(ctx.destination); src.start(0);
+    }
+  } catch (_) {}
+  try {
+    // Prime speech synthesis within the user gesture (silent utterance)
+    if ('speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    }
+  } catch (_) {}
+}
+
+// Soft ascending chime: C5 E5 G5 C6 with a gentle sine+triangle blend, ~1.3s.
+function playChime(volume = 1) {
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const now = ctx.currentTime + 0.03;
+    const master = ctx.createGain();
+    master.gain.value = 0.22 * volume;
+    // Light low-pass to keep it warm
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 3200;
+    master.connect(lp); lp.connect(ctx.destination);
+    const notes = [
+      { f: 523.25, t: 0.00, d: 0.55 },  // C5
+      { f: 659.25, t: 0.16, d: 0.55 },  // E5
+      { f: 783.99, t: 0.32, d: 0.60 },  // G5
+      { f: 1046.5, t: 0.50, d: 0.85 },  // C6
+    ];
+    notes.forEach(({ f, t, d }) => {
+      [['sine', 1.0, 1], ['triangle', 0.35, 2]].forEach(([type, amp, mult]) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = f * mult;
+        const start = now + t, end = start + d;
+        g.gain.setValueAtTime(0.0001, start);
+        g.gain.exponentialRampToValueAtTime(amp * (mult === 1 ? 1 : 0.25), start + 0.025);
+        g.gain.exponentialRampToValueAtTime(0.0001, end);
+        osc.connect(g); g.connect(master);
+        osc.start(start); osc.stop(end + 0.05);
+      });
+    });
+  } catch (_) {}
+}
+
+let cachedVoice = null;
+function pickVoice() {
+  try {
+    if (!('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    const en = voices.filter((v) => /^en([-_]|$)/i.test(v.lang));
+    if (!en.length) return null;
+    const prefer = [/natural/i, /neural/i, /samantha/i, /google us english/i, /female/i, /aria|jenny|zira/i, /google/i];
+    for (const re of prefer) {
+      const v = en.find((x) => re.test(x.name));
+      if (v) return v;
+    }
+    return en.find((v) => /en[-_]US/i.test(v.lang)) || en[0];
+  } catch (_) { return null; }
+}
+try {
+  if ('speechSynthesis' in window) {
+    cachedVoice = pickVoice();
+    window.speechSynthesis.onvoiceschanged = () => { cachedVoice = pickVoice(); };
+  }
+} catch (_) {}
+
+function speakNewFollower() {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance('new facebook follower added');
+    u.lang = 'en-US';
+    const v = cachedVoice || pickVoice();
+    if (v) u.voice = v;
+    u.rate = 0.95; u.pitch = 1.05; u.volume = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  } catch (_) {}
+}
+
+function alertNewFollower(cur, delta) {
+  const body = delta > 1
+    ? `+${delta} new followers · Lifeis Short is now at ${cur} followers`
+    : `Lifeis Short is now at ${cur} followers`;
+  notify(delta > 1 ? 'New Facebook followers' : 'New Facebook follower', body, 'ls-new-follower');
+  if (soundOn()) {
+    playChime();
+    setTimeout(speakNewFollower, 700);
+  }
+}
+
+function updateAlertButtons() {
+  const granted = notifGranted();
+  $('btnNotify').textContent = granted ? 'Alerts on ✓' : 'Enable alerts';
+  $('btnSound').textContent = soundOn() ? 'Sound: on 🔔' : 'Sound: off';
+}
 
 let latest = null;
 let refreshIn = 20;
@@ -212,6 +355,11 @@ function render(s) {
   const hit = cur != null && cur >= target;
   $('celebrate').classList.toggle('on', hit);
   $('hitMsg').textContent = hit ? `${cur} followers · target ${target}` : '';
+  if (cur != null && Number.isFinite(cur)) {
+    const prev = store.getLastFollowers();
+    if (prev != null && cur > prev) alertNewFollower(cur, cur - prev);
+    store.setLastFollowers(cur);
+  }
   if (hit && store.getNotifiedFor() !== target) {
     notify(`Lifeis Short hit ${target}!`, `Now at ${cur} followers.`);
     store.setNotifiedFor(target);
@@ -242,9 +390,22 @@ async function refresh() {
   }
 }
 
-function notify(title, body) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  try { new Notification(title, { body, icon: 'icon-192.png' }); } catch (_) {}
+function notify(title, body, tag) {
+  if (!notifGranted()) return;
+  const opts = { body, icon: 'icon-192.png', badge: 'icon-192.png' };
+  if (tag) { opts.tag = tag; opts.renotify = true; }
+  const fallback = () => { try { new Notification(title, opts); } catch (_) {} };
+  try {
+    // Android Chrome requires showing notifications via the service worker
+    if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistration) {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg && reg.showNotification) reg.showNotification(title, opts).catch(fallback);
+        else fallback();
+      }).catch(fallback);
+      return;
+    }
+  } catch (_) {}
+  fallback();
 }
 
 $('btnRefresh').onclick = () => refresh();
@@ -264,10 +425,33 @@ $('btnReset').onclick = () => {
   }
 };
 $('btnNotify').onclick = async () => {
-  if (!('Notification' in window)) { alert('Notifications not supported'); return; }
-  const p = await Notification.requestPermission();
-  alert(p === 'granted' ? 'Alerts enabled' : 'Alerts not enabled');
+  // Unlock audio + speech synchronously inside the user gesture
+  unlockAudio();
+  store.setSoundOn(true);
+  let p = 'denied';
+  if ('Notification' in window) {
+    try { p = await Notification.requestPermission(); } catch (_) {}
+  }
+  playChime(0.6); // short test chime so the user knows sound works
+  updateAlertButtons();
+  if (!('Notification' in window)) alert('Notifications not supported here — sound alerts are on.');
+  else if (p !== 'granted') alert('Notifications not enabled — sound alerts are still on while the app is open.');
 };
+$('btnSound').onclick = () => {
+  const on = !soundOn();
+  store.setSoundOn(on);
+  if (on) { unlockAudio(); playChime(0.6); }
+  updateAlertButtons();
+};
+// Unlock audio on the first interaction anywhere (covers users who granted notifications earlier)
+const firstGesture = () => {
+  unlockAudio();
+  document.removeEventListener('pointerdown', firstGesture, true);
+  document.removeEventListener('keydown', firstGesture, true);
+};
+document.addEventListener('pointerdown', firstGesture, true);
+document.addEventListener('keydown', firstGesture, true);
+updateAlertButtons();
 
 $('token').value = store.getToken();
 $('btnSync').onclick = async () => {
