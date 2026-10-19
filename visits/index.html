@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2e7d32">
+<title>Krissty visits</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--g:#1f5e1f;--g2:#2e7d32;--g3:#43a047;--mint:#e8f5e9;--grey:#f4f5f4;--ink:#17201a;--mut:#5b675e;--r:20px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--grey);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior-y:contain}
+a{color:var(--g2)}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid #e3e8e4}
+header img{width:30px;height:30px}
+header h1{font:800 19px system-ui,sans-serif;color:var(--g);margin:0;flex:1}
+.lang{display:flex;border:2px solid var(--g2);border-radius:999px;overflow:hidden}
+.lang button{border:0;background:#fff;color:var(--g);font:700 13px system-ui,sans-serif;padding:5px 10px;cursor:pointer}
+.lang button[aria-pressed=true]{background:var(--g2);color:#fff}
+main{max-width:560px;margin:0 auto;padding:14px 14px 40px}
+#ptr{height:0;overflow:hidden;text-align:center;color:var(--g2);font:600 13px system-ui;transition:height .2s}
+.hero{background:radial-gradient(500px 260px at 85% -20%,#d7efd9 0,transparent 70%),linear-gradient(160deg,#2e7d32,#1f5e1f);color:#fff;border-radius:var(--r);padding:18px 18px 16px;box-shadow:0 10px 26px rgba(31,94,31,.28);position:relative;overflow:hidden}
+.hero .lbl{font:600 14px system-ui;opacity:.9;text-transform:uppercase;letter-spacing:.06em}
+.hero .num{font:800 clamp(72px,24vw,110px)/1 system-ui,sans-serif;letter-spacing:-2px;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.hero .num.bump{animation:bump .9s}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.12);color:#c8f7c5}100%{transform:scale(1)}}
+.hero .clover{position:absolute;right:-18px;bottom:-22px;width:130px;opacity:.16;filter:brightness(0) invert(1)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.card{background:#fff;border-radius:var(--r);padding:14px 16px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.card .lbl{font:600 12.5px system-ui;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.card .v{font:800 40px/1.1 system-ui,sans-serif;color:var(--g);font-variant-numeric:tabular-nums;margin-top:4px}
+.card .s{font-size:13px;color:var(--mut)}
+.pos{color:var(--g3)!important}
+.status{display:flex;align-items:center;gap:10px;margin:14px 2px 0;font-size:14px;color:var(--mut)}
+.dot{width:10px;height:10px;border-radius:50%;background:#bbb;flex:none}
+.dot.ok{background:var(--g3);box-shadow:0 0 0 4px rgba(67,160,71,.18)}
+.dot.err{background:#d32f2f}
+.status span{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--g2);color:#fff;text-decoration:none;font:700 15px system-ui,sans-serif;padding:11px 18px;border-radius:999px;border:0;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--g);border:2px solid var(--g2)}
+.btn.sm{padding:7px 14px;font-size:14px}
+.btn:active{transform:scale(.97)}
+h2{font:800 17px system-ui;color:var(--g);margin:0}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.seg{display:flex;background:var(--mint);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--g);font:700 13px system-ui;padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--g2);color:#fff}
+#chart{width:100%;height:190px;display:block}
+.chart-note{font-size:12px;color:var(--mut);margin-top:4px}
+.toggles{display:grid;gap:2px}
+.tg{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef1ee;font-size:15px}
+.tg:last-child{border-bottom:0}
+.sw{position:relative;width:50px;height:30px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#cfd8d0;border-radius:999px;transition:.2s}
+.sw i:before{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw input:checked+i{background:var(--g2)}
+.sw input:checked+i:before{transform:translateX(20px)}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.links .btn{flex:1 1 150px}
+.mt{margin-top:12px}
+footer{font-size:12px;color:var(--mut);text-align:center;margin-top:18px}
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(120px);background:var(--g);color:#fff;padding:12px 18px;border-radius:999px;font:700 15px system-ui;box-shadow:0 8px 22px rgba(0,0,0,.25);transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;z-index:9;white-space:nowrap}
+#toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <img src="clover.svg" alt="">
+  <h1>Krissty visits</h1>
+  <div class="lang" role="group" aria-label="Language">
+    <button data-l="lt" aria-pressed="true">LT</button><button data-l="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<div id="ptr" data-t="ptr"></div>
+<main>
+  <section class="hero">
+    <div class="lbl" data-t="visits">Apsilankymai</div>
+    <div class="num" id="visits">–</div>
+    <div style="font-size:14px;opacity:.9" data-t="site">krissty svetainė</div>
+    <img class="clover" src="clover.svg" alt="">
+  </section>
+  <div class="row">
+    <div class="card"><div class="lbl" data-t="qr">QR skenavimai</div><div class="v" id="qr">–</div><div class="s" id="qrToday"></div></div>
+    <div class="card"><div class="lbl" data-t="today">Šiandien</div><div class="v" id="today">–</div><div class="s" data-t="newVisits">nauji apsilankymai</div></div>
+  </div>
+  <div class="row">
+    <div class="card" style="grid-column:1/-1"><div class="lbl" data-t="sinceOpen">Nuo paskutinio atidarymo</div><div class="v" id="since">–</div><div class="s" id="sinceWhen"></div></div>
+  </div>
+  <div class="status"><div class="dot" id="dot"></div><span id="updated">…</span><button class="btn sm" id="refresh" data-t="refresh">Atnaujinti</button></div>
+
+  <section class="card mt">
+    <div class="chart-head"><h2 data-t="chart">Apsilankymai</h2>
+      <div class="seg" role="group"><button data-r="h" aria-pressed="true" data-t="hours">24 val.</button><button data-r="d" aria-pressed="false" data-t="days">30 d.</button></div>
+    </div>
+    <svg id="chart" viewBox="0 0 360 190" preserveAspectRatio="none" role="img" aria-label="chart"></svg>
+    <div class="chart-note" id="chartNote"></div>
+  </section>
+
+  <section class="card mt toggles">
+    <div class="tg"><span data-t="sound">Garsas naujam apsilankymui</span><label class="sw"><input type="checkbox" id="optSound"><i></i></label></div>
+    <div class="tg"><span data-t="voice">Balsu: „naujas apsilankymas“</span><label class="sw"><input type="checkbox" id="optVoice"><i></i></label></div>
+    <div class="tg"><span id="notifLbl" data-t="notif">Pranešimai</span><button class="btn sm ghost" id="notifBtn" data-t="enable">Įjungti</button></div>
+    <div class="tg"><span data-t="test">Išbandyti garsą</span><button class="btn sm ghost" id="testBtn">▶</button></div>
+  </section>
+
+  <div class="links">
+    <a class="btn" href="https://sauliusramanauskas-commits.github.io/krissty/" target="_blank" rel="noopener" data-t="openSite">🍀 Krissty svetainė</a>
+    <a class="btn ghost" href="../app/" data-t="openFollowers">👥 Sekėjų programėlė</a>
+  </div>
+  <footer data-t="foot">Tik skaitymas – šis sekiklis neprideda apsilankymų.</footer>
+</main>
+<div id="toast"></div>
+<script>
+(function(){
+'use strict';
+var NS='krissty-lifeis-short', API='https://abacus.jasoncameron.dev/get/'+NS+'/'; // READ endpoints only, never /hit
+var POLL_MS=20000, TZ='Europe/Berlin';
+var LS={hist:'kv-hist',seen:'kv-lastSeen',opts:'kv-opts',lang:'kv-lang'};
+var T={
+ lt:{visits:'Apsilankymai',site:'krissty svetainė',qr:'QR skenavimai',today:'Šiandien',newVisits:'nauji apsilankymai',sinceOpen:'Nuo paskutinio atidarymo',
+  refresh:'Atnaujinti',chart:'Apsilankymai',hours:'24 val.',days:'30 d.',sound:'Garsas naujam apsilankymui',voice:'Balsu: „naujas apsilankymas“',
+  notif:'Pranešimai',enable:'Įjungti',enabled:'Įjungta ✓',blocked:'Užblokuota',unsupported:'Nepalaikoma',test:'Išbandyti garsą',openSite:'🍀 Krissty svetainė',openFollowers:'👥 Sekėjų programėlė',
+  foot:'Tik skaitymas – šis sekiklis neprideda apsilankymų.',updated:'atnaujinta',error:'nepavyko atnaujinti',loading:'kraunama…',ptr:'↓ Atleiskite, kad atnaujintumėte',
+  qrToday:'šiandien',firstOpen:'pirmas atidarymas',last:'paskutinį kartą',perHour:'Apsilankymai per valandą (paskutinės 24 val.)',perDay:'Apsilankymai per dieną (paskutinės 30 d.)',
+  noData:'Dar nėra istorijos – duomenys kaupiasi.',speak:'Naujas apsilankymas Krissty svetainėje',newVisit:'Naujas apsilankymas! 🍀',newQr:'Naujas QR skenavimas! 🍀',total:'Iš viso',approx:'nuo pirmo įrašo šiandien'},
+ en:{visits:'Site visits',site:'krissty site',qr:'QR scans',today:'Today',newVisits:'new visits',sinceOpen:'Since last open',
+  refresh:'Refresh',chart:'Visits',hours:'24 h',days:'30 d',sound:'Chime on new visit',voice:'Speak “new visit”',
+  notif:'Notifications',enable:'Enable',enabled:'Enabled ✓',blocked:'Blocked',unsupported:'Unsupported',test:'Test sound',openSite:'🍀 Krissty site',openFollowers:'👥 Follower app',
+  foot:'Read-only – this tracker never adds visits.',updated:'updated',error:'update failed',loading:'loading…',ptr:'↓ Release to refresh',
+  qrToday:'today',firstOpen:'first open',last:'last time',perHour:'Visits per hour (last 24 h)',perDay:'Visits per day (last 30 days)',
+  noData:'No history yet – collecting data.',speak:'New visit on Krissty site',newVisit:'New visit! 🍀',newQr:'New QR scan! 🍀',total:'Total',approx:'since first sample today'}
+};
+function jget(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
+function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var lang=jget(LS.lang,(navigator.language||'').slice(0,2)==='lt'?'lt':'en');
+var opts=jget(LS.opts,{sound:true,voice:false});
+var hist=jget(LS.hist,[]);           // [{ts,v,q}] local samples
+var server=[];                        // [{ts,v,q}] from history.json (box-side log)
+var range='h';
+var cur=null, prevSeen=jget(LS.seen,null), sessionBase=prevSeen; // baseline for "since last open"
+var $=function(id){return document.getElementById(id)};
+function t(k){return (T[lang]&&T[lang][k])||T.en[k]||k}
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-t]').forEach(function(el){el.textContent=t(el.getAttribute('data-t'))});
+  document.querySelectorAll('.lang button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.l===lang)});
+  notifUI();render();
+}
+document.querySelectorAll('.lang button').forEach(function(b){b.onclick=function(){lang=b.dataset.l;jset(LS.lang,lang);applyLang()}});
+
+// ---- time helpers (Europe/Berlin) ----
+var fmtParts=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'});
+function parts(ts){var o={};fmtParts.formatToParts(new Date(ts)).forEach(function(p){o[p.type]=p.value});return o}
+function dayKey(ts){var p=parts(ts);return p.year+'-'+p.month+'-'+p.day}
+function hourKey(ts){var p=parts(ts);return p.year+'-'+p.month+'-'+p.day+' '+p.hour}
+function hms(ts){return new Date(ts).toLocaleTimeString('en-GB',{timeZone:TZ,hour12:false})}
+function shortDT(ts){return new Date(ts).toLocaleString(lang==='lt'?'lt-LT':'en-GB',{timeZone:TZ,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}
+
+// ---- data ----
+function fetchKey(k){
+  return fetch(API+k+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
+    .then(function(j){return typeof j.value==='number'?j.value:0});
+}
+function loadServer(){
+  return fetch('history.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){
+    if(j&&Array.isArray(j.samples))server=j.samples.map(function(s){return{ts:Date.parse(s.ts),v:+s.visits,q:+s.qr}}).filter(function(s){return s.ts&&s.v>=0});
+    render();
+  }).catch(function(){});
+}
+function merged(){
+  var all=server.concat(hist).slice().sort(function(a,b){return a.ts-b.ts});
+  if(cur)all.push(cur);
+  return all;
+}
+function addSample(s){
+  var last=hist[hist.length-1];
+  // keep every change; for unchanged values keep at most one sample per 10 min
+  if(last&&last.v===s.v&&last.q===s.q&&s.ts-last.ts<600000){hist[hist.length-1]=last;}
+  else hist.push(s);
+  var cutoff=Date.now()-35*864e5;
+  while(hist.length&&hist[0].ts<cutoff)hist.shift();
+  if(hist.length>4000)hist=hist.slice(-4000);
+  jset(LS.hist,hist);
+}
+var busy=false, first=true;
+function poll(manual){
+  if(busy)return; busy=true;
+  if(manual)$('updated').textContent=t('loading');
+  Promise.all([fetchKey('visits'),fetchKey('qr-scans')]).then(function(r){
+    var s={ts:Date.now(),v:r[0],q:r[1]};
+    var old=cur; cur=s;
+    if(!old&&prevSeen==null){sessionBase=s}
+    if(old&&(s.v>old.v||s.q>old.q))celebrate(s.v-old.v,s.q-old.q,s);
+    addSample(s); jset(LS.seen,s);
+    $('dot').className='dot ok'; lastOk=s.ts; first=false;
+    render();
+  }).catch(function(){
+    $('dot').className='dot err';
+    $('updated').textContent=t('error')+(lastOk?' · '+t('updated')+' '+hms(lastOk):'');
+  }).then(function(){busy=false});
+}
+var lastOk=0;
+
+// ---- rendering ----
+function valueBefore(all,ts,field){var v=null;for(var i=0;i<all.length&&all[i].ts<ts;i++)v=all[i][field];return v}
+function render(){
+  var all=merged();
+  if(cur){
+    var vEl=$('visits'), old=vEl.textContent;
+    vEl.textContent=cur.v; $('qr').textContent=cur.q;
+    if(old!=='–'&&old!==String(cur.v)){vEl.classList.remove('bump');void vEl.offsetWidth;vEl.classList.add('bump')}
+    // today: current minus last value seen before Berlin midnight
+    var tk=dayKey(cur.ts), bv=null,bq=null, firstToday=null;
+    for(var i=0;i<all.length;i++){var k=dayKey(all[i].ts);if(k<tk){bv=all[i].v;bq=all[i].q}else if(k===tk&&!firstToday)firstToday=all[i]}
+    var approx=false; if(bv==null&&firstToday){bv=firstToday.v;bq=firstToday.q;approx=true}
+    var dv=bv==null?0:cur.v-bv, dq=bq==null?0:cur.q-bq;
+    $('today').textContent=(dv>0?'+':'')+dv; $('today').classList.toggle('pos',dv>0);
+    $('qrToday').textContent=(dq>0?'+':'')+dq+' '+t('qrToday');
+    var base=sessionBase||cur, ds=cur.v-base.v, dsq=cur.q-base.q;
+    $('since').textContent=(ds>0?'+':'')+ds+(dsq?'  ·  QR '+(dsq>0?'+':'')+dsq:'');
+    $('since').classList.toggle('pos',ds>0);
+    $('sinceWhen').textContent=prevSeen?t('last')+': '+shortDT(prevSeen.ts)+' ('+prevSeen.v+')':t('firstOpen');
+    $('updated').textContent=t('updated')+' '+hms(cur.ts)+' (Berlin)';
+  }
+  drawChart(all);
+}
+function drawChart(all){
+  var svg=$('chart'), W=360,H=190,padL=26,padB=22,padT=12, n, keys=[], labels=[];
+  var now=Date.now(), keyFn=range==='h'?hourKey:dayKey;
+  if(range==='h'){for(var i=23;i>=0;i--){var ts=now-i*36e5;keys.push(hourKey(ts));labels.push(parts(ts).hour)}}
+  else{var seen={};for(var j=29;j>=0;j--){var ts2=now-j*864e5,k2=dayKey(ts2);if(!seen[k2]){seen[k2]=1;keys.push(k2);labels.push(k2.slice(8))}}}
+  n=keys.length;
+  // last (max) cumulative value per bucket, deltas vs previous known value
+  var maxBy={};all.forEach(function(s){var k=keyFn(s.ts);if(maxBy[k]==null||s.v>maxBy[k])maxBy[k]=s.v});
+  var prev=valueBefore(all.filter(function(s){return keyFn(s.ts)<keys[0]}),Infinity,'v');
+  var vals=keys.map(function(k){var m=maxBy[k];if(m==null)return 0;var d=prev==null?0:Math.max(0,m-prev);prev=m;return d});
+  var has=all.length>1, mx=Math.max(1,Math.max.apply(null,vals)), step=mx<=4?1:Math.ceil(mx/4);
+  mx=Math.ceil(mx/step)*step;
+  var cw=(W-padL-4)/n, bw=Math.max(2,cw*0.7), h=H-padB-padT, o='';
+  for(var g=0;g<=mx;g+=step){var y=padT+h-h*g/mx;o+='<line x1="'+padL+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="#e3e8e4" stroke-width="1"/><text x="'+(padL-5)+'" y="'+(y+3.5)+'" font-size="10" text-anchor="end" fill="#5b675e">'+g+'</text>'}
+  vals.forEach(function(v,i){
+    var x=padL+i*cw+(cw-bw)/2, bh=h*v/mx, y=padT+h-bh, last=i===n-1;
+    o+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(v?2:0,bh).toFixed(1)+'" rx="2" fill="'+(last?'#43a047':'#2e7d32')+'"><title>'+keys[i]+': +'+v+'</title></rect>';
+    if(v)o+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-3).toFixed(1)+'" font-size="9" text-anchor="middle" fill="#1f5e1f" font-weight="700">'+v+'</text>';
+    var every=range==='h'?3:5;
+    if((n-1-i)%every===0)o+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-6)+'" font-size="10" text-anchor="middle" fill="#5b675e">'+labels[i]+'</text>';
+  });
+  svg.innerHTML=o;
+  var total=vals.reduce(function(a,b){return a+b},0);
+  $('chartNote').textContent=has?(t(range==='h'?'perHour':'perDay')+' · '+t('total')+' +'+total):t('noData');
+}
+document.querySelectorAll('.seg button').forEach(function(b){b.onclick=function(){range=b.dataset.r;document.querySelectorAll('.seg button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});render()}});
+
+// ---- sound / voice / notifications ----
+var ac=null;
+function audio(){if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C()}if(ac&&ac.state==='suspended')ac.resume();return ac}
+['touchstart','pointerdown','keydown'].forEach(function(ev){window.addEventListener(ev,function(){audio()},{once:true,passive:true})});
+function chime(){
+  // soft "clover bell": rising perfect fifth G5→D6 with a sparkle on top (distinct from the follower-app melody)
+  var c=audio();if(!c)return;var t0=c.currentTime+0.02;
+  var out=c.createGain();out.gain.value=0.55;out.connect(c.destination);
+  [[783.99,0,0.9],[1174.66,0.14,1.2],[2349.32,0.14,0.5]].forEach(function(n,i){
+    var o=c.createOscillator(),g=c.createGain();o.type=i===2?'triangle':'sine';o.frequency.value=n[0];
+    g.gain.setValueAtTime(0.0001,t0+n[1]);g.gain.exponentialRampToValueAtTime(i===2?0.12:0.5,t0+n[1]+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+n[1]+n[2]);o.connect(g);g.connect(out);o.start(t0+n[1]);o.stop(t0+n[1]+n[2]+0.05);
+  });
+}
+function speak(){
+  if(!('speechSynthesis' in window))return;
+  try{var u=new SpeechSynthesisUtterance(t('speak'));u.lang=lang==='lt'?'lt-LT':'en-US';u.rate=1;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
+}
+var toastT;
+function toast(msg){var el=$('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('on')},3500)}
+function celebrate(dv,dq,s){
+  var msg=dv>0?t('newVisit')+(dv>1?' (+'+dv+')':''):t('newQr');
+  toast(msg);
+  if(opts.sound)chime();
+  if(opts.voice)setTimeout(speak,opts.sound?900:0);
+  if('Notification' in window&&Notification.permission==='granted'){
+    var body=t('visits')+': '+s.v+' · QR: '+s.q;
+    var o={body:body,icon:'icon-192.png',badge:'icon-192.png',tag:'krissty-visit',renotify:true,silent:true};
+    if(navigator.serviceWorker&&navigator.serviceWorker.ready)navigator.serviceWorker.ready.then(function(r){r.showNotification('Krissty: '+msg,o)}).catch(function(){});
+    else try{new Notification('Krissty: '+msg,o)}catch(e){}
+  }
+  if(navigator.vibrate)try{navigator.vibrate([60,40,60])}catch(e){}
+}
+$('optSound').checked=!!opts.sound;$('optVoice').checked=!!opts.voice;
+$('optSound').onchange=function(){opts.sound=this.checked;jset(LS.opts,opts);if(opts.sound)chime()};
+$('optVoice').onchange=function(){opts.voice=this.checked;jset(LS.opts,opts);if(opts.voice)speak()};
+$('testBtn').onclick=function(){if(opts.sound||!opts.voice)chime();if(opts.voice)setTimeout(speak,700)};
+function notifUI(){
+  var b=$('notifBtn');
+  if(!('Notification' in window)){b.textContent=t('unsupported');b.disabled=true;return}
+  var p=Notification.permission;b.textContent=p==='granted'?t('enabled'):p==='denied'?t('blocked'):t('enable');b.disabled=p!=='default';
+}
+$('notifBtn').onclick=function(){if('Notification' in window)Notification.requestPermission().then(notifUI)};
+
+// ---- refresh: button, pull-to-refresh, visibility ----
+$('refresh').onclick=function(){poll(true);loadServer()};
+var y0=null,pulled=0,ptr=$('ptr');
+window.addEventListener('touchstart',function(e){y0=window.scrollY<=0?e.touches[0].clientY:null;pulled=0},{passive:true});
+window.addEventListener('touchmove',function(e){if(y0==null)return;pulled=e.touches[0].clientY-y0;if(pulled>10){ptr.style.height=Math.min(56,pulled/2.2)+'px';ptr.style.lineHeight=Math.min(56,pulled/2.2)+'px';ptr.textContent=t('ptr')}},{passive:true});
+window.addEventListener('touchend',function(){if(y0!=null&&pulled>110){poll(true);loadServer()}ptr.style.height='0';y0=null;pulled=0},{passive:true});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){poll();loadServer()}});
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+applyLang();
+poll();loadServer();
+setInterval(function(){if(!document.hidden)poll()},POLL_MS);
+setInterval(loadServer,10*60000);
+setInterval(render,60000);
+})();
+</script>
+</body>
+</html>
