@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#07080d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Lifeis Short · Followers</title>
+<title>Follower watch</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -75,14 +75,37 @@
   .install.show{display:block}
   details{margin-top:8px}
   summary{cursor:pointer;color:var(--mut);font-size:13px}
+  input[type=url]{width:100%;background:#0c0e16;border:1px solid var(--line);color:var(--txt);
+    border-radius:12px;padding:12px 14px;outline:none}
+  select{width:100%;background:#0c0e16;border:1px solid var(--line);color:var(--txt);
+    border-radius:12px;padding:12px 14px;outline:none;font:inherit}
+  .lblrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .lblrow label{margin:0}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;
+    border:1px solid var(--line);color:var(--ok);background:rgba(34,211,166,.08)}
+  .badge.local{color:var(--warn);background:rgba(251,191,36,.08)}
+  .stat .badge{font-size:9px;padding:2px 6px;margin-left:6px;vertical-align:middle}
+  .field{margin-top:12px}
+  .acct{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .acct .nm{font-size:18px;font-weight:700}
+  .acct .id{font-size:11px;color:var(--mut);margin-top:2px;word-break:break-all}
+  .pending{margin-top:10px;font-size:12px;color:var(--warn)}
+  .err{color:#f87171}
+  #toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:#1f2333;border:1px solid #3a4060;color:var(--txt);padding:12px 16px;border-radius:14px;font-size:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+    max-width:calc(100% - 32px);text-align:center;z-index:50}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  @keyframes flash{0%{box-shadow:0 0 0 0 rgba(124,77,255,.7)}100%{box-shadow:0 0 0 14px transparent}}
+  .flash{animation:flash .7s ease-out}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
-    <div class="avatar">LS</div>
+    <div class="avatar" id="avatar">LS</div>
     <div>
-      <h1>Lifeis Short</h1>
+      <h1 id="pname">Lifeis Short</h1>
       <div class="sub">Follower monitor</div>
     </div>
   </div>
@@ -106,7 +129,7 @@
 <section class="card">
   <div class="grid">
     <div class="stat"><div class="s">Remaining</div><div class="v" id="rem">—</div></div>
-    <div class="stat"><div class="s">Milestone</div><div class="v" id="msShow">—</div></div>
+    <div class="stat"><div class="s">Milestone<span class="badge" id="msShowBadge">Dashboard</span></div><div class="v" id="msShow">—</div></div>
     <div class="stat"><div class="s">Last check</div><div class="v" id="checked" style="font-size:14px">—</div></div>
     <div class="stat"><div class="s">Refresh</div><div class="v" id="tick" style="font-size:14px">20s</div></div>
   </div>
@@ -118,14 +141,51 @@
   <p class="muted">New follower → short chime + voice “new facebook follower added”. Keep the app open (or recently used) on your phone for sound; notifications can still arrive while it’s in the background on some Android builds.</p>
 </section>
 
-<section class="card">
-  <label for="milestone">Milestone target</label>
+<section class="card" id="msCard">
+  <div class="lblrow"><label for="milestone">Milestone target</label><span class="badge" id="msBadge">Dashboard</span></div>
   <input id="milestone" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 666">
   <div class="actions">
     <button type="button" id="btnSave">Save milestone</button>
     <button type="button" class="secondary" id="btnReset">Use dashboard</button>
   </div>
-  <p class="muted">Saved on this phone. Progress and alerts use your milestone. Tap “Use dashboard” to follow the shared target from the website again.</p>
+  <p class="muted" id="msHint">Saved on this phone. Progress and alerts use your milestone. Tap “Use dashboard” to follow the shared target from the website again.</p>
+</section>
+
+<section class="card" id="acctCard">
+  <div class="label">Tracked account</div>
+  <div class="acct" style="margin-top:10px">
+    <div>
+      <div class="nm" id="acctName">—</div>
+      <div class="id" id="acctId"></div>
+    </div>
+    <a class="pill" id="acctLink" href="#" target="_blank" rel="noopener">Open ↗</a>
+  </div>
+  <div class="pending" id="acctPending" hidden></div>
+
+  <div id="savedWrap" class="field" hidden>
+    <label for="savedSel">Saved accounts</label>
+    <select id="savedSel"></select>
+    <div class="actions"><button type="button" class="secondary" id="btnActivate">Track selected</button></div>
+  </div>
+
+  <details id="acctForm" style="margin-top:14px">
+    <summary>Track a different Facebook account</summary>
+    <div class="field">
+      <label for="newName">Account name</label>
+      <input id="newName" type="text" autocomplete="off" placeholder="e.g. My Page">
+    </div>
+    <div class="field">
+      <label for="newUrl">Facebook profile URL</label>
+      <input id="newUrl" type="url" autocomplete="off" inputmode="url" placeholder="https://www.facebook.com/…">
+    </div>
+    <div class="field">
+      <label for="newTarget">Milestone target</label>
+      <input id="newTarget" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 1000">
+    </div>
+    <div class="actions"><button type="button" id="btnTrack">Track this account</button></div>
+  </details>
+  <p class="muted" id="acctMsg"></p>
+  <p class="muted">Changes are saved to the shared config with your GitHub token (under Advanced below) and take effect on the watcher’s next check, within about 5 minutes. The first reading of a new account becomes its baseline.</p>
 </section>
 
 <section class="card install" id="installCard">
@@ -136,11 +196,11 @@
 </section>
 
 <section class="card">
-  <details>
-    <summary>Advanced · sync milestone to shared dashboard</summary>
-    <p class="muted">Optional. Paste a GitHub personal access token with <code>repo</code> (or Contents write) on <code>lifeis-short-follower-watch</code>. This updates <code>targetFollowers</code> for the public page and the watch bot.</p>
+  <details id="advanced">
+    <summary>Advanced · GitHub token &amp; dashboard sync</summary>
+    <p class="muted">Paste a GitHub token with Contents read/write on <code>lifeis-short-follower-watch</code> (fine-grained) or <code>repo</code> (classic). It stays on this phone and is used to change the tracked account and the shared milestone (<code>docs/config.json</code>), which the watch bot reads before every check.</p>
     <label for="token">GitHub token</label>
-    <input id="token" type="password" autocomplete="off" placeholder="ghp_…">
+    <input id="token" type="password" autocomplete="off" placeholder="ghp_… / github_pat_…">
     <div class="actions">
       <button type="button" id="btnSync">Sync milestone to dashboard</button>
     </div>
@@ -148,36 +208,63 @@
   </details>
   <p class="muted" style="margin-top:14px">
     Profile: <a id="fbLink" href="https://www.facebook.com/people/Lifeis-Short/100013159621667/" target="_blank" rel="noopener">Open Facebook</a>
-    · <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/sauliusramanauskas-commits/lifeis-short-follower-watch/main/docs/index.html" target="_blank" rel="noopener">Web dashboard</a>
+    · <a href="https://sauliusramanauskas-commits.github.io/lifeis-short-follower-watch/" target="_blank" rel="noopener">Web dashboard</a>
   </p>
 </section>
 
+<div id="toast" role="status" aria-live="polite"></div>
+
 <script>
 const REPO = 'sauliusramanauskas-commits/lifeis-short-follower-watch';
-const STATUS_URL = `https://api.github.com/repos/${REPO}/contents/docs/status.json?ref=main`;
-const STATE_PATH = 'state.json';
+const PAGES = 'https://sauliusramanauskas-commits.github.io/lifeis-short-follower-watch/';
+const API = `https://api.github.com/repos/${REPO}/contents/`;
+const CONFIG_PATH = 'docs/config.json';
+const LEGACY_ID = 'lifeis-short';
 const $ = (id) => document.getElementById(id);
+
+// ---------- storage (per-profile keys; legacy un-keyed values belong to Lifeis Short) ----------
+function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
+function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (_) {} }
+function perProfile(base, pid) {
+  const key = base + ':' + pid;
+  const v = lsGet(key);
+  if (v == null && pid === LEGACY_ID) {
+    const old = lsGet(base); // migrate pre-v3 value
+    if (old != null) { lsSet(key, old); lsSet(base, null); return old; }
+  }
+  return v;
+}
+const numOrNull = (v) => { if (v == null || v === '') return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
 const store = {
-  getMilestone() {
-    const v = localStorage.getItem('ls_milestone');
-    return v ? Number(v) : null;
-  },
-  setMilestone(n) { localStorage.setItem('ls_milestone', String(n)); },
-  clearMilestone() { localStorage.removeItem('ls_milestone'); },
-  getToken() { return localStorage.getItem('ls_gh_token') || ''; },
-  setToken(t) { if (t) localStorage.setItem('ls_gh_token', t); else localStorage.removeItem('ls_gh_token'); },
-  getNotifiedFor() { return Number(localStorage.getItem('ls_notified_for') || 0); },
-  setNotifiedFor(n) { localStorage.setItem('ls_notified_for', String(n)); },
-  getLastFollowers() {
-    const v = localStorage.getItem('ls_last_followers');
-    if (v == null || v === '') return null;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  },
-  setLastFollowers(n) { localStorage.setItem('ls_last_followers', String(n)); },
-  getSoundPref() { return localStorage.getItem('ls_sound_on'); }, // '1' | '0' | null
-  setSoundOn(on) { localStorage.setItem('ls_sound_on', on ? '1' : '0'); },
+  getMilestone(pid) { const n = numOrNull(perProfile('ls_milestone', pid)); return n && n > 0 ? n : null; },
+  setMilestone(pid, n) { lsSet('ls_milestone:' + pid, n); },
+  clearMilestone(pid) { lsSet('ls_milestone:' + pid, null); lsSet('ls_milestone', null); },
+  getToken() { return lsGet('ls_gh_token') || ''; },
+  setToken(t) { lsSet('ls_gh_token', t || null); },
+  getNotifiedFor(pid) { return Number(perProfile('ls_notified_for', pid) || 0); },
+  setNotifiedFor(pid, n) { lsSet('ls_notified_for:' + pid, n); },
+  getLastFollowers(pid) { return numOrNull(perProfile('ls_last_followers', pid)); },
+  setLastFollowers(pid, n) { lsSet('ls_last_followers:' + pid, n); },
+  getLastProfile() { return lsGet('ls_last_profile'); },
+  setLastProfile(pid) { lsSet('ls_last_profile', pid); },
+  getSoundPref() { return lsGet('ls_sound_on'); }, // '1' | '0' | null
+  setSoundOn(on) { lsSet('ls_sound_on', on ? '1' : '0'); },
 };
+
+let toastTimer = null;
+function toast(msg, ms = 3200) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), ms);
+}
+function flash(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function initials(name) {
+  const w = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return ((w[0] || '?')[0] + (w[1] ? w[1][0] : (w[0] || '')[1] || '')).toUpperCase();
+}
 
 function notifGranted() {
   return ('Notification' in window) && Notification.permission === 'granted';
@@ -295,9 +382,10 @@ function speakNewFollower() {
 }
 
 function alertNewFollower(cur, delta) {
+  const name = currentName();
   const body = delta > 1
-    ? `+${delta} new followers · Lifeis Short is now at ${cur} followers`
-    : `Lifeis Short is now at ${cur} followers`;
+    ? `+${delta} new followers · ${name} is now at ${cur} followers`
+    : `${name} is now at ${cur} followers`;
   notify(delta > 1 ? 'New Facebook followers' : 'New Facebook follower', body, 'ls-new-follower');
   if (soundOn()) {
     playChime();
@@ -311,9 +399,14 @@ function updateAlertButtons() {
   $('btnSound').textContent = soundOn() ? 'Sound: on 🔔' : 'Sound: off';
 }
 
-let latest = null;
+let latest = null;      // last status.json
+let config = null;      // last config.json (public read)
 let refreshIn = 20;
 let deferredPrompt = null;
+
+function profileId(s) { return (s && s.profileId) || LEGACY_ID; }
+function profileName(s) { return (s && s.profileName) || 'this account'; }
+function currentName() { return profileName(latest); }
 
 function ageLabel(iso) {
   if (!iso) return 'never';
@@ -325,68 +418,137 @@ function ageLabel(iso) {
   return mins + ' min ago';
 }
 
+function configActive(cfg) {
+  if (!cfg || !Array.isArray(cfg.profiles)) return null;
+  return cfg.profiles.find((p) => p.id === cfg.activeProfileId) || null;
+}
+// Shared ("dashboard") target: the config's target if it already refers to the profile being
+// watched (so a just-synced milestone shows immediately), else what the watcher published.
+function dashboardTarget(s) {
+  const a = configActive(config);
+  if (a && s && a.id === profileId(s) && Number(a.target) > 0) return Number(a.target);
+  return Number(s && s.target) || 666;
+}
 function effectiveTarget(s) {
-  const local = store.getMilestone();
-  if (local && local > 0) return local;
-  return Number(s.target) || 666;
+  const local = store.getMilestone(profileId(s));
+  return local || dashboardTarget(s);
+}
+
+function renderMilestoneSource(s) {
+  const local = s ? store.getMilestone(profileId(s)) : null;
+  for (const id of ['msBadge', 'msShowBadge']) {
+    $(id).textContent = local ? 'Local' : 'Dashboard';
+    $(id).classList.toggle('local', !!local);
+  }
+  $('msHint').textContent = local
+    ? `Using your phone-only milestone ${local}. Tap “Use dashboard” to follow the shared target (${s ? dashboardTarget(s) : '…'}).`
+    : `Following the shared dashboard target${s ? ' (' + dashboardTarget(s) + ')' : ''}. Save a number to use your own milestone on this phone only.`;
 }
 
 function render(s) {
+  const pid = profileId(s);
+  const prevPid = store.getLastProfile();
+  if (prevPid && prevPid !== pid) toast(`Now tracking ${profileName(s)}`);
+  store.setLastProfile(pid);
   latest = s;
   const target = effectiveTarget(s);
   const cur = s.current == null ? null : Number(s.current);
-  const base = Number(s.baseline) || 0;
+  const base = s.baseline == null ? null : Number(s.baseline);
   const rem = cur == null ? null : Math.max(0, target - cur);
   const pct = cur == null ? 0 : Math.min(100, Math.round((cur / target) * 10000) / 100);
+  document.title = `${profileName(s)} · Followers`;
+  $('pname').textContent = profileName(s);
+  $('avatar').textContent = initials(profileName(s));
   $('count').textContent = cur == null ? '—' : cur;
-  $('until').innerHTML = cur == null ? 'Waiting for data…'
+  $('until').innerHTML = cur == null ? 'Waiting for first reading…'
     : (cur >= target ? '<b>Milestone hit!</b>' : `<b>${rem}</b> to go until ${target}`);
   $('fill').style.width = pct + '%';
   $('pct').textContent = pct + '%';
-  $('baseLbl').textContent = String(base);
+  $('baseLbl').textContent = base == null ? '—' : String(base);
   $('tgtLbl').textContent = String(target);
   $('rem').textContent = rem == null ? '—' : rem;
   $('msShow').textContent = target;
   $('checked').textContent = ageLabel(s.lastCheckedAt);
   const stale = (Date.now() - Date.parse(s.lastCheckedAt || 0)) > 8 * 60 * 1000;
   $('dot').classList.toggle('err', stale);
-  $('dot').classList.toggle('warn', !stale && !!store.getMilestone());
-  $('live').textContent = stale ? 'Stale · ' + ageLabel(s.lastCheckedAt) : 'Live · ' + ageLabel(s.lastCheckedAt);
+  $('dot').classList.toggle('warn', !stale && !!store.getMilestone(pid));
+  $('live').textContent = (stale ? 'Stale · ' : 'Live · ') + ageLabel(s.lastCheckedAt);
   const hit = cur != null && cur >= target;
   $('celebrate').classList.toggle('on', hit);
   $('hitMsg').textContent = hit ? `${cur} followers · target ${target}` : '';
   if (cur != null && Number.isFinite(cur)) {
-    const prev = store.getLastFollowers();
+    // Keyed by profile id: switching accounts never compares counts across accounts.
+    const prev = store.getLastFollowers(pid);
     if (prev != null && cur > prev) alertNewFollower(cur, cur - prev);
-    store.setLastFollowers(cur);
+    store.setLastFollowers(pid, cur);
   }
-  if (hit && store.getNotifiedFor() !== target) {
-    notify(`Lifeis Short hit ${target}!`, `Now at ${cur} followers.`);
-    store.setNotifiedFor(target);
+  if (hit && store.getNotifiedFor(pid) !== target) {
+    notify(`${profileName(s)} hit ${target}!`, `Now at ${cur} followers.`);
+    store.setNotifiedFor(pid, target);
   }
   if ($('milestone').value === '' || document.activeElement !== $('milestone')) {
     $('milestone').value = String(target);
   }
   if (s.profileUrl) $('fbLink').href = s.profileUrl;
+  renderMilestoneSource(s);
+  renderAccount();
 }
 
-async function fetchStatus() {
-  const r = await fetch(STATUS_URL + '&t=' + Date.now(), {
-    cache: 'no-store',
-    headers: { Accept: 'application/vnd.github.raw' },
-  });
+function renderAccount() {
+  const s = latest;
+  $('acctName').textContent = s ? profileName(s) : '—';
+  $('acctId').textContent = s ? `id: ${profileId(s)}` + (s.profileUrl ? ' · ' + s.profileUrl.replace(/^https?:\/\/(www\.)?/, '') : '') : '';
+  if (s && s.profileUrl) $('acctLink').href = s.profileUrl;
+  const a = configActive(config);
+  const pend = $('acctPending');
+  if (s && a && a.id !== profileId(s)) {
+    pend.hidden = false;
+    pend.textContent = `Switch pending → ${a.name}. The watcher picks it up on its next check (≈5 min).`;
+  } else pend.hidden = true;
+  // Saved accounts (from config, falling back to status.profiles)
+  const list = (config && Array.isArray(config.profiles) && config.profiles.length ? config.profiles
+    : (s && Array.isArray(s.profiles) ? s.profiles : []));
+  const wrap = $('savedWrap'), sel = $('savedSel');
+  if (list.length > 1) {
+    wrap.hidden = false;
+    const want = (a && a.id) || profileId(s);
+    const keep = sel.value;
+    sel.innerHTML = list.map((p) => `<option value="${esc(p.id)}">${esc(p.name)} · target ${esc(p.target)}${p.id === want ? ' (active)' : ''}</option>`).join('');
+    sel.value = list.some((p) => p.id === keep) ? keep : want;
+  } else wrap.hidden = true;
+}
+
+async function getJson(url, opts) {
+  const r = await fetch(url, Object.assign({ cache: 'no-store' }, opts || {}));
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
 }
+// GitHub Pages first (no API rate limit; ?t= busts the CDN cache), API as fallback.
+// The unauthenticated API allows only 60 requests/hour, which a 20s poll exhausts in 20 min.
+async function fetchRepoJson(file) {
+  try { return await getJson(PAGES + file + '?t=' + Date.now()); }
+  catch (e1) {
+    const h = { Accept: 'application/vnd.github.raw' };
+    const tok = store.getToken();
+    if (tok) h.Authorization = 'Bearer ' + tok;
+    return getJson(API + 'docs/' + file + '?ref=main&t=' + Date.now(), { headers: h });
+  }
+}
+const fetchStatus = () => fetchRepoJson('status.json');
 
 async function refresh() {
   try {
-    const s = await fetchStatus();
+    const [s, c] = await Promise.all([fetchStatus(), fetchRepoJson('config.json').catch(() => null)]);
+    // Pages only refreshes config.json when the watcher publishes, so never let an older copy
+    // overwrite a config this phone just wrote via the API.
+    if (c && (!config || (Date.parse(c.updatedAt || 0) || 0) >= (Date.parse(config.updatedAt || 0) || 0))) config = c;
     render(s);
     refreshIn = 20;
+    return true;
   } catch (e) {
     $('dot').classList.add('err');
     $('live').textContent = 'Offline';
+    return false;
   }
 }
 
@@ -408,22 +570,109 @@ function notify(title, body, tag) {
   fallback();
 }
 
-$('btnRefresh').onclick = () => refresh();
+// ---------- shared config writes (GitHub Contents API, handles sha + one conflict retry) ----------
+function b64decodeUtf8(b64) { return decodeURIComponent(escape(atob(b64.replace(/\n/g, '')))); }
+function b64encodeUtf8(str) { return btoa(unescape(encodeURIComponent(str))); }
+function nowIso() { return new Date().toISOString(); }
+function requireToken(msgEl) {
+  const token = $('token').value.trim() || store.getToken();
+  if (!token) {
+    msgEl.textContent = 'GitHub token required — paste it under Advanced below.';
+    msgEl.classList.add('err');
+    $('advanced').open = true;
+    $('token').focus();
+    return null;
+  }
+  store.setToken(token);
+  return token;
+}
+function seedConfig() {
+  const s = latest || {};
+  return { version: 1, activeProfileId: profileId(s), profiles: [{ id: profileId(s), name: s.profileName || 'Lifeis Short',
+    url: s.profileUrl || 'https://www.facebook.com/people/Lifeis-Short/100013159621667/', shareUrl: s.shareUrl || null,
+    target: Number(s.target) || 666 }] };
+}
+async function updateConfig(token, mutate, message) {
+  const headers = { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token };
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const r = await fetch(API + CONFIG_PATH + '?ref=main&t=' + Date.now(), { headers, cache: 'no-store' });
+    let cfg, sha;
+    if (r.status === 404) { cfg = seedConfig(); sha = undefined; }
+    else if (!r.ok) throw new Error(r.status === 401 ? 'token rejected (401)' : r.status === 403 ? 'no access / rate limited (403)' : 'read config ' + r.status);
+    else { const meta = await r.json(); sha = meta.sha; cfg = JSON.parse(b64decodeUtf8(meta.content)); }
+    if (!Array.isArray(cfg.profiles)) cfg.profiles = [];
+    mutate(cfg);
+    cfg.version = cfg.version || 1;
+    cfg.updatedAt = nowIso();
+    cfg.updatedBy = 'phone-app';
+    const body = { message, content: b64encodeUtf8(JSON.stringify(cfg, null, 2) + '\n'), branch: 'main' };
+    if (sha) body.sha = sha;
+    const put = await fetch(API + CONFIG_PATH, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, headers), body: JSON.stringify(body) });
+    if (put.ok) { config = cfg; return cfg; }
+    if ((put.status === 409 || put.status === 422) && attempt === 1) continue; // sha moved: re-read and retry
+    throw new Error('write config ' + put.status + (put.status === 403 || put.status === 404 ? ' (token needs Contents write on this repo)' : ''));
+  }
+}
+
+function normalizeFbUrl(raw) {
+  let u;
+  try { u = new URL(String(raw || '').trim()); } catch (_) { return null; }
+  if (!/^https?:$/.test(u.protocol) || !/(^|\.)facebook\.com$/i.test(u.hostname)) return null;
+  const path = u.pathname.replace(/\/+$/, '');
+  if (!path || path === '/') return null;
+  const keep = new URLSearchParams();
+  if (/\/profile\.php$/i.test(path) && u.searchParams.get('id')) keep.set('id', u.searchParams.get('id'));
+  const q = keep.toString();
+  const tail = /\/profile\.php$/i.test(path) ? '' : '/';
+  return 'https://www.facebook.com' + path + tail + (q ? '?' + q : '');
+}
+function slugify(s) {
+  return String(s || '').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'profile';
+}
+
+// ---------- handlers ----------
+$('btnRefresh').onclick = async () => { const ok = await refresh(); toast(ok ? 'Updated' : 'Could not reach the dashboard — offline?'); };
 $('btnSave').onclick = () => {
   const n = Number($('milestone').value);
-  if (!Number.isFinite(n) || n < 1) { alert('Enter a valid milestone'); return; }
-  store.setMilestone(Math.round(n));
-  store.setNotifiedFor(0);
-  if (latest) render(latest);
+  if (!Number.isFinite(n) || n < 1) { toast('Enter a valid milestone (1 or more)'); return; }
+  if (!latest) { toast('Waiting for data — try again in a moment'); return; }
+  const pid = profileId(latest);
+  store.setMilestone(pid, Math.round(n));
+  store.setNotifiedFor(pid, 0);
+  render(latest);
+  flash($('msCard'));
+  toast(`Local milestone saved: ${Math.round(n)} (this phone only)`);
 };
-$('btnReset').onclick = () => {
-  store.clearMilestone();
-  store.setNotifiedFor(0);
+// "Use dashboard": drop the phone-only milestone and follow the shared target.
+// Previously this only re-rendered when a status was already loaded and gave no feedback,
+// so when the local and dashboard targets were equal (or the status fetch had failed,
+// e.g. API rate limit) tapping it looked like it did nothing.
+async function useDashboard() {
+  let had = null;
   if (latest) {
-    $('milestone').value = String(latest.target || 666);
-    render(latest);
+    const pid = profileId(latest);
+    had = store.getMilestone(pid);
+    store.clearMilestone(pid);
+    store.setNotifiedFor(pid, 0);
   }
-};
+  if (!latest) {
+    // Clear for whichever profile we last saw, then load status before reporting.
+    const pid = store.getLastProfile() || LEGACY_ID;
+    store.clearMilestone(pid);
+    store.setNotifiedFor(pid, 0);
+    $('msBadge').textContent = 'Dashboard'; $('msBadge').classList.remove('local');
+    toast('Loading dashboard target…');
+    if (!(await refresh())) { toast('Local milestone cleared — dashboard is unreachable right now, will apply when online'); return; }
+  }
+  const t = dashboardTarget(latest);
+  $('milestone').value = String(t);
+  render(latest);
+  flash($('msCard'));
+  toast(`Now following dashboard target: ${t}` + (had && had !== t ? ` (was ${had} on this phone)` : ''));
+}
+$('btnReset').onclick = () => { useDashboard(); };
+
 $('btnNotify').onclick = async () => {
   // Unlock audio + speech synchronously inside the user gesture
   unlockAudio();
@@ -454,64 +703,84 @@ document.addEventListener('keydown', firstGesture, true);
 updateAlertButtons();
 
 $('token').value = store.getToken();
+$('token').addEventListener('change', () => store.setToken($('token').value.trim()));
+
+// Sync milestone → active profile's target in docs/config.json (the watcher reads it before each check).
 $('btnSync').onclick = async () => {
-  const token = $('token').value.trim();
-  const n = Number($('milestone').value);
-  if (!token) { $('syncMsg').textContent = 'Token required.'; return; }
-  if (!Number.isFinite(n) || n < 1) { $('syncMsg').textContent = 'Set a valid milestone first.'; return; }
-  store.setToken(token);
-  store.setMilestone(Math.round(n));
-  $('syncMsg').textContent = 'Syncing…';
+  const msg = $('syncMsg'); msg.classList.remove('err');
+  const token = requireToken(msg); if (!token) return;
+  const n = Math.round(Number($('milestone').value));
+  if (!Number.isFinite(n) || n < 1) { msg.textContent = 'Set a valid milestone first.'; return; }
+  msg.textContent = 'Syncing…';
   try {
-    const meta = await fetch(`https://api.github.com/repos/${REPO}/contents/${STATE_PATH}?ref=main`, {
-      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token },
-    }).then((r) => { if (!r.ok) throw new Error('Read state ' + r.status); return r.json(); });
-    const state = JSON.parse(atob(meta.content.replace(/\n/g, '')));
-    state.targetFollowers = Math.round(n);
-    const body = {
-      message: `Set milestone target to ${Math.round(n)} via phone app`,
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2) + '\n'))),
-      sha: meta.sha,
-      branch: 'main',
-    };
-    const put = await fetch(`https://api.github.com/repos/${REPO}/contents/${STATE_PATH}`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: 'Bearer ' + token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-    if (!put.ok) throw new Error('Write state ' + put.status + ' ' + await put.text());
-    // Also refresh docs/status.json target via local expectation — watch publish will fix; patch status now
-    const stMeta = await fetch(`https://api.github.com/repos/${REPO}/contents/docs/status.json?ref=main`, {
-      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token },
-    }).then((r) => { if (!r.ok) throw new Error('Read status ' + r.status); return r.json(); });
-    const status = JSON.parse(atob(stMeta.content.replace(/\n/g, '')));
-    status.target = Math.round(n);
-    status.remaining = status.current == null ? null : Math.max(0, status.target - status.current);
-    status.progressPct = status.current == null ? 0 : Math.min(100, Math.round((status.current / status.target) * 10000) / 100);
-    const put2 = await fetch(`https://api.github.com/repos/${REPO}/contents/docs/status.json`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: 'Bearer ' + token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: `Update public status target to ${Math.round(n)}`,
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(status, null, 2) + '\n'))),
-        sha: stMeta.sha,
-        branch: 'main',
-      }),
-    });
-    if (!put2.ok) throw new Error('Write status ' + put2.status);
-    $('syncMsg').textContent = 'Synced. Dashboard target is now ' + Math.round(n) + '.';
-    await refresh();
+    const pid = latest ? profileId(latest) : null;
+    await updateConfig(token, (cfg) => {
+      if (!cfg.profiles.length) Object.assign(cfg, seedConfig());
+      const id = cfg.activeProfileId || pid;
+      const p = cfg.profiles.find((x) => x.id === id) || cfg.profiles[0];
+      p.target = n;
+    }, `Set milestone target to ${n} via phone app`);
+    if (pid) store.clearMilestone(pid); // now the dashboard target is ours, so follow it
+    if (latest) render(latest);
+    msg.textContent = `Synced. Dashboard target is now ${n}; the watcher applies it on its next check (≈5 min).`;
+    toast(`Dashboard target set to ${n}`);
   } catch (e) {
-    $('syncMsg').textContent = 'Sync failed: ' + e.message;
+    msg.textContent = 'Sync failed: ' + e.message; msg.classList.add('err');
   }
+};
+
+// Switch tracked account (new or saved).
+async function activateProfile(entry, isNew) {
+  const msg = $('acctMsg'); msg.classList.remove('err');
+  const token = requireToken(msg); if (!token) return false;
+  msg.textContent = 'Saving…';
+  try {
+    let chosen = null;
+    await updateConfig(token, (cfg) => {
+      if (!cfg.profiles.length) Object.assign(cfg, seedConfig());
+      if (isNew) {
+        let p = cfg.profiles.find((x) => x.url === entry.url);
+        if (p) { p.name = entry.name; p.target = entry.target; }
+        else {
+          let id = slugify(entry.name), i = 2;
+          while (cfg.profiles.some((x) => x.id === id)) id = slugify(entry.name) + '-' + i++;
+          p = { id, name: entry.name, url: entry.url, target: entry.target };
+          cfg.profiles.push(p);
+        }
+        chosen = p;
+      } else chosen = cfg.profiles.find((x) => x.id === entry.id);
+      if (!chosen) throw new Error('profile not found in config');
+      cfg.activeProfileId = chosen.id;
+    }, `Track ${entry.name || entry.id} via phone app`);
+    msg.textContent = `Saved. Now switching to ${chosen.name} — takes effect on the next check (≈5 min).`;
+    toast(`Switching to ${chosen.name} on next check`);
+    renderAccount();
+    return true;
+  } catch (e) {
+    msg.textContent = 'Could not save: ' + e.message; msg.classList.add('err');
+    return false;
+  }
+}
+$('btnTrack').onclick = async () => {
+  const name = $('newName').value.trim();
+  const url = normalizeFbUrl($('newUrl').value);
+  const target = Math.round(Number($('newTarget').value));
+  const msg = $('acctMsg'); msg.classList.add('err');
+  if (!name) { msg.textContent = 'Enter the account name.'; return; }
+  if (!url) { msg.textContent = 'Enter a facebook.com profile URL, e.g. https://www.facebook.com/yourpage'; return; }
+  if (!Number.isFinite(target) || target < 1) { msg.textContent = 'Enter a milestone target (1 or more).'; return; }
+  if (await activateProfile({ name, url, target }, true)) {
+    $('newName').value = ''; $('newUrl').value = ''; $('newTarget').value = '';
+    $('acctForm').open = false;
+  }
+};
+$('btnActivate').onclick = () => {
+  const id = $('savedSel').value;
+  const list = (config && config.profiles) || (latest && latest.profiles) || [];
+  const p = list.find((x) => x.id === id);
+  if (!p) return;
+  if (configActive(config) && configActive(config).id === id && latest && profileId(latest) === id) { toast(`${p.name} is already tracked`); return; }
+  activateProfile({ id, name: p.name }, false);
 };
 
 window.addEventListener('beforeinstallprompt', (e) => {
