@@ -9,12 +9,12 @@
   "remaining": 1,
   "progressPct": 99.85,
   "progressFromBaselinePct": 87.5,
-  "lastCheckedAt": "2026-10-19T20:13:34+02:00",
+  "lastCheckedAt": "2026-10-19T20:18:40+02:00",
   "hitTargetAt": null,
   "hit": false,
   "milestoneScreenshot": false,
   "milestoneScreenshotFile": null,
-  "configSha": null,
+  "configSha": "f5321ec312dbaa3d923f43e2edc6d09f09965a92",
   "profiles": [
     {
       "id": "lifeis-short",
@@ -25,9 +25,9 @@
       "target": 666,
       "baseline": 658,
       "remaining": 1,
-      "lastCheckedAt": "2026-10-19T20:13:34+02:00",
+      "lastCheckedAt": "2026-10-19T20:18:40+02:00",
       "hitTargetAt": null
     }
   ],
-  "serverTime": "2026-10-19T18:17:44.538Z"
+  "serverTime": "2026-10-19T18:18:40.144Z"
 }
