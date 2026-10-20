@@ -27,7 +27,7 @@ window.KRISSTY_PORTFOLIO = [
     caption: { lt: 'Portretas', en: 'Portrait' }
   },
   /* --- PLACEHOLDERS (not real projects) – remove when real work is added --- */
-  { placeholder: true, cat: 'social', label: { lt: 'Reels / TikTok', en: 'Reels / TikTok' } },
+  { placeholder: true, cat: 'social', label: { lt: 'Facebook / Reels', en: 'Facebook / Reels' } },
   { placeholder: true, cat: 'event',  wide: true, label: { lt: 'Renginiai', en: 'Events' } },
   { placeholder: true, cat: 'sport',  wide: true, label: { lt: 'Sporto renginiai', en: 'Sport events' } },
   { placeholder: true, cat: 'nature', wide: true, label: { lt: 'Gamtos fotografija', en: 'Nature photography' } }

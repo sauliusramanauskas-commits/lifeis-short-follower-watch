@@ -15,12 +15,12 @@
     revKicker: 'Reviews', revTitle: 'What clients say', crsKicker: 'Courses & certificates', crsTitle: 'Always learning', crsSub: 'Completed courses and course completion certificates.', pill1: 'Photography', pill2: 'Filming & editing', book: 'Book now', seeWork: 'See my work', heroAlt: 'Kristina – Krissty',
     eyebrow: 'Photo · Video · Content',
     tagline: 'Moments you\u2019ll want to watch again.',
-    lead: 'I\u2019m Kristina. Photography and video have been my passion for over 20 years. I create social media content (Reels, TikTok), photograph and film events and sport events, love nature photography and edit my own videos. You enjoy the moment \u2013 I make sure it lasts.',
-    chipsLabel: 'Popular services', c1: 'Reels / TikTok', c2: 'Content creation', c3: 'Events', c4: 'Sport events', c5: 'Nature photography', c6: 'Mustang shoots',
+    lead: 'I\u2019m Kristina. Photography and video have been my passion for over 20 years. I create social media content (Facebook, Reels), photograph and film events and sport events, love nature photography and edit my own videos. You enjoy the moment \u2013 I make sure it lasts.',
+    chipsLabel: 'Popular services', c1: 'Facebook / Reels', c2: 'Content creation', c3: 'Events', c4: 'Sport events', c5: 'Nature photography', c6: 'Mustang shoots',
     where: '📍 Palanga · Marijampolė · Lithuania',
     servKicker: 'Services', servTitle: 'What I can create for you',
     servSub: 'From a short Reel to an event or sport film \u2013 with the same love for detail.',
-    s1t: 'Social media content', s1d: 'Reels, TikTok and other short vertical content for businesses or personal profiles \u2013 from idea and filming to editing and a ready-to-post clip.',
+    s1t: 'Social media content', s1d: 'Facebook posts, Reels and other short vertical content for businesses or personal profiles \u2013 from idea and filming to editing and a ready-to-post clip.',
     s1c: 'Content creation', s1e: 'Editing',
     s2t: 'Events', s2d: 'Birthdays, corporate events, parties and concerts \u2013 I photograph and film the key moments and the real atmosphere.',
     s2b: 'Birthdays', s2c: 'Corporate', s2e: 'Parties', s2f: 'Concerts',
@@ -48,7 +48,7 @@
     send: 'Send request', fine: 'This website stores none of your data \u2013 the message is sent from your own email.',
     sideLabel: 'Other contacts', fbTitle: 'Prefer Facebook?',
     fbText: 'Send a Messenger message \u2013 we\u2019ll copy your request text for you, just paste it.',
-    msgBtn: 'Message on Messenger', directTitle: 'Direct contacts', callBtn: 'Call',
+    msgBtn: 'Message on Messenger', directTitle: 'Direct contacts', callBtn: 'Call', newTab: '(opens in a new tab)',
     footTag: 'Photo · Video · Social media content', footNav: 'Links', footGw: 'Mustang GT giveaway',
     bookSticky: 'Book photography or filming', close: 'Close'
   };
@@ -79,7 +79,7 @@
   };
   var metaDesc = $('meta[name="description"]');
   JS.lt.desc = metaDesc ? metaDesc.content : '';
-  JS.en.desc = 'Krissty \u2013 Kristina\u2019s photography and video, a passion for over 20 years. Social media content (Reels, TikTok, editing), event and sport event photography and filming, nature photography in Lithuania.';
+  JS.en.desc = 'Krissty \u2013 Kristina\u2019s photography and video, a passion for over 20 years. Social media content (Facebook, Reels, editing), event and sport event photography and filming, nature photography in Lithuania.';
 
   // Capture LT from DOM
   var LT = {}, LTattr = {};
