@@ -17,6 +17,10 @@ window.KRISSTY_CONFIG = {
   giveawayUrl: 'https://sauliusramanauskas-commits.github.io/krissty/',
   defaultLang: 'lt',
 
+  /* Portfolio ("Darbai") section + its nav link and hero "Peržiūrėti darbus" button.
+     false = hidden (no completed works shown yet). Set true to show them again. */
+  showPortfolio: false,
+
   /* Video reel under the hero – section is HIDDEN while url is ''.
      url: YouTube (watch / youtu.be / shorts), Vimeo, Facebook video/reel URL,
           or a local file e.g. 'assets/video/reel.mp4' (H.264 MP4, ideally < 15 MB).

@@ -120,7 +120,9 @@
     b.addEventListener('click', function () { setLang(b.getAttribute('data-lang'), true); });
   });
 
-  /* ---------- Portfolio ---------- */
+  /* ---------- Portfolio (hidden unless C.showPortfolio) ---------- */
+  var showPf = C.showPortfolio === true;
+  $$('[data-portfolio]').forEach(function (el) { el.hidden = !showPf; });
   var filter = 'all';
   var ICONS = {
     photo: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.8"/>',
@@ -133,7 +135,7 @@
   function L(o) { if (!o) return ''; if (typeof o !== 'object') return String(o); return o[lang] || o.lt || o.en || ''; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function renderFilters() {
-    var box = $('#filters'); if (!box) return;
+    var box = $('#filters'); if (!box || !showPf) return;
     var cats = []; P.forEach(function (it) { if (it.cat && cats.indexOf(it.cat) < 0) cats.push(it.cat); });
     box.innerHTML = ['all'].concat(cats).map(function (c) {
       return '<button type="button" data-f="' + c + '" aria-pressed="' + (c === filter) + '">' + esc(t(c === 'all' ? 'all' : 'cat_' + c) || c) + '</button>';
@@ -143,7 +145,7 @@
     });
   }
   function renderGallery() {
-    var g = $('#gallery'); if (!g) return;
+    var g = $('#gallery'); if (!g || !showPf) return;
     var items = P.filter(function (it) { return filter === 'all' || it.cat === filter; });
     var hasPh = false;
     g.innerHTML = items.map(function (it, i) {
