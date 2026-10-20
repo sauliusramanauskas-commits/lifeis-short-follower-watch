@@ -48,7 +48,7 @@
     send: 'Send request', fine: 'This website stores none of your data \u2013 the message is sent from your own email.',
     sideLabel: 'Other contacts', fbTitle: 'Prefer Facebook?',
     fbText: 'Send a Messenger message \u2013 we\u2019ll copy your request text for you, just paste it.',
-    msgBtn: 'Message on Messenger', directTitle: 'Direct contacts', callBtn: 'Call', newTab: '(opens in a new tab)',
+    msgBtn: 'Message on Messenger', directTitle: 'Direct contacts', callBtn: 'Call', newTab: '(opens in a new tab)', fbFollow: 'Follow on Facebook', fbSee: 'See on Facebook', fbHeadLabel: 'Krissty on Facebook (opens in a new tab)',
     footTag: 'Photo · Video · Social media content', footNav: 'Links', footGw: 'Mustang GT giveaway',
     bookSticky: 'Book photography or filming', close: 'Close'
   };
@@ -57,7 +57,7 @@
     lt: {
       title: document.title, desc: '',
       all: 'Visi', cat_photo: 'Foto', cat_event: 'Renginiai', cat_video: 'Video', cat_social: 'Socialiniai tinklai', cat_sport: 'Sportas', cat_nature: 'Gamta',
-      ph: 'Pavyzdys', phSoon: 'Netrukus',
+      ph: 'Pavyzdys', phSoon: 'Netrukus', fbSee: 'Žiūrėti Facebook', newTab: '(atsidaro naujame lange)',
       errName: 'Įrašykite savo vardą.', errContact: 'Įrašykite el. paštą arba telefono numerį.',
       subj: 'Užklausa', lName: 'Vardas', lContact: 'Kontaktai', lService: 'Paslauga', lDate: 'Data', lMsg: 'Žinutė',
       lNoDate: 'dar nežinoma', greet: 'Sveiki, Krissty!', bye: 'Ačiū!',
@@ -68,7 +68,7 @@
     en: {
       title: 'Krissty \u2013 photo, video & social media content | Events, sport, nature',
       all: 'All', cat_photo: 'Photo', cat_event: 'Events', cat_video: 'Video', cat_social: 'Social media', cat_sport: 'Sport', cat_nature: 'Nature',
-      ph: 'Placeholder', phSoon: 'Coming soon',
+      ph: 'Placeholder', phSoon: 'Coming soon', fbSee: 'See on Facebook', newTab: '(opens in a new tab)',
       errName: 'Please enter your name.', errContact: 'Please enter an email or phone number.',
       subj: 'Booking request', lName: 'Name', lContact: 'Contact', lService: 'Service', lDate: 'Date', lMsg: 'Message',
       lNoDate: 'not decided yet', greet: 'Hi Krissty!', bye: 'Thank you!',
@@ -150,7 +150,8 @@
       var cls = it.wide ? ' class="wide"' : '';
       if (it.placeholder || !it.src) {
         hasPh = true;
-        return '<li' + cls + '><div class="ph" role="img" aria-label="' + esc(t('ph') + ': ' + L(it.label)) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[it.cat] || ICONS.photo) + '</svg><b>' + esc(L(it.label)) + '</b><small>' + esc(t('ph')) + ' · ' + esc(t('phSoon')) + '</small></div></li>';
+        return '<li' + cls + '><div class="ph" role="img" aria-label="' + esc(t('ph') + ': ' + L(it.label)) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[it.cat] || ICONS.photo) + '</svg><b>' + esc(L(it.label)) + '</b><small>' + esc(t('ph')) + ' · ' + esc(t('phSoon')) + '</small></div>' +
+          (it.fb && C.facebookUrl ? '<a class="phfb" href="' + esc(C.facebookUrl) + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 8V6.5c0-.8.2-1.3 1.4-1.3H17V2.1C16.6 2 15.5 2 14.3 2 11.8 2 10 3.5 10 6.3V8H7.5v3.4H10V22h4V11.4h2.8l.4-3.4z"/></svg><span>' + esc(t('fbSee')) + '</span><span class="sr"> ' + esc(t('newTab')) + '</span></a>' : '') + '</li>';
       }
       var img = '<picture>' + (it.webp ? '<source srcset="' + esc(it.webp) + '" type="image/webp">' : '') +
         '<img src="' + esc(it.src) + '" alt="' + esc(L(it.alt)) + '" loading="lazy" decoding="async"></picture>';
