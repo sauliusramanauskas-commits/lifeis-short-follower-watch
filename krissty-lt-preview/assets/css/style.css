@@ -184,6 +184,19 @@ footer nav{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
 .fcontact a{display:inline-flex;align-items:center;min-height:40px}
 footer a{color:#fff;text-decoration:none;font-weight:500}
 footer a:hover{color:var(--lime)}
+/* Facebook links */
+.hfb{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex:none;border-radius:50%;background:#1877f2;color:#fff;box-shadow:0 4px 14px rgba(24,119,242,.35);transition:transform .2s}
+.hfb:hover{transform:scale(1.06)}
+.hfb svg{width:20px;height:20px}
+.fbsee,.phfb{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px;color:#1877f2;text-decoration:none;min-height:40px}
+.fbsee{margin:-4px 0 4px}
+.fbsee:hover,.phfb:hover{text-decoration:underline}
+.fbsee svg,.phfb svg{width:16px;height:16px;flex:none}
+/* phone: Facebook pill on the hero portrait (desktop shows the hero button in the first screen) */
+.pfb{position:absolute;z-index:3;left:50%;bottom:-18px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 18px;border-radius:999px;background:#1877f2;color:#fff;font:700 15px var(--fh);text-decoration:none;white-space:nowrap;box-shadow:0 10px 24px rgba(24,119,242,.4)}
+.pfb svg{width:18px;height:18px;flex:none}
+@media (min-width:900px){.pfb{display:none}}
+.phfb{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);min-height:34px;padding:4px 12px;background:#fff;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.08);white-space:nowrap;font-size:13px}
 footer .fbl{display:inline-flex;align-items:center;gap:6px;min-height:40px}
 footer .fbl svg{width:18px;height:18px;flex:none}
 footer small{color:#7f9d84}

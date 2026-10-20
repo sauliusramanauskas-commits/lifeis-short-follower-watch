@@ -14,6 +14,7 @@
      caption   – optional { lt, en } short caption on the tile
      wide      – optional true = tile spans 2 columns
      href      – optional link instead of lightbox (e.g. a Reel / YouTube URL)
+     fb        – optional true = adds a 'See on Facebook' link (config facebookUrl)
      placeholder – true = "coming soon" tile (no image). DELETE these once
                    you have real work for that category.
    ========================================================================== */
@@ -27,7 +28,7 @@ window.KRISSTY_PORTFOLIO = [
     caption: { lt: 'Portretas', en: 'Portrait' }
   },
   /* --- PLACEHOLDERS (not real projects) – remove when real work is added --- */
-  { placeholder: true, cat: 'social', label: { lt: 'Facebook / Reels', en: 'Facebook / Reels' } },
+  { placeholder: true, cat: 'social', fb: true, label: { lt: 'Facebook / Reels', en: 'Facebook / Reels' } },
   { placeholder: true, cat: 'event',  wide: true, label: { lt: 'Renginiai', en: 'Events' } },
   { placeholder: true, cat: 'sport',  wide: true, label: { lt: 'Sporto renginiai', en: 'Sport events' } },
   { placeholder: true, cat: 'nature', wide: true, label: { lt: 'Gamtos fotografija', en: 'Nature photography' } }
