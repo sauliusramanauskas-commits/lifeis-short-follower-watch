@@ -22,7 +22,7 @@ window.KRISSTY_CONFIG = {
           or a local file e.g. 'assets/video/reel.mp4' (H.264 MP4, ideally < 15 MB).
      poster: optional local preview image (e.g. 'assets/video/reel-poster.jpg').
              Nothing is loaded from YouTube/Vimeo/Facebook until the visitor clicks play.
-     vertical: true for 9:16 Reels/Shorts/TikTok-style video. */
+     vertical: true for 9:16 Reels/Shorts-style video. */
   reel: {
     url: '',
     poster: '',

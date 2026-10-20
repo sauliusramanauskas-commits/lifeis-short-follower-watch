@@ -179,11 +179,13 @@ section{padding:72px 0}
 footer{background:var(--deep);color:#a9c7ad;padding:44px 0 calc(110px + env(safe-area-inset-bottom));font-size:14.5px}
 footer .wrap{display:grid;gap:18px}
 footer .brand{font-size:24px}
-footer nav{display:flex;flex-wrap:wrap;gap:8px 18px}
+footer nav{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
 .fcontact{margin:0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .fcontact a{display:inline-flex;align-items:center;min-height:40px}
 footer a{color:#fff;text-decoration:none;font-weight:500}
 footer a:hover{color:var(--lime)}
+footer .fbl{display:inline-flex;align-items:center;gap:6px;min-height:40px}
+footer .fbl svg{width:18px;height:18px;flex:none}
 footer small{color:#7f9d84}
 
 /* Sticky mobile CTA */
