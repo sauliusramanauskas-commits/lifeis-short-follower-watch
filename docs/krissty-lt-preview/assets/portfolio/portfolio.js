@@ -9,7 +9,7 @@
      src       – image path (required for real work)
      webp      – optional WebP version of the same image
      full      – optional larger image shown in the lightbox
-     cat       – "photo" | "event" | "video" | "social"   (used by filters)
+     cat       – "photo" | "event" | "sport" | "nature" | "video" | "social"   (used by filters)
      alt       – { lt, en } description for screen readers / SEO
      caption   – optional { lt, en } short caption on the tile
      wide      – optional true = tile spans 2 columns
@@ -27,9 +27,8 @@ window.KRISSTY_PORTFOLIO = [
     caption: { lt: 'Portretas', en: 'Portrait' }
   },
   /* --- PLACEHOLDERS (not real projects) – remove when real work is added --- */
-  { placeholder: true, cat: 'event',  wide: true, label: { lt: 'Vestuvės', en: 'Weddings' } },
-  { placeholder: true, cat: 'photo',  label: { lt: 'Porų fotosesija', en: 'Couple session' } },
   { placeholder: true, cat: 'social', label: { lt: 'Reels / TikTok', en: 'Reels / TikTok' } },
-  { placeholder: true, cat: 'photo',  label: { lt: 'Mustang fotosesija', en: 'Mustang shoot' } },
-  { placeholder: true, cat: 'video',  wide: true, label: { lt: 'Renginio vaizdo klipas', en: 'Event highlight film' } }
+  { placeholder: true, cat: 'event',  wide: true, label: { lt: 'Renginiai', en: 'Events' } },
+  { placeholder: true, cat: 'sport',  wide: true, label: { lt: 'Sporto renginiai', en: 'Sport events' } },
+  { placeholder: true, cat: 'nature', wide: true, label: { lt: 'Gamtos fotografija', en: 'Nature photography' } }
 ];

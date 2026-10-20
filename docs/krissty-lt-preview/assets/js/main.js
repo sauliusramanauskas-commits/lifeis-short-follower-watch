@@ -11,31 +11,31 @@
   var EN = {
     skip: 'Skip to content', navLabel: 'Main navigation',
     navServices: 'Services', navHow: 'How it works', navWork: 'Work', navContact: 'Contact',
-    bookShort: 'Book', expTxt: 'years of experience<br>in photo & video', reelKicker: 'Video', reelNote: 'The video only loads after you press \u201cPlay\u201d.',
-    revKicker: 'Reviews', revTitle: 'What clients say', crsKicker: 'Courses & certificates', crsTitle: 'Always learning', crsSub: 'Completed courses and course completion certificates.', pill1: 'Photo sessions', pill2: 'Filming & editing', book: 'Book now', seeWork: 'See my work', heroAlt: 'Kristina – Krissty',
+    bookShort: 'Book', expTxt: 'years of passion<br>for photography & video', reelKicker: 'Video', reelNote: 'The video only loads after you press \u201cPlay\u201d.',
+    revKicker: 'Reviews', revTitle: 'What clients say', crsKicker: 'Courses & certificates', crsTitle: 'Always learning', crsSub: 'Completed courses and course completion certificates.', pill1: 'Photography', pill2: 'Filming & editing', book: 'Book now', seeWork: 'See my work', heroAlt: 'Kristina – Krissty',
     eyebrow: 'Photo · Video · Content',
     tagline: 'Moments you\u2019ll want to watch again.',
-    lead: 'I\u2019m Kristina \u2013 a photographer, videographer and video editor with more than 20 years of experience in photography, video content creation and editing. I shoot, film and create content: from weddings and birthdays to corporate events, photo sessions and Reels for social media. You enjoy the moment \u2013 I make sure it lasts.',
-    chipsLabel: 'Popular services', c1: 'Weddings', c2: 'Birthdays', c3: 'Corporate events', c4: 'Concerts', c5: 'Reels / TikTok', c6: 'Mustang shoots',
+    lead: 'I\u2019m Kristina. Photography and video have been my passion for over 20 years. I create social media content (Reels, TikTok), photograph and film events and sport events, love nature photography and edit my own videos. You enjoy the moment \u2013 I make sure it lasts.',
+    chipsLabel: 'Popular services', c1: 'Reels / TikTok', c2: 'Content creation', c3: 'Events', c4: 'Sport events', c5: 'Nature photography', c6: 'Mustang shoots',
     where: '📍 Palanga · Marijampolė · Lithuania',
     servKicker: 'Services', servTitle: 'What I can create for you',
-    servSub: 'From a single photo session to a full event film \u2013 with the same love for detail.',
-    s1t: 'Photo sessions', s1d: 'Natural, lively shots \u2013 portraits, couples, families, products and cars. Yes, Mustang included.',
-    s1a: 'Portrait', s1b: 'Couples', s1c: 'Family', s1e: 'Products', s1f: 'Cars',
-    s2t: 'Event filming', s2d: 'Weddings, birthdays, corporate events, parties and concerts \u2013 I capture the key moments and the real atmosphere.',
-    s2a: 'Weddings', s2b: 'Birthdays', s2c: 'Corporate', s2e: 'Parties', s2f: 'Concerts',
-    s3t: 'Video editing', s3d: 'I turn raw footage into a story: an event film, a short highlight or a clip with music, titles and colour grading.',
-    s3a: 'Event films', s3b: 'Highlights', s3c: 'Colour grading', s3e: 'Titles & music',
-    s4t: 'Social media content', s4d: 'Reels, TikTok and other short vertical content for businesses or personal profiles \u2013 from idea to ready-to-post.',
-    s4e: 'Content ideas', order: 'Book',
-    other: 'Need something else? I create other digital content too \u2013 <a href="#kontaktai">drop me a line</a> and let\u2019s talk.',
+    servSub: 'From a short Reel to an event or sport film \u2013 with the same love for detail.',
+    s1t: 'Social media content', s1d: 'Reels, TikTok and other short vertical content for businesses or personal profiles \u2013 from idea and filming to editing and a ready-to-post clip.',
+    s1c: 'Content creation', s1e: 'Editing',
+    s2t: 'Events', s2d: 'Birthdays, corporate events, parties and concerts \u2013 I photograph and film the key moments and the real atmosphere.',
+    s2b: 'Birthdays', s2c: 'Corporate', s2e: 'Parties', s2f: 'Concerts',
+    s3t: 'Sport events', s3d: 'Competitions, runs, tournaments and other sport events \u2013 dynamic photos and video that capture motion and emotion.',
+    s3a: 'Competitions', s3b: 'Runs', s3c: 'Tournaments', s3e: 'Highlight videos',
+    s4t: 'Nature photography', s4d: 'Landscapes, plants and animals, light and the seasons \u2013 calm, vivid nature shots.',
+    s4a: 'Landscapes', s4b: 'Wildlife', s4c: 'Macro', s4e: 'Sunsets', order: 'Book',
+    other: 'Need something else? I also do photo sessions (portraits, Mustang) and other digital content \u2013 <a href="#kontaktai">drop me a line</a> and let\u2019s talk.',
     howKicker: 'How it works', howTitle: 'Simple, clear and stress-free',
     st1t: 'Get in touch', st1d: 'Fill in the request form or message me on Facebook: the occasion, date and place.',
     st2t: 'We talk details', st2d: 'I get back to you and we discuss the idea, style, duration and price together.',
     st3t: 'I shoot & film', st3d: 'I arrive at the agreed time and capture the moments naturally \u2013 you just be yourself.',
     st4t: 'You get the result', st4d: 'I select, retouch and edit \u2013 you receive finished photos and videos you\u2019ll love to share.',
     workKicker: 'Portfolio', workTitle: 'Work',
-    workSub: 'The portfolio is growing \u2013 more photo sessions, events and videos are coming soon.',
+    workSub: 'The portfolio is growing \u2013 more events, sport, nature shots and videos are coming soon.',
     filterLabel: 'Filter work', phNote: 'Tiles marked \u201cPlaceholder\u201d are reserved for upcoming work, not real projects.',
     gwTitle: '🍀 Win a Ford Mustang GT photo session',
     gwText: 'Follow Krissty on Facebook \u2013 every time we reach a new follower milestone, one lucky follower wins a photo session with a Ford Mustang GT 5.0 and a short ride.',
@@ -44,19 +44,19 @@
     ctSub: 'Fill in the form \u2013 your email app will open with a ready-made message. Just hit \u201cSend\u201d.',
     fName: 'Name', fContact: 'Email or phone', fService: 'Service', fDate: 'Date', optional: '(optional)', fMsg: 'Message',
     fMsgPh: 'E.g.: a birthday in Palanga, about 40 guests, we\u2019d love a short video clip and photos.',
-    oPhoto: 'Photo session', oEvent: 'Event filming', oEditing: 'Video editing', oSocial: 'Social media content', oOther: 'Other',
+    oSocial: 'Social media content', oEvent: 'Event', oSport: 'Sport event', oNature: 'Nature photography', oPhoto: 'Photo session', oOther: 'Other',
     send: 'Send request', fine: 'This website stores none of your data \u2013 the message is sent from your own email.',
     sideLabel: 'Other contacts', fbTitle: 'Prefer Facebook?',
     fbText: 'Send a Messenger message \u2013 we\u2019ll copy your request text for you, just paste it.',
     msgBtn: 'Message on Messenger', directTitle: 'Direct contacts', callBtn: 'Call',
     footTag: 'Photo · Video · Social media content', footNav: 'Links', footGw: 'Mustang GT giveaway',
-    bookSticky: 'Book a photo session or filming', close: 'Close'
+    bookSticky: 'Book photography or filming', close: 'Close'
   };
   // Strings used only from JS (both languages)
   var JS = {
     lt: {
       title: document.title, desc: '',
-      all: 'Visi', cat_photo: 'Foto', cat_event: 'Renginiai', cat_video: 'Video', cat_social: 'Socialiniai tinklai',
+      all: 'Visi', cat_photo: 'Foto', cat_event: 'Renginiai', cat_video: 'Video', cat_social: 'Socialiniai tinklai', cat_sport: 'Sportas', cat_nature: 'Gamta',
       ph: 'Pavyzdys', phSoon: 'Netrukus',
       errName: 'Įrašykite savo vardą.', errContact: 'Įrašykite el. paštą arba telefono numerį.',
       subj: 'Užklausa', lName: 'Vardas', lContact: 'Kontaktai', lService: 'Paslauga', lDate: 'Data', lMsg: 'Žinutė',
@@ -66,8 +66,8 @@
       copied: 'Užklausos tekstas nukopijuotas – įklijuokite jį žinutėje.', email: 'El. paštas', phone: 'Telefonas', fb: 'Facebook'
     },
     en: {
-      title: 'Krissty \u2013 photographer, videographer & content creator | Photo sessions, event filming',
-      all: 'All', cat_photo: 'Photo', cat_event: 'Events', cat_video: 'Video', cat_social: 'Social media',
+      title: 'Krissty \u2013 photo, video & social media content | Events, sport, nature',
+      all: 'All', cat_photo: 'Photo', cat_event: 'Events', cat_video: 'Video', cat_social: 'Social media', cat_sport: 'Sport', cat_nature: 'Nature',
       ph: 'Placeholder', phSoon: 'Coming soon',
       errName: 'Please enter your name.', errContact: 'Please enter an email or phone number.',
       subj: 'Booking request', lName: 'Name', lContact: 'Contact', lService: 'Service', lDate: 'Date', lMsg: 'Message',
@@ -79,7 +79,7 @@
   };
   var metaDesc = $('meta[name="description"]');
   JS.lt.desc = metaDesc ? metaDesc.content : '';
-  JS.en.desc = 'Krissty \u2013 photographer, videographer, video editor and digital content creator in Lithuania with 20+ years of experience. Wedding, birthday and corporate event filming, photo sessions, video editing, Reels and TikTok content.';
+  JS.en.desc = 'Krissty \u2013 Kristina\u2019s photography and video, a passion for over 20 years. Social media content (Reels, TikTok, editing), event and sport event photography and filming, nature photography in Lithuania.';
 
   // Capture LT from DOM
   var LT = {}, LTattr = {};
@@ -126,7 +126,9 @@
     photo: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.8"/>',
     event: '<rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10.5 6-3.5v10l-6-3.5"/>',
     video: '<rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10.5 6-3.5v10l-6-3.5"/>',
-    social: '<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="m10.5 9 4 3-4 3z"/>'
+    social: '<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="m10.5 9 4 3-4 3z"/>',
+    sport: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+    nature: '<path d="m2.5 20 6.5-11 4.5 7 3-4.5 5 8.5z"/><circle cx="17" cy="5.5" r="2"/>'
   };
   function L(o) { if (!o) return ''; if (typeof o !== 'object') return String(o); return o[lang] || o.lt || o.en || ''; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
