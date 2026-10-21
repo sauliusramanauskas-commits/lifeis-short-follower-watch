@@ -9,7 +9,7 @@
   "remaining": 0,
   "progressPct": 100,
   "progressFromBaselinePct": 100,
-  "lastCheckedAt": "2026-10-21T11:03:43+02:00",
+  "lastCheckedAt": "2026-10-21T11:08:45+02:00",
   "hitTargetAt": "2026-10-19T20:39:52+02:00",
   "hit": true,
   "milestoneScreenshot": true,
@@ -25,9 +25,9 @@
       "target": 666,
       "baseline": 658,
       "remaining": 0,
-      "lastCheckedAt": "2026-10-21T11:03:43+02:00",
+      "lastCheckedAt": "2026-10-21T11:08:45+02:00",
       "hitTargetAt": "2026-10-19T20:39:52+02:00"
     }
   ],
-  "serverTime": "2026-10-21T09:03:43.631Z"
+  "serverTime": "2026-10-21T09:08:45.313Z"
 }
