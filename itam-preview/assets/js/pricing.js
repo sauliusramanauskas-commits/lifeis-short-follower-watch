@@ -52,6 +52,7 @@ window.PRICING = {
           "Skenavimo klaidų ir naujų tinklo segmentų stebėsena",
           "Pažeidžiamumų ir gyvavimo ciklo įžvalgos",
           "Atnaujinimų ir konfigūracijos priežiūra",
+          "Mėnesinės inventoriaus ataskaitos",
           "Reguliarios konsultacijos"
         ],
         en: [
@@ -59,6 +60,7 @@ window.PRICING = {
           "Monitoring of scan errors and new network segments",
           "Vulnerability and lifecycle insights",
           "Updates and configuration maintenance",
+          "Monthly inventory reports",
           "Regular check-in sessions"
         ]
       }
