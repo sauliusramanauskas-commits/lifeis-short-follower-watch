@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title data-i18n="meta.title">IT turto inventorizacija ir valdymas su Lansweeper</title>
+  <meta name="description" data-i18n-attr="content:meta.description" content="">
+  <meta name="theme-color" content="#0b1f3a">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <!-- Įmonės pavadinimas ir kontaktai: assets/js/config.js -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/pricing.js"></script>
+  <script src="assets/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip">Pereiti prie turinio</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#top">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect x="2" y="2" width="12" height="12" rx="3"/>
+          <rect x="18" y="2" width="12" height="12" rx="3" opacity=".55"/>
+          <rect x="2" y="18" width="12" height="12" rx="3" opacity=".55"/>
+          <rect x="18" y="18" width="12" height="12" rx="3"/>
+        </svg>
+        <span class="brand-name" data-company></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="visually-hidden" data-i18n="nav.menu">Meniu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" data-i18n-attr="aria-label:nav.label" aria-label="Pagrindinė navigacija">
+        <ul>
+          <li><a href="#paslaugos" data-i18n="nav.services"></a></li>
+          <li><a href="#viesasis-sektorius" data-i18n="nav.public"></a></li>
+          <li><a href="#kaip-dirbame" data-i18n="nav.process"></a></li>
+          <li><a href="#kainodara" data-i18n="nav.pricing"></a></li>
+          <li><a href="#duk" data-i18n="nav.faq"></a></li>
+          <li><a href="#kontaktai" data-i18n="nav.contact"></a></li>
+        </ul>
+        <button class="lang-toggle" type="button" id="lang-toggle" data-i18n-attr="aria-label:lang.switch">EN</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="container noscript">Šiai svetainei reikalingas JavaScript. / This site requires JavaScript.</p></noscript>
+
+    <!-- HERO -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="hero.eyebrow"></p>
+          <h1 id="hero-title" data-i18n="hero.title"></h1>
+          <p class="lead" data-i18n="hero.lead"></p>
+          <!--
+            TODO(partner-status): partnerio statuso tekstas rodomas čia automatiškai iš
+            config.js → partnerStatus, kai jis bus užpildytas. Kol įmonė NĖRA patvirtinta
+            Lansweeper partnerė, palikite tuščią ir nenaudokite žodžių „oficialus“ / „įgaliotas“.
+          -->
+          <p class="partner-status" id="partner-status" hidden></p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#kontaktai" data-i18n="hero.cta1"></a>
+            <a class="btn btn-ghost" href="#paslaugos" data-i18n="hero.cta2"></a>
+          </div>
+          <ul class="hero-points">
+            <li data-i18n="hero.p1"></li>
+            <li data-i18n="hero.p2"></li>
+            <li data-i18n="hero.p3"></li>
+          </ul>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="viz-card">
+            <div class="viz-row"><span class="dot ok"></span><span class="bar w80"></span><span class="tag">IT</span></div>
+            <div class="viz-row"><span class="dot ok"></span><span class="bar w60"></span><span class="tag">OT</span></div>
+            <div class="viz-row"><span class="dot warn"></span><span class="bar w70"></span><span class="tag">EOL</span></div>
+            <div class="viz-row"><span class="dot ok"></span><span class="bar w50"></span><span class="tag">Cloud</span></div>
+            <div class="viz-row"><span class="dot crit"></span><span class="bar w40"></span><span class="tag">CVE</span></div>
+            <div class="viz-sites"><span>Site A</span><span>Site B</span><span>Site C</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PASLAUGOS -->
+    <section class="section" id="paslaugos" aria-labelledby="services-title">
+      <div class="container">
+        <h2 id="services-title" data-i18n="services.title"></h2>
+        <p class="section-lead" data-i18n="services.lead"></p>
+        <div class="grid grid-4">
+          <article class="card">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <h3 data-i18n="services.s1.t"></h3>
+            <p data-i18n="services.s1.d"></p>
+          </article>
+          <article class="card">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M12 8v5M12 16h.01"/></svg>
+            <h3 data-i18n="services.s2.t"></h3>
+            <p data-i18n="services.s2.d"></p>
+          </article>
+          <article class="card">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/><path d="M8 7h.01M8 17h.01"/></svg>
+            <h3 data-i18n="services.s3.t"></h3>
+            <p data-i18n="services.s3.d"></p>
+          </article>
+          <article class="card">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7.3 11l9.4-5M7.3 13l9.4 5"/></svg>
+            <h3 data-i18n="services.s4.t"></h3>
+            <p data-i18n="services.s4.d"></p>
+          </article>
+        </div>
+
+        <div class="license-box" aria-labelledby="license-title">
+          <h3 id="license-title" data-i18n="license.title"></h3>
+          <p data-i18n="license.p1"></p>
+          <ul class="checklist">
+            <li data-i18n="license.l1"></li>
+            <li data-i18n="license.l2"></li>
+          </ul>
+          <p class="muted small" data-i18n="license.note"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEŠASIS SEKTORIUS IR NATO -->
+    <section class="section section-alt" id="viesasis-sektorius" aria-labelledby="public-title">
+      <div class="container">
+        <h2 id="public-title" data-i18n="public.title"></h2>
+        <p class="section-lead" data-i18n="public.lead"></p>
+        <div class="grid grid-3">
+          <article class="card">
+            <h3 data-i18n="public.c1.t"></h3>
+            <p data-i18n="public.c1.d"></p>
+          </article>
+          <article class="card">
+            <h3 data-i18n="public.c2.t"></h3>
+            <p data-i18n="public.c2.d"></p>
+          </article>
+          <article class="card">
+            <h3 data-i18n="public.c3.t"></h3>
+            <p data-i18n="public.c3.d"></p>
+          </article>
+        </div>
+        <p class="notice" role="note" data-i18n="public.disclaimer"></p>
+      </div>
+    </section>
+
+    <!-- KAIP DIRBAME -->
+    <section class="section" id="kaip-dirbame" aria-labelledby="process-title">
+      <div class="container">
+        <h2 id="process-title" data-i18n="process.title"></h2>
+        <ol class="steps">
+          <li><h3 data-i18n="process.s1.t"></h3><p data-i18n="process.s1.d"></p></li>
+          <li><h3 data-i18n="process.s2.t"></h3><p data-i18n="process.s2.d"></p></li>
+          <li><h3 data-i18n="process.s3.t"></h3><p data-i18n="process.s3.d"></p></li>
+          <li><h3 data-i18n="process.s4.t"></h3><p data-i18n="process.s4.d"></p></li>
+          <li><h3 data-i18n="process.s5.t"></h3><p data-i18n="process.s5.d"></p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- KAINODARA (duomenys: assets/js/pricing.js) -->
+    <section class="section section-alt" id="kainodara" aria-labelledby="pricing-title">
+      <div class="container">
+        <h2 id="pricing-title" data-i18n="pricing.title"></h2>
+        <p class="section-lead" data-i18n="pricing.lead"></p>
+        <div class="grid grid-3 pricing-cards" id="pricing-cards"></div>
+        <div class="table-wrap">
+          <table class="pricing-table" id="pricing-table">
+            <caption data-i18n="pricing.table.caption"></caption>
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="pricing.table.package"></th>
+                <th scope="col" data-i18n="pricing.table.unit"></th>
+                <th scope="col" data-i18n="pricing.table.price"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table class="pricing-table" id="volume-table">
+            <caption id="volume-caption"></caption>
+            <thead><tr id="volume-head"></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted small" data-i18n="pricing.licenseNote"></p>
+        <p class="small" id="license-reference"></p>
+        <p class="muted small" id="vat-note"></p>
+      </div>
+    </section>
+
+    <!-- DUK -->
+    <section class="section" id="duk" aria-labelledby="faq-title">
+      <div class="container narrow">
+        <h2 id="faq-title" data-i18n="faq.title"></h2>
+        <div class="faq">
+          <details><summary data-i18n="faq.q1"></summary><p data-i18n="faq.a1"></p></details>
+          <details><summary data-i18n="faq.q2"></summary><p data-i18n="faq.a2"></p></details>
+          <details><summary data-i18n="faq.q3"></summary><p data-i18n="faq.a3"></p></details>
+          <details><summary data-i18n="faq.q4"></summary><p data-i18n="faq.a4"></p></details>
+          <details><summary data-i18n="faq.q5"></summary><p data-i18n="faq.a5"></p></details>
+          <details><summary data-i18n="faq.q6"></summary><p data-i18n="faq.a6"></p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- KONTAKTAI (be backend – tik mailto) -->
+    <section class="section section-dark" id="kontaktai" aria-labelledby="contact-title">
+      <div class="container contact-grid">
+        <div>
+          <h2 id="contact-title" data-i18n="contact.title"></h2>
+          <p class="section-lead" data-i18n="contact.lead"></p>
+          <p><span data-i18n="contact.direct"></span><br>
+            <a class="contact-email" id="contact-email" href="#"></a></p>
+          <p id="contact-phone" hidden></p>
+          <p class="muted small" data-i18n="contact.hint"></p>
+        </div>
+        <form class="contact-form" id="contact-form" novalidate>
+          <div class="field">
+            <label for="cf-name" data-i18n="contact.name"></label>
+            <input id="cf-name" name="name" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="cf-org" data-i18n="contact.org"></label>
+            <input id="cf-org" name="org" type="text" autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="cf-email" data-i18n="contact.email"></label>
+            <input id="cf-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="cf-assets" data-i18n="contact.assets"></label>
+            <input id="cf-assets" name="assets" type="number" min="0" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="cf-msg" data-i18n="contact.message"></label>
+            <textarea id="cf-msg" name="message" rows="4"></textarea>
+          </div>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <button class="btn btn-primary" type="submit" data-i18n="contact.submit"></button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> <span data-company></span>. <span data-i18n="footer.rights"></span>
+        <span id="company-meta"></span></p>
+      <p class="tm" data-i18n="footer.tm">Lansweeper is a trademark of Lansweeper NV. Not affiliated.</p>
+      <p class="draft-flag" data-i18n="footer.draft"></p>
+    </div>
+  </footer>
+</body>
+</html>
