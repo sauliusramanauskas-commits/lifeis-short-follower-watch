@@ -58,11 +58,23 @@ svg{width:100%;height:170px;display:block}
 table{width:100%;border-collapse:collapse;font-size:14px}
 td{padding:7px 0;border-bottom:1px solid var(--line)}
 td:last-child{text-align:right;font-weight:700}
-.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-top:8px}
 .grid2 .card{margin:0;padding:12px}
 .badge{display:inline-block;font:700 11px system-ui;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px;border:1px solid}
 .badge.lt{color:#58a6ff;border-color:#1f6feb;background:rgba(31,111,235,.12)}
 .badge.fa{color:var(--y);border-color:#9e6a03;background:rgba(210,153,34,.12)}
+.badge.pn{color:#d2a8ff;border-color:#8957e5;background:rgba(137,87,229,.14)}
+.badge.ot{color:var(--mut);border-color:#30363d;background:rgba(139,148,158,.10)}
+.ordwrap{overflow-x:auto;padding:12px}
+table.ord{font-size:12.5px;table-layout:fixed;min-width:320px}
+table.ord th:nth-child(1){width:27%}table.ord th:nth-child(2){width:22%}table.ord th:nth-child(3){width:17%}table.ord th:nth-child(4){width:15%}table.ord th:nth-child(5){width:19%}
+table.ord th{font-size:10px;letter-spacing:0}
+table.ord td:first-child{overflow-wrap:anywhere}
+table.ord th{text-align:left;font:600 11px system-ui;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;padding:0 6px 6px 0;border-bottom:1px solid var(--line)}
+table.ord td{padding:8px 5px 8px 0;vertical-align:top;font-variant-numeric:tabular-nums}
+table.ord td:last-child,table.ord th:last-child{text-align:right;padding-right:0;font-weight:400}
+table.ord .badge{margin-left:0;font-size:10px;padding:1px 5px;text-transform:none;letter-spacing:0}
+.nw{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -98,12 +110,10 @@ td:last-child{text-align:right;font-weight:700}
     <div class="sub" id="stopsub"></div>
   </div>
   <h2>Strategijos</h2>
-  <div class="grid2">
-    <div class="card"><div class="lbl">Ilgalaikiai</div><div class="v" id="g_lt">–</div><div class="sub" id="g_lt_sub"></div></div>
-    <div class="card"><div class="lbl">Greiti</div><div class="v" id="g_fa">–</div><div class="sub" id="g_fa_sub"></div></div>
-  </div>
+  <div class="grid2" id="groups"></div>
   <h2>Pozicijos</h2>
   <div id="positions"></div>
+  <div id="orderswrap" class="hide"><h2>Laukiantys pavedimai</h2><div class="card ordwrap"><table class="ord"><thead><tr><th>Akcija</th><th>Tipas</th><th>Kaina</th><th>Kiekis</th><th>Strategija</th></tr></thead><tbody id="orders"></tbody></table></div></div>
   <h2>P&amp;L istorija</h2>
   <div class="card"><svg id="chart" viewBox="0 0 340 170" preserveAspectRatio="none"></svg><div class="sub" id="chartsub"></div></div>
   <div id="closedwrap" class="hide"><h2>Uždaryti sandoriai</h2><div class="card"><table id="closed"></table></div></div>
@@ -174,8 +184,19 @@ async function load(manual) {
   } finally { busy = false; $('rb').disabled = false; }
 }
 
-const stratOf = (s) => s === 'greitas' ? 'greitas' : 'ilgalaikis';
-const BADGE = { ilgalaikis: '<span class="badge lt">Ilgalaikis</span>', greitas: '<span class="badge fa">Greitas</span>' };
+// Strategy: missing -> 'ilgalaikis'; unknown strings are shown with their raw name (never folded into ilgalaikis).
+const stratOf = (s) => (typeof s === 'string' && s.trim()) ? s.trim().toLowerCase() : 'ilgalaikis';
+const STRATS = ['ilgalaikis', 'greitas', 'penny'];
+const STRAT = { ilgalaikis: { label: 'Ilgalaikis', card: 'Ilgalaikiai', cls: 'lt' }, greitas: { label: 'Greitas', card: 'Greiti', cls: 'fa', empty: 'tikslas +5 %, stop −3 %' },
+  penny: { label: 'Penny', card: 'Penny', cls: 'pn', empty: 'JAV small caps' } };
+const stratLabel = (s, d) => STRAT[s]?.label || d?.groups?.[s]?.label || s;
+const badge = (s, d) => `<span class="badge ${STRAT[s]?.cls || 'ot'}">${esc(stratLabel(s, d))}</span>`;
+// Native-currency price formatting (positions/orders); all totals stay in EUR.
+const SYM = { EUR: '€', USD: '$', GBP: '£', GBX: 'p' };
+const ccyOf = (p) => String(p?.currency || 'EUR').toUpperCase();
+const money = (v, c) => { if (v == null || !isFinite(v)) return '–'; const a = Math.abs(v), dp = a > 0 && a < 10 ? (Math.round(a * 100) === a * 100 ? 2 : Math.min(4, Math.max(2, String(a).split('.')[1]?.length || 2))) : 2;
+  return (v < 0 ? '−' : '') + a.toLocaleString('lt-LT', { minimumFractionDigits: dp, maximumFractionDigits: dp }) + ' ' + (SYM[c] || c || '€'); };
+const fxRate = (d, c) => c === 'EUR' ? 1 : (d.fx && d.fx[c] && typeof d.fx[c].rate === 'number' ? d.fx[c].rate : null);
 // Uses data.groups when present; older data (no groups) is rebuilt from positions/closed.
 function groupOf(d, s) {
   if (d.groups && d.groups[s]) return d.groups[s];
@@ -184,17 +205,35 @@ function groupOf(d, s) {
   return { invested, value, unrealized: value - invested, realized, total: value - invested + realized, count: ps.length + cs.length };
 }
 function renderGroups(d) {
-  for (const [s, id] of [['ilgalaikis', 'g_lt'], ['greitas', 'g_fa']]) {
-    const g = groupOf(d, s), el = $(id);
-    if (!g.count) { el.textContent = 'dar nėra'; el.className = 'v sub'; $(id + '_sub').textContent = s === 'greitas' ? 'tikslas +5 %, stop −3 %' : '0 sandorių'; continue; }
-    el.textContent = eur(g.total, true); el.className = 'v ' + cls(g.total);
-    $(id + '_sub').textContent = `${g.count} sand. · įdėta ${eur(g.invested)}`;
-  }
+  const seen = [...(d.positions || []), ...(d.closed || [])].map((x) => stratOf(x.strategy));
+  const extra = [...Object.keys(d.groups || {}).filter((s) => (d.groups[s] || {}).count > 0), ...seen].filter((s, i, a) => !STRATS.includes(s) && a.indexOf(s) === i);
+  $('groups').innerHTML = [...STRATS, ...extra].map((s) => {
+    const g = groupOf(d, s), m = STRAT[s] || {}, title = m.card || stratLabel(s, d);
+    const bc = String(g.budgetCurrency || 'EUR').toUpperCase();
+    const bud = typeof g.budget === 'number' ? ` · biudžetas ${num(g.budget, Number.isInteger(g.budget) ? 0 : 2)} ${SYM[bc] || bc}` : '';
+    if (!g.count) return `<div class="card"><div class="lbl">${esc(title)}</div><div class="v sub">dar nėra</div><div class="sub">${esc((m.empty || '0 sandorių') + bud)}</div></div>`;
+    return `<div class="card"><div class="lbl">${esc(title)}</div><div class="v ${cls(g.total)}">${eur(g.total, true)}</div><div class="sub">${g.count} sand. · įdėta ${eur(g.invested)}${esc(bud)}</div></div>`;
+  }).join('');
+}
+function renderOrders(d) {
+  const os = Array.isArray(d.orders) ? d.orders.filter((o) => o && o.ticker) : [];
+  $('orderswrap').classList.toggle('hide', !os.length);
+  $('orders').innerHTML = os.map((o) => {
+    const c = ccyOf(o), buy = String(o.side || '').toUpperCase() !== 'SELL';
+    const lim = typeof o.limit === 'number' ? o.limit : null, stp = typeof o.stop === 'number' ? o.stop : null;
+    const m = (v, cc) => `<span class="nw">${money(v, cc)}</span>`;
+    const price = lim != null && stp != null ? `${m(lim, c)}<div class="ptk">stop ${m(stp, c)}</div>` : lim != null ? m(lim, c) : stp != null ? `stop<br>${m(stp, c)}` : 'rinkos';
+    const q = typeof o.qty === 'number' ? `<span class="nw">${num(o.qty, 4).replace(/0+$/, '').replace(/,$/, '')} vnt.</span>` : null;
+    const v = typeof o.value === 'number' ? m(o.value, String(o.valueCurrency || c).toUpperCase()) : null;
+    const qty = q && v ? `${q}<div class="ptk">${v}</div>` : q || v || '–';
+    return `<tr><td><b>${esc(o.name || o.ticker)}</b><div class="ptk">${esc(o.ticker)}${o.created ? ' · ' + esc(o.created) : ''}</div></td>
+      <td class="${buy ? 'pos' : 'neg'}">${buy ? 'Pirkimas' : 'Pardavimas'}</td><td>${price}</td><td>${qty}</td><td>${badge(stratOf(o.strategy), d)}</td></tr>`;
+  }).join('');
 }
 
 function render() {
   const d = data, lim = d.stopLimit ?? -100;
-  renderGroups(d);
+  renderGroups(d); renderOrders(d);
   $('total').textContent = eur(d.total, true); $('total').className = 'big ' + cls(d.total);
   const tp = d.invested ? d.total / (d.budget || d.invested) * 100 : null;
   $('totalsub').innerHTML = `Nerealizuotas <b class="${cls(d.unrealized)}">${eur(d.unrealized, true)}</b> · Realizuotas <b class="${cls(d.realized)}">${eur(d.realized, true)}</b>` + (tp != null ? ` · ${pct(tp)} biudžeto` : '');
@@ -205,23 +244,26 @@ function render() {
   $('stoplbl').textContent = `riba ${eur(lim)}`;
   $('stopsub').innerHTML = left > 0 ? `Liko <b>${eur(left)}</b> iki ${eur(lim)} ribos (išnaudota ${Math.round(used * 100)} %)` : `<b class="neg">Stop riba pasiekta!</b>`;
   $('positions').innerHTML = (d.positions || []).map((p) => {
+    const c = ccyOf(p), rate = fxRate(d, c);
     const dist = p.stop && p.price ? (p.price - p.stop) / p.price * 100 : null;
-    const risk = p.stop && p.avg ? (p.stop - p.avg) * p.qty : null;
+    const riskN = p.stop && p.avg ? (p.stop - p.avg) * p.qty : null; // native currency
+    const risk = riskN == null ? null : rate != null ? riskN * rate : null;
     const tgt = typeof p.target === 'number' && p.target > 0 ? p.target : null;
     const tdist = tgt && p.price ? (tgt - p.price) / p.price * 100 : null;
-    return `<div class="card"><div class="row"><div><div class="pname">${esc(p.name)}${BADGE[stratOf(p.strategy)]}</div><div class="ptk">${esc(p.ticker)}</div></div>
+    return `<div class="card"><div class="row"><div><div class="pname">${esc(p.name)}${badge(stratOf(p.strategy), d)}</div><div class="ptk">${esc(p.ticker)}</div></div>
       <div class="pnl ${cls(p.pnl)}">${eur(p.pnl, true)}<small>${pct(p.pct)}</small></div></div>
       <div class="kv"><div><span>Kiekis</span><b>${num(p.qty, 4).replace(/0+$/, '').replace(/,$/, '')}</b></div>
-      <div><span>Pirkta</span><b>${num(p.avg)}</b></div><div><span>Dabar</span><b>${num(p.price)}</b></div>
-      <div><span>Vertė</span><b>${eur(p.value)}</b></div><div><span>Stop</span><b>${num(p.stop)}</b></div>
+      <div><span>Pirkta</span><b>${money(p.avg, c)}</b></div><div><span>Dabar</span><b>${money(p.price, c)}</b></div>
+      <div><span>Vertė</span><b>${eur(p.value)}</b></div><div><span>Stop</span><b>${money(p.stop, c)}</b></div>
       <div><span>Iki stop</span><b class="${dist != null && dist < 3 ? 'neg' : ''}">${dist == null ? '–' : num(dist, 1) + ' %'}</b></div>
-      ${tgt ? `<div><span>Tikslas</span><b>${num(tgt)}</b></div><div><span>Iki tikslo</span><b class="${tdist != null && tdist <= 0 ? 'pos' : ''}">${tdist == null ? '–' : tdist <= 0 ? 'pasiektas' : '+' + num(tdist, 1) + ' %'}</b></div>` : ''}</div>
-      ${risk != null ? `<div class="sub" style="margin-top:6px">Suveikus stop: ${eur(risk, true)}</div>` : ''}</div>`;
+      ${tgt ? `<div><span>Tikslas</span><b>${money(tgt, c)}</b></div><div><span>Iki tikslo</span><b class="${tdist != null && tdist <= 0 ? 'pos' : ''}">${tdist == null ? '–' : tdist <= 0 ? 'pasiektas' : '+' + num(tdist, 1) + ' %'}</b></div>` : ''}</div>
+      ${risk != null ? `<div class="sub" style="margin-top:6px">Suveikus stop: ${eur(risk, true)}${c !== 'EUR' ? ` (${money(riskN, c)})` : ''}</div>` : riskN != null ? `<div class="sub" style="margin-top:6px">Suveikus stop: ${money(riskN, c)}</div>` : ''}
+      ${c !== 'EUR' ? `<div class="sub" style="margin-top:4px">Kainos ${esc(c)}, vertė ir P&amp;L eurais${rate != null ? ` (1 ${esc(c)} = ${num(rate, 4)} €)` : ''}</div>` : ''}</div>`;
   }).join('') || '<div class="card sub">Atvirų pozicijų nėra.</div>';
   chart(d.history || []);
   const cl = d.closed || [];
   $('closedwrap').classList.toggle('hide', !cl.length);
-  $('closed').innerHTML = cl.map((c) => `<tr><td>${esc(c.name)}<div class="ptk">${esc(c.at)} · ${num(c.qty, 4)} vnt. · ${eur(c.proceeds)}</div></td><td class="${cls(c.pnl)}">${eur(c.pnl, true)}</td></tr>`).join('');
+  $('closed').innerHTML = cl.map((c) => `<tr><td>${esc(c.name)}${badge(stratOf(c.strategy), d)}<div class="ptk">${esc(c.at)} · ${num(c.qty, 4)} vnt. · ${eur(c.proceeds)}</div></td><td class="${cls(c.pnl)}">${eur(c.pnl, true)}</td></tr>`).join('');
   const age = asMin(berlinNow()) - asMin(d.updated);
   $('status').innerHTML = `Atnaujinta: <b>${esc(d.updated)}</b> (Berlyno laiku)` + (age > 120 ? ` <span class="warn">· duomenys senesni nei ${Math.floor(age / 60)} val.</span>` : '');
 }
