@@ -1,6 +1,6 @@
 // T212 PWA service worker. Network-first; cache is only an offline fallback.
 // Only the app shell and the (encrypted) data file are ever cached - never plaintext.
-const CACHE = 't212-v1';
+const CACHE = 't212-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './favicon-32.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
