@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f0f0f">
+<title>RL lankytojai</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f0f0f'/%3E%3Ctext x='32' y='42' font-size='28' text-anchor='middle' fill='%23c9a227' font-family='Georgia'%3ERL%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0f0f0f;--card:#1a1a1a;--line:#2a2a2a;--ink:#f2f2f2;--mut:#9a9a9a;--gold:#c9a227;--gold2:#e6c55a;--up:#6fcf73;--r:20px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;background:rgba(15,15,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .logo{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--gold);color:var(--gold);display:grid;place-items:center;font:700 14px Georgia,serif}
+header h1{font:700 18px Georgia,serif;letter-spacing:.06em;margin:0;flex:1}
+main{max-width:560px;margin:0 auto;padding:14px 14px 40px}
+.hero{background:radial-gradient(420px 220px at 90% -10%,rgba(201,162,39,.35),transparent 70%),linear-gradient(160deg,#242018,#141414);border:1px solid #3a3220;border-radius:var(--r);padding:18px;position:relative;overflow:hidden}
+.lbl{font:600 12.5px system-ui;color:var(--mut);text-transform:uppercase;letter-spacing:.07em}
+.hero .lbl{color:var(--gold2)}
+.hero .num{font:800 clamp(68px,22vw,104px)/1 system-ui,sans-serif;letter-spacing:-2px;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.hero .sub{font-size:14px;color:#cfcfcf}
+.num.bump,.v.bump{animation:bump .9s}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.1);color:var(--gold2)}100%{transform:scale(1)}}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.card .v{font:800 38px/1.1 system-ui,sans-serif;font-variant-numeric:tabular-nums;margin-top:4px}
+.card .s{font-size:13px;color:var(--mut);margin-top:2px}
+.pos{color:var(--up)!important}
+.status{display:flex;align-items:center;gap:10px;margin:14px 2px 0;font-size:14px;color:var(--mut)}
+.dot{width:10px;height:10px;border-radius:50%;background:#555;flex:none}
+.dot.ok{background:var(--up);box-shadow:0 0 0 4px rgba(111,207,115,.18)}
+.dot.err{background:#e05252}
+.status span{flex:1}
+.btn{background:transparent;color:var(--gold);border:1.5px solid var(--gold);border-radius:999px;font:700 14px system-ui;padding:7px 14px;cursor:pointer}
+.btn:active{transform:scale(.97)}
+h2{font:700 16px Georgia,serif;letter-spacing:.04em;margin:0 0 10px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:130px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.bar i{display:block;width:100%;background:linear-gradient(180deg,var(--gold2),var(--gold));border-radius:5px 5px 2px 2px;min-height:2px}
+.bar b{font:600 10.5px system-ui;color:#ddd;margin-bottom:3px}
+.bar em{font:500 10px system-ui;color:var(--mut);font-style:normal;margin-top:4px;white-space:nowrap}
+.note{font-size:12px;color:var(--mut);margin-top:8px}
+footer{font-size:12px;color:var(--mut);text-align:center;margin-top:18px;line-height:1.5}
+</style>
+</head>
+<body>
+<header><div class="logo">RL</div><h1>Lankytojai</h1><button class="btn" id="refresh">Atnaujinti</button></header>
+<main>
+  <section class="hero">
+    <div class="lbl">Apsilankymai iš viso</div>
+    <div class="num" id="visits">–</div>
+    <div class="sub">kiekvienas puslapio atidarymas</div>
+  </section>
+  <div class="row">
+    <div class="card"><div class="lbl">Unikalūs lankytojai</div><div class="v" id="unique">–</div><div class="s">skirtingos naršyklės</div></div>
+    <div class="card"><div class="lbl">Šiandien</div><div class="v" id="today">–</div><div class="s" id="todayU"></div></div>
+  </div>
+  <div class="row">
+    <div class="card" style="grid-column:1/-1"><div class="lbl">Nuo paskutinio peržiūrėjimo</div><div class="v" id="since">–</div><div class="s" id="sinceWhen"></div></div>
+  </div>
+  <div class="status"><div class="dot" id="dot"></div><span id="updated">kraunama…</span></div>
+  <section class="card" style="margin-top:12px">
+    <h2>Apsilankymai per dieną</h2>
+    <div class="bars" id="bars"></div>
+    <div class="note" id="note"></div>
+  </section>
+  <footer>Tik skaitymas – šis puslapis lankytojų neprideda.<br>Atnaujinama kas 60 s.</footer>
+</main>
+<script>
+(function(){
+'use strict';
+var NS='rl-portfolio-618e08b1', API='https://abacus.jasoncameron.dev/get/'+NS+'/'; // READ only, never /hit
+var POLL=60000, TZ='Europe/Berlin', LS={days:'rlv-days',seen:'rlv-seen'};
+function jget(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
+function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var $=function(id){return document.getElementById(id)};
+var dayFmt=new Intl.DateTimeFormat('sv-SE',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'});
+var timeFmt=new Intl.DateTimeFormat('lt-LT',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+var dtFmt=new Intl.DateTimeFormat('lt-LT',{timeZone:TZ,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+function dayKey(t){return dayFmt.format(new Date(t))}
+// days: {"YYYY-MM-DD":{fv,fu,lv,lu}} first/last seen values per Berlin day (this browser + box log)
+var days=jget(LS.days,{}), seenPrev=jget(LS.seen,null), cur=null;
+function note(d,v,u){var x=days[d];if(!x)days[d]={fv:v,fu:u,lv:v,lu:u};else{if(v<x.fv)x.fv=v;if(u<x.fu)x.fu=u;if(v>x.lv)x.lv=v;if(u>x.lu)x.lu=u}}
+function prevDay(d){var k=Object.keys(days).filter(function(x){return x<d}).sort();return k.length?days[k[k.length-1]]:null}
+function delta(d){var x=days[d];if(!x)return null;var p=prevDay(d);var bv=p?p.lv:x.fv,bu=p?p.lu:x.fu;return{v:x.lv-bv,u:x.lu-bu,approx:!p}}
+function sign(n){return(n>0?'+':'')+n}
+function set(id,val){var el=$(id),s=String(val);if(el.textContent!==s){var bump=el.textContent!=='–';el.textContent=s;if(bump){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')}}}
+function get(k){return fetch(API+k+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(j){if(typeof j.value!=='number')throw new Error('bad');return j.value})}
+function render(){
+  if(!cur)return;
+  set('visits',cur.v);set('unique',cur.u);
+  var td=delta(dayKey(Date.now()));
+  set('today',td?sign(td.v):'–');
+  $('todayU').textContent=td?(sign(td.u)+' unikalių'+(td.approx?' · nuo pirmo įrašo šiandien':'')):'';
+  if(seenPrev){var dv=cur.v-seenPrev.v,du=cur.u-seenPrev.u;set('since',sign(dv));$('since').classList.toggle('pos',dv>0);
+    $('sinceWhen').textContent=sign(du)+' unikalių · paskutinį kartą '+dtFmt.format(new Date(seenPrev.ts));}
+  else{set('since','0');$('sinceWhen').textContent='pirmas peržiūrėjimas šioje naršyklėje';}
+  // last 14 days bars
+  var out=[],now=Date.now();for(var i=13;i>=0;i--){var d=dayKey(now-i*864e5),x=delta(d);out.push({d:d,n:x?x.v:null})}
+  var max=Math.max.apply(null,out.map(function(o){return o.n||0}).concat([1]));
+  $('bars').innerHTML=out.map(function(o){var h=o.n==null?0:Math.max(2,Math.round(o.n/max*100));
+    return '<div class="bar"><b>'+(o.n==null?'':o.n)+'</b><i style="height:'+h+'%;'+(o.n==null?'opacity:.15':'')+'"></i><em>'+o.d.slice(8)+'</em></div>'}).join('');
+  var have=out.filter(function(o){return o.n!=null}).length;
+  $('note').textContent=have<2?'Istorija kaupiasi – dienų skaičiai atsiras po kelių dienų.':'Paskutinės 14 d. (Berlyno laiku).';
+}
+function refresh(){
+  return Promise.all([get('visits'),get('unique')]).then(function(r){
+    cur={v:r[0],u:r[1],ts:Date.now()};note(dayKey(cur.ts),cur.v,cur.u);jset(LS.days,days);jset(LS.seen,cur);
+    $('dot').className='dot ok';$('updated').textContent='atnaujinta '+timeFmt.format(new Date());render();
+  }).catch(function(){$('dot').className='dot err';$('updated').textContent='nepavyko atnaujinti – bandysiu vėl';});
+}
+// optional box-side history (docs/romas-visits/history.json) fills days when this page was not open
+function loadServer(){return fetch('history.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){
+  if(j&&j.samples)j.samples.forEach(function(s){note(dayKey(Date.parse(s.ts)),s.visits,s.unique)});jset(LS.days,days);render()}).catch(function(){})}
+$('refresh').onclick=function(){refresh();loadServer()};
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
+refresh();loadServer();setInterval(refresh,POLL);
+})();
+</script>
+</body>
+</html>
