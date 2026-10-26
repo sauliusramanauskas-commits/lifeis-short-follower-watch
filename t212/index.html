@@ -58,6 +58,11 @@ svg{width:100%;height:170px;display:block}
 table{width:100%;border-collapse:collapse;font-size:14px}
 td{padding:7px 0;border-bottom:1px solid var(--line)}
 td:last-child{text-align:right;font-weight:700}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.grid2 .card{margin:0;padding:12px}
+.badge{display:inline-block;font:700 11px system-ui;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px;border:1px solid}
+.badge.lt{color:#58a6ff;border-color:#1f6feb;background:rgba(31,111,235,.12)}
+.badge.fa{color:var(--y);border-color:#9e6a03;background:rgba(210,153,34,.12)}
 </style>
 </head>
 <body>
@@ -91,6 +96,11 @@ td:last-child{text-align:right;font-weight:700}
     <div class="row"><div class="lbl">Iki stop ribos</div><div class="sub" id="stoplbl"></div></div>
     <div class="bar"><i id="stopbar"></i></div>
     <div class="sub" id="stopsub"></div>
+  </div>
+  <h2>Strategijos</h2>
+  <div class="grid2">
+    <div class="card"><div class="lbl">Ilgalaikiai</div><div class="v" id="g_lt">–</div><div class="sub" id="g_lt_sub"></div></div>
+    <div class="card"><div class="lbl">Greiti</div><div class="v" id="g_fa">–</div><div class="sub" id="g_fa_sub"></div></div>
   </div>
   <h2>Pozicijos</h2>
   <div id="positions"></div>
@@ -164,8 +174,27 @@ async function load(manual) {
   } finally { busy = false; $('rb').disabled = false; }
 }
 
+const stratOf = (s) => s === 'greitas' ? 'greitas' : 'ilgalaikis';
+const BADGE = { ilgalaikis: '<span class="badge lt">Ilgalaikis</span>', greitas: '<span class="badge fa">Greitas</span>' };
+// Uses data.groups when present; older data (no groups) is rebuilt from positions/closed.
+function groupOf(d, s) {
+  if (d.groups && d.groups[s]) return d.groups[s];
+  const ps = (d.positions || []).filter((p) => stratOf(p.strategy) === s), cs = (d.closed || []).filter((c) => stratOf(c.strategy) === s);
+  const invested = ps.reduce((a, p) => a + (p.cost || 0), 0), value = ps.reduce((a, p) => a + (p.value ?? p.cost ?? 0), 0), realized = cs.reduce((a, c) => a + (c.pnl || 0), 0);
+  return { invested, value, unrealized: value - invested, realized, total: value - invested + realized, count: ps.length + cs.length };
+}
+function renderGroups(d) {
+  for (const [s, id] of [['ilgalaikis', 'g_lt'], ['greitas', 'g_fa']]) {
+    const g = groupOf(d, s), el = $(id);
+    if (!g.count) { el.textContent = 'dar nėra'; el.className = 'v sub'; $(id + '_sub').textContent = s === 'greitas' ? 'tikslas +5 %, stop −3 %' : '0 sandorių'; continue; }
+    el.textContent = eur(g.total, true); el.className = 'v ' + cls(g.total);
+    $(id + '_sub').textContent = `${g.count} sand. · įdėta ${eur(g.invested)}`;
+  }
+}
+
 function render() {
   const d = data, lim = d.stopLimit ?? -100;
+  renderGroups(d);
   $('total').textContent = eur(d.total, true); $('total').className = 'big ' + cls(d.total);
   const tp = d.invested ? d.total / (d.budget || d.invested) * 100 : null;
   $('totalsub').innerHTML = `Nerealizuotas <b class="${cls(d.unrealized)}">${eur(d.unrealized, true)}</b> · Realizuotas <b class="${cls(d.realized)}">${eur(d.realized, true)}</b>` + (tp != null ? ` · ${pct(tp)} biudžeto` : '');
@@ -178,12 +207,15 @@ function render() {
   $('positions').innerHTML = (d.positions || []).map((p) => {
     const dist = p.stop && p.price ? (p.price - p.stop) / p.price * 100 : null;
     const risk = p.stop && p.avg ? (p.stop - p.avg) * p.qty : null;
-    return `<div class="card"><div class="row"><div><div class="pname">${esc(p.name)}</div><div class="ptk">${esc(p.ticker)}</div></div>
+    const tgt = typeof p.target === 'number' && p.target > 0 ? p.target : null;
+    const tdist = tgt && p.price ? (tgt - p.price) / p.price * 100 : null;
+    return `<div class="card"><div class="row"><div><div class="pname">${esc(p.name)}${BADGE[stratOf(p.strategy)]}</div><div class="ptk">${esc(p.ticker)}</div></div>
       <div class="pnl ${cls(p.pnl)}">${eur(p.pnl, true)}<small>${pct(p.pct)}</small></div></div>
       <div class="kv"><div><span>Kiekis</span><b>${num(p.qty, 4).replace(/0+$/, '').replace(/,$/, '')}</b></div>
       <div><span>Pirkta</span><b>${num(p.avg)}</b></div><div><span>Dabar</span><b>${num(p.price)}</b></div>
       <div><span>Vertė</span><b>${eur(p.value)}</b></div><div><span>Stop</span><b>${num(p.stop)}</b></div>
-      <div><span>Iki stop</span><b class="${dist != null && dist < 3 ? 'neg' : ''}">${dist == null ? '–' : num(dist, 1) + ' %'}</b></div></div>
+      <div><span>Iki stop</span><b class="${dist != null && dist < 3 ? 'neg' : ''}">${dist == null ? '–' : num(dist, 1) + ' %'}</b></div>
+      ${tgt ? `<div><span>Tikslas</span><b>${num(tgt)}</b></div><div><span>Iki tikslo</span><b class="${tdist != null && tdist <= 0 ? 'pos' : ''}">${tdist == null ? '–' : tdist <= 0 ? 'pasiektas' : '+' + num(tdist, 1) + ' %'}</b></div>` : ''}</div>
       ${risk != null ? `<div class="sub" style="margin-top:6px">Suveikus stop: ${eur(risk, true)}</div>` : ''}</div>`;
   }).join('') || '<div class="card sub">Atvirų pozicijų nėra.</div>';
   chart(d.history || []);
