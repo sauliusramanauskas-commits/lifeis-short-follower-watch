@@ -1,0 +1,18 @@
+{
+ "ns": "rl-portfolio-618e08b1",
+ "keys": {
+  "visits": "visits",
+  "unique": "unique"
+ },
+ "tz": "Europe/Berlin",
+ "days": 30,
+ "resolution": "hour",
+ "samples": [
+  {
+   "ts": "2026-10-26T05:58:58.959Z",
+   "visits": 1,
+   "unique": 1
+  }
+ ],
+ "updatedAt": "2026-10-26T05:58:58.959Z"
+}
