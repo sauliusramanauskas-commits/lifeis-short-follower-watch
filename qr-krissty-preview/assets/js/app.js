@@ -2,6 +2,13 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s||'').replace(/([\\;,:"])/g,'\\$1');
 const TYPES={
+ social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['fb','Facebook (nuoroda arba vardas)','text',''],['ig','Instagram (@vardas arba nuoroda)','text',''],['tt','TikTok (@vardas arba nuoroda)','text',''],['yt','YouTube (@kanalas arba nuoroda)','text',''],['x1','Kita nuoroda','url',''],['x2','Dar viena nuoroda','url','']],
+  b:v=>{const N={fb:'https://www.facebook.com/',ig:'https://www.instagram.com/',tt:'https://www.tiktok.com/@',yt:'https://www.youtube.com/@'};
+   const L=[];for(const k of ['fb','ig','tt','yt','x1','x2']){let u=(v[k]||'').trim();if(!u)continue;
+    if(!/^https?:\/\//i.test(u)){if(N[k]){u=u.replace(/^@/,'');u=/\./.test(u)&&!/^[\w.]+$/.test(u)?'https://'+u:N[k]+u}else u='https://'+u}
+    L.push([k,u])}
+   const d=btoa(unescape(encodeURIComponent(JSON.stringify({t:v.ti||'',l:L})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+   return new URL('p/',location.href.split('#')[0].replace(/[^/]*$/,'')).href+'#'+d}},
  url:{l:'Nuoroda',f:[['url','Nuoroda','url','https://krissty.lt']],b:v=>{let u=v.url.trim();if(u&&!/^[a-z]+:/i.test(u))u='https://'+u;return u}},
  text:{l:'Tekstas',f:[['t','Tekstas','area','Labas!']],b:v=>v.t},
  wifi:{l:'Wi-Fi',f:[['s','Tinklo pavadinimas (SSID)','text',''],['p','Slaptažodis','password',''],['e','Apsauga','sel:WPA|WEP|nopass','WPA']],b:v=>`WIFI:T:${v.e};S:${esc(v.s)};P:${v.e==='nopass'?'':esc(v.p)};;`},
@@ -17,7 +24,7 @@ const TYPES={
  pay:{l:'Mokėjimas (SEPA)',f:[['nm','Gavėjas','text',''],['ib','IBAN','text','LT'],['am','Suma, €','text',''],['ds','Mokėjimo paskirtis','text','']],
   b:v=>['BCD','002','1','SCT','',v.nm,v.ib.replace(/\s/g,''),v.am?'EUR'+(+v.am.replace(',','.')).toFixed(2):'','','',v.ds].join('\n')}
 };
-let type='url';const vals={};
+let type='social';const vals={};
 function drawFields(){
  const t=TYPES[type];vals[type]=vals[type]||{};
  $('#fields').innerHTML=t.f.map(([k,l,kind,def])=>{

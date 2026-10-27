@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="lt"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Socialiniai tinklai</title><meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="../assets/img/clover.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<style>
+body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;background:radial-gradient(900px 500px at 50% -10%,#2e7d32,transparent 70%),#0d2611;color:#fff;display:flex;justify-content:center}
+main{width:100%;max-width:440px;padding:48px 20px;text-align:center}
+.av{width:96px;height:96px;border-radius:50%;background:#b8f04a;color:#0d2611;display:grid;place-items:center;margin:0 auto;font:800 40px Poppins,Inter,sans-serif}
+h1{font:800 30px Poppins,Inter,sans-serif;margin:14px 0 26px;overflow-wrap:anywhere}
+a.l{display:flex;align-items:center;gap:14px;background:#fff;color:#16201a;text-decoration:none;border-radius:18px;padding:14px 18px;margin:12px 0;font:700 17px Poppins,Inter,sans-serif;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+a.l svg{width:30px;height:30px;flex:none}a.l span{flex:1;text-align:left;min-width:0}a.l small{display:block;font:500 13px Inter,sans-serif;color:#56645a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+footer{margin-top:30px;font-size:13px;color:#9fbea3}footer a{color:#cfe3d1}
+</style></head><body><main id="m"></main>
+<script>
+(function(){
+const I={
+fb:['Facebook','<circle cx="12" cy="12" r="12" fill="#1877f2"/><path fill="#fff" d="M13.3 19v-6h2l.3-2.4h-2.3V9.1c0-.7.2-1.2 1.2-1.2h1.2V5.8c-.2 0-1-.1-1.8-.1-1.8 0-3 1.1-3 3.1v1.8h-2V13h2v6z"/>'],
+ig:['Instagram','<defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".5" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs><rect width="24" height="24" rx="7" fill="url(#g)"/><rect x="5.5" y="5.5" width="13" height="13" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.3" cy="7.7" r="1" fill="#fff"/>'],
+tt:['TikTok','<rect width="24" height="24" rx="7" fill="#000"/><path fill="#25f4ee" d="M10.2 10.6v-.8a5 5 0 1 0 3.6 4.8V8.9a5.7 5.7 0 0 0 3.4 1.1V8.3a3.4 3.4 0 0 1-3.4-3.3h-1.8v9.6a1.8 1.8 0 1 1-1.8-1.8z" transform="translate(-.6 .4)"/><path fill="#fe2c55" d="M10.2 10.6v-.8a5 5 0 1 0 3.6 4.8V8.9a5.7 5.7 0 0 0 3.4 1.1V8.3a3.4 3.4 0 0 1-3.4-3.3h-1.8v9.6a1.8 1.8 0 1 1-1.8-1.8z" transform="translate(.6 -.4)"/><path fill="#fff" d="M10.2 10.6v-.8a5 5 0 1 0 3.6 4.8V8.9a5.7 5.7 0 0 0 3.4 1.1V8.3a3.4 3.4 0 0 1-3.4-3.3h-1.8v9.6a1.8 1.8 0 1 1-1.8-1.8z"/>'],
+yt:['YouTube','<rect width="24" height="24" rx="7" fill="#ff0000"/><path fill="#fff" d="M10 8.5v7l6-3.5z"/>'],
+x:['Nuoroda','<rect width="24" height="24" rx="7" fill="#2e7d32"/><path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" d="M10.5 13.5l3-3M9 11l-1.5 1.5a2.5 2.5 0 0 0 3.5 3.5L12.5 14.5M15 13l1.5-1.5a2.5 2.5 0 0 0-3.5-3.5L11.5 9.5"/>']};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let d={t:'',l:[]};
+try{let h=location.hash.slice(1).replace(/-/g,'+').replace(/_/g,'/');d=JSON.parse(decodeURIComponent(escape(atob(h))))}catch(e){}
+const links=(d.l||[]).filter(x=>Array.isArray(x)&&/^https?:\/\//i.test(x[1])).slice(0,20);
+const t=(d.t||'').slice(0,100);if(t)document.title=t;
+const m=document.getElementById('m');
+if(!links.length){m.innerHTML='<h1>Nuorodų nerasta</h1><p>Šiame kode nėra nuorodų.</p>';return}
+m.innerHTML=(t?`<div class="av">${esc(t.trim()[0].toUpperCase())}</div><h1>${esc(t)}</h1>`:'<div style="height:20px"></div>')+
+ links.map(([k,u])=>{const ic=I[k]||I.x;let sub=u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+  return `<a class="l" href="${esc(u)}" rel="noopener noreferrer"><svg viewBox="0 0 24 24">${ic[1]}</svg><span>${ic[0]}<small>${esc(sub)}</small></span></a>`}).join('')+
+ '<footer>Sukurta su <a href="../">Krissty QR</a></footer>';
+})();
+</script></body></html>
