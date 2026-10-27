@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kurti QR · Krissty QR</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="../assets/img/clover.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/fonts.css"><link rel="stylesheet" href="../assets/css/style.css">
+<script src="../assets/js/config.js"></script>
+</head>
+<body class="app">
+<header class="top"><div class="wrap">
+ <a class="brand" href="../"><img src="../assets/img/clover.svg" alt="">Krissty<b>QR</b></a>
+ <nav class="menu"><a href="../#kainos">Kainos</a><a href="../#duk">DUK</a></nav>
+</div></header>
+
+<div class="wrap pagehead"><h1>Kurti QR kodą</h1><p>Užpildyk žingsnius kairėje, o kodas dešinėje atsinaujins iškart.</p></div>
+
+<main class="wrap tool" id="kurti">
+ <div class="steps">
+  <section class="step" id="stepContent">
+   <h2>Turinys</h2><p class="hint">Pasirink, kur ves kodas, ir užpildyk laukelius.</p>
+   <div class="tabs" role="group" aria-label="QR tipas" id="types"></div>
+   <div id="fields"></div>
+  </section>
+
+  <section class="step" id="stepTpl">
+   <h2>Puslapio šablonas</h2><p class="hint">Taip atrodys puslapis, kurį žmonės pamatys nuskenavę kodą.</p>
+   <div class="tpls" role="group" aria-label="Puslapio šablonas" id="tpls"></div>
+   <div class="lockrow" style="margin-top:18px">
+    <label class="chk" style="margin:0"><input type="checkbox" id="pcOn"> Savos puslapio spalvos</label><span class="tag lock">Pilname plane</span>
+   </div>
+   <div class="row" id="pcRow" hidden>
+    <div><label for="pcAcc">Akcento spalva</label><input type="color" id="pcAcc" value="#2e7d32"></div>
+    <div><label for="pcBg">Fono spalva</label><input type="color" id="pcBg" value="#f4f5fa"></div>
+   </div>
+   <div class="ai" id="aiBox">
+    <div class="lockrow"><b style="font:600 14px var(--fh)">Dizainas su AI</b><span class="tag">Netrukus</span></div>
+    <p class="note" style="margin-top:6px">Aprašyk, ko nori, pavyzdžiui „žalias dobilas su rasos lašais“, ir gauk unikalų kortelės foną ar viršelį.</p>
+    <div class="row" style="grid-template-columns:1fr auto;align-items:center"><input type="text" id="aiPrompt" placeholder="Aprašyk foną ar viršelį" maxlength="200"><button type="button" class="btn line sm" disabled>Kurti</button></div>
+    <p class="note" id="aiNote">Iki <span id="aiN"></span> AI dizainų kas 30 dienų · Bandymo metu – iki <span data-ai-limit="trial"></span></p>
+   </div>
+   <div class="tplbar"><span class="note" id="tplNote" style="margin:0"></span><a class="btn line sm" id="pageLink" href="../p/" target="_blank" rel="noopener">Peržiūrėti puslapį ↗</a></div>
+  </section>
+
+  <section class="step" id="stepDesign">
+   <h2>Dizainas</h2><p class="hint">Spalvos, forma, logotipas ir rėmelis.</p>
+   <h3 class="sub-h">Spalvos</h3>
+   <div class="swatches" id="presets"></div>
+   <div class="row" style="max-width:360px">
+    <div><label for="fg">Taškų spalva</label><input type="color" id="fg" value="#1f5e1f"></div>
+    <div><label for="bg">Fono spalva</label><input type="color" id="bg" value="#ffffff"></div>
+   </div>
+   <label class="chk"><input type="checkbox" id="grad"> Spalvų perėjimas (gradientas)</label>
+   <div id="gradRow" hidden><label for="fg2">Antra spalva</label><input type="color" id="fg2" value="#43a047"></div>
+
+   <h3 class="sub-h">Forma</h3>
+   <label>Taškai</label><div class="opts" id="dots"></div>
+   <label>Kampų rėmeliai</label><div class="opts" id="corners"></div>
+
+   <h3 class="sub-h">Logotipas</h3>
+   <div class="opts" id="logos"></div>
+   <label for="logoFile">Arba įkelk savo (PNG, JPG, SVG)</label><input type="file" id="logoFile" accept="image/*">
+   <label for="logoSize">Logotipo dydis</label><input type="range" id="logoSize" min="0.15" max="0.4" step="0.01" value="0.3">
+   <p class="note">Logotipas lieka tik tavo naršyklėje, į serverį jis nesiunčiamas.</p>
+
+   <h3 class="sub-h">Rėmelis su užrašu</h3>
+   <label class="chk"><input type="checkbox" id="frameOn"> Rodyti rėmelį</label>
+   <div class="row"><div><label for="frameTxt">Užrašas</label><input type="text" id="frameTxt" value="Nuskenuok mane" maxlength="28"></div>
+   <div><label for="frameCol">Rėmelio spalva</label><input type="color" id="frameCol" value="#1f5e1f"></div></div>
+
+   <details class="more"><summary>Dydis ir kokybė</summary>
+    <label for="size">Dydis: <span id="sizeV">1000</span> px</label><input type="range" id="size" min="300" max="3000" step="100" value="1000">
+    <label for="ecl">Klaidų taisymas</label>
+    <select id="ecl"><option value="M">Vidutinis (M)</option><option value="Q">Aukštas (Q)</option><option value="H" selected>Didžiausias (H), geriausia su logotipu</option><option value="L">Mažas (L)</option></select>
+   </details>
+  </section>
+ </div>
+
+ <aside class="card preview" aria-live="polite">
+  <h2>Peržiūra</h2>
+  <div id="qr"></div>
+  <div class="dl">
+   <button class="btn green" id="dlPng">Atsisiųsti PNG</button>
+   <button class="btn line" id="dlSvg">SVG</button>
+  </div>
+  <p class="note">Kurti ir peržiūrėti nemokama. Atsisiųsti galėsi pasirinkęs planą: 15 dienų už €1, toliau nuo €4.99 kas 30 dienų.</p>
+  <p class="note" id="contentNote"></p>
+  <div class="warn" id="contrastWarn" hidden>Taškų ir fono kontrastas per mažas, todėl kai kurie telefonai gali kodo nenuskaityti. Rinkis tamsesnius taškus ant šviesaus fono.</div>
+  <p class="note"><span class="ok">Statinis kodas</span>: turinys įrašytas tiesiai į kodą, todėl atsisiųstas jis veiks visada.</p>
+ </aside>
+</main>
+
+<footer><div class="wrap"><span>© 2026 Krissty QR · Paslaugos teikėjas: Saulius Ramanauskas, individuali veikla, PVM mokėtojo kodas LT100015491519</span><a href="../links/">Krissty nuorodos</a></div></footer>
+<div class="preview-badge">PERŽIŪRA</div>
+<dialog id="pay">
+ <h3 style="font-size:22px">Tavo QR paruoštas!</h3>
+ <p style="color:var(--mut)">Pasirink planą ir atsisiųsk jį be vandenženklio. Pirmos 15 dienų kainuoja €1, po to pasirinkto plano kaina kas 30 dienų. Atšaukti gali vienu paspaudimu.</p>
+ <label class="pl"><input type="radio" name="plan" value="basic" checked> Basic: €1 už 15 d., toliau €4.99 / 30 d.</label>
+ <label class="pl"><input type="radio" name="plan" value="full"> Pilnas: €1 už 15 d., toliau €12.10 / 30 d.</label>
+ <label class="pl"><input type="radio" name="plan" value="premium"> Premium: €1 už 15 d., toliau €19.91 / 30 d.</label>
+ <p class="note" id="fullOnly" hidden style="color:#6d5300"></p>
+ <p class="note" id="aiPlan"></p>
+ <p class="note">Kainos su PVM. 14-ą dieną atsiųsime priminimą.</p>
+ <div class="dl" style="justify-content:flex-start"><button class="btn green" id="payGo">Mokėti €1 ir atsisiųsti</button><button class="btn line" id="payClose">Atšaukti</button></div>
+ <p class="note" id="payNote" style="color:#6d5300">Peržiūros versija: mokėjimai dar neprijungti, todėl failas atsisiunčiamas be mokėjimo.</p>
+</dialog>
+<script src="../assets/js/qr-code-styling.js"></script>
+<script src="../assets/js/app.js"></script>
+</body></html>

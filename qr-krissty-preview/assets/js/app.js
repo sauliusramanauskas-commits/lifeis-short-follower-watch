@@ -1,15 +1,21 @@
 (function(){
 const $=s=>document.querySelector(s);
+const LOGO=new URL('../img/clover.svg',document.currentScript.src).href;
+const TPLS=[['kortele','Kortelė','Švarus ir aiškus, tinka visiems. Numatytasis.',0],['tamsus','Tamsus','Elegantiškas tamsus fonas, ryškūs mygtukai.',1],['minimalus','Minimalus','Tik vardas ir nuorodos, nieko daugiau.',1],['zalias','Žalias','Krissty dobilo spalvos, gaivus ir gyvas.',1]];
+let tpl='kortele';
 const esc=s=>String(s||'').replace(/([\\;,:"])/g,'\\$1');
 const TYPES={
- social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['fb','Facebook (nuoroda arba vardas)','text',''],['ig','Instagram (@vardas arba nuoroda)','text',''],['tt','TikTok (@vardas arba nuoroda)','text',''],['yt','YouTube (@kanalas arba nuoroda)','text','']],
+ social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['d','Trumpas aprašymas (neprivaloma)','text',''],['a','Nuotraukos nuoroda (neprivaloma)','url',''],['fb','Facebook (nuoroda arba vardas)','text',''],['ig','Instagram (@vardas arba nuoroda)','text',''],['tt','TikTok (@vardas arba nuoroda)','text',''],['yt','YouTube (@kanalas arba nuoroda)','text','']],
   b:v=>{const N={fb:'https://www.facebook.com/',ig:'https://www.instagram.com/',tt:'https://www.tiktok.com/@',yt:'https://www.youtube.com/@'};
    const L=[];for(const k of ['fb','ig','tt','yt']){let u=(v[k]||'').trim();if(!u)continue;
     if(!/^https?:\/\//i.test(u)){u=u.replace(/^@/,'');u=/[\/.]/.test(u)&&!/^[\w.]+$/.test(u)?'https://'+u:N[k]+u}
     L.push([k,u])}
    for(const c of customs){let u=(c.u||'').trim();if(!u||!c.l.trim())continue;if(!/^https?:\/\//i.test(u))u='https://'+u;L.push(['x',u,c.l.trim().slice(0,80)])}
-   const d=btoa(unescape(encodeURIComponent(JSON.stringify({t:v.ti||'',l:L})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-   return new URL('p/',location.href.split('#')[0].replace(/[^/]*$/,'')).href+'#'+d}},
+   const o={t:v.ti||'',l:L,template:tpl};const bio=(v.d||'').trim().slice(0,160);if(bio)o.d=bio;
+   let av=(v.a||'').trim();if(av){if(!/^https?:\/\//i.test(av))av='https://'+av;o.a=av}
+   if(pageColors()){o.c=$('#pcAcc').value;o.bg=$('#pcBg').value}
+   const d=btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+   return new URL('../p/',location.href).href+'#'+d}},
  url:{l:'Nuoroda',f:[['url','Nuoroda','url','https://krissty.lt']],b:v=>{let u=v.url.trim();if(u&&!/^[a-z]+:/i.test(u))u='https://'+u;return u}},
  text:{l:'Tekstas',f:[['t','Tekstas','area','Labas!']],b:v=>v.t},
  wifi:{l:'Wi-Fi',f:[['s','Tinklo pavadinimas (SSID)','text',''],['p','Slaptažodis','password',''],['e','Apsauga','sel:WPA|WEP|nopass','WPA']],b:v=>`WIFI:T:${v.e};S:${esc(v.s)};P:${v.e==='nopass'?'':esc(v.p)};;`},
@@ -60,7 +66,14 @@ function checkNet(){
  customs.forEach(c=>{if(NETNAME.test(c.l))msg.push(`Savos nuorodos užrašas „${c.l}“ panašus į tinklo pavadinimą. Tinklams naudok jų laukelius viršuje.`)});
  w.textContent=msg.join(' ');w.hidden=!msg.length;
 }
-function needsFull(){return type==='social'&&customs.some(c=>c.u.trim())}
+function pageColors(){return !!($('#pcOn')&&$('#pcOn').checked)}
+function fullReasons(){if(type!=='social')return [];const r=[];if(customs.some(c=>c.u.trim()))r.push('Pridėjai savų nuorodų');
+ if(tpl!=='kortele')r.push('Pasirinkai šabloną „'+TPLS.find(x=>x[0]===tpl)[1]+'“');if(pageColors())r.push('Pasirinkai savas puslapio spalvas');return r}
+function needsFull(){return fullReasons().length>0}
+$('#tpls').innerHTML=TPLS.map(([k,l,d,lock])=>`<button type="button" class="tp" data-tpl="${k}" aria-pressed="${k===tpl}"><span class="mini ${k}"><i></i><em></em><u></u><u></u><u></u></span><b>${l}</b><small>${d}</small>${lock?'<span class="tag lock">Pilname plane</span>':''}</button>`).join('');
+$('#tpls').addEventListener('click',e=>{const b=e.target.closest('.tp');if(!b)return;tpl=b.dataset.tpl;$('#tpls').querySelectorAll('.tp').forEach(x=>x.setAttribute('aria-pressed',x===b));upd()});
+$('#pcOn').addEventListener('change',()=>{$('#pcRow').hidden=!$('#pcOn').checked;upd()});
+['pcAcc','pcBg'].forEach(id=>$('#'+id).addEventListener('input',upd));
 $('#types').innerHTML=Object.entries(TYPES).map(([k,t])=>`<button type="button" data-t="${k}" aria-pressed="${k===type}">${t.l}</button>`).join('');
 $('#types').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;type=b.dataset.t;$('#types').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawFields();upd()});
 
@@ -84,7 +97,7 @@ function contrast(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.
 function data(){return TYPES[type].b(vals[type])||' '}
 function config(size){
  const fg=$('#fg').value,color=$('#grad').checked?{gradient:{type:'linear',rotation:Math.PI/4,colorStops:[{offset:0,color:fg},{offset:1,color:$('#fg2').value}]}}:{color:fg};
- const img=customLogo||(logo==='clover'?'assets/img/clover.svg':undefined);
+ const img=customLogo||(logo==='clover'?LOGO:undefined);
  return {width:size,height:size,type:'canvas',data:data(),margin:Math.round(size*.03),image:img,
   qrOptions:{errorCorrectionLevel:$('#ecl').value},
   dotsOptions:Object.assign({type:dotType},color),
@@ -102,7 +115,8 @@ let t;function upd(){clearTimeout(t);t=setTimeout(()=>{
  let ft=box.querySelector('.ftxt');if($('#frameOn').checked){if(!ft){ft=document.createElement('div');ft.className='ftxt';box.appendChild(ft)}ft.textContent=$('#frameTxt').value}else if(ft)ft.remove();
  box.style.flexDirection='column';
  $('#contrastWarn').hidden=contrast($('#fg').value,$('#bg').value)>=3;
- const d=data();$('#contentNote').textContent=d.length>300?`Kode ${d.length} simbolių, tad jis bus tankesnis. Spausdink bent 3 cm dydžio.`:'';
+ const d=data();$('#stepTpl').hidden=type!=='social';if(type==='social'){$('#pageLink').href=d;const r=fullReasons();$('#aiN').textContent=AIL()[r.length?'full':'basic'];$('#tplNote').textContent=r.length?'Šiam puslapiui reikės Pilno plano.':'Šis puslapis tinka Basic planui.'}
+ $('#contentNote').textContent=d.length>300?`Kode ${d.length} simbolių, tad jis bus tankesnis. Spausdink bent 3 cm dydžio.`:'';
 },60)}
 
 function save(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
@@ -119,15 +133,18 @@ async function framedPng(size){
 }
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
 let pending=null;const dlg=$('#pay');
-function gate(fn){pending=fn;const full=needsFull(),b=document.querySelector('input[name=plan][value=basic]');b.disabled=full;if(full)document.querySelector('input[name=plan][value=full]').checked=true;
- $('#fullOnly').hidden=!full;dlg.showModal()}
+function gate(fn){pending=fn;const full=needsFull(),b=document.querySelector('input[name=plan][value=basic]');b.disabled=full;if(full&&b.checked)document.querySelector('input[name=plan][value=full]').checked=true;
+ $('#fullOnly').hidden=!full;aiPlan();$('#fullOnly').textContent=full?fullReasons().join(', ')+', todėl reikia Pilno plano.':'';dlg.showModal()}
+const AIL=()=>(window.KQR_CONFIG&&window.KQR_CONFIG.AI_LIMITS)||{basic:10,full:25,premium:50,trial:3};
+function aiPlan(){const p=document.querySelector('input[name=plan]:checked').value;$('#aiPlan').textContent=`Iki ${AIL()[p]} AI dizainų kas 30 dienų. Bandymo metu – iki ${AIL().trial}.`}
+document.querySelectorAll('input[name=plan]').forEach(r=>r.addEventListener('change',aiPlan));
 $('#payClose').addEventListener('click',()=>dlg.close());
 $('#payGo').addEventListener('click',async()=>{dlg.close();if(pending)await pending();pending=null});
 const doPng=async()=>save(await framedPng(+$('#size').value),fname()+'.png');
 $('#dlPng').addEventListener('click',()=>gate(doPng));
 const doSvg=async()=>{
  const s=1000,cfg=Object.assign(config(s),{type:'svg'});
- if(cfg.image&&cfg.image.startsWith('assets/')){cfg.image=await fetch(cfg.image).then(r=>r.text()).then(t=>'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(t))))}
+ if(cfg.image&&cfg.image===LOGO){cfg.image=await fetch(cfg.image).then(r=>r.text()).then(t=>'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(t))))}
  const q=new QRCodeStyling(cfg);let svg=await (await q.getRawData('svg')).text();
  if($('#frameOn').checked){const pad=60,th=160,W=s+pad*2,H=s+pad*2+th,inner=svg.replace(/<\?xml[^>]*>/,'').replace('<svg',`<svg x="${pad}" y="${pad}"`);
   const txt=$('#frameTxt').value.replace(/[<&>]/g,c=>({'<':'&lt;','&':'&amp;','>':'&gt;'}[c]));

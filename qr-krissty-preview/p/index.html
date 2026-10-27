@@ -1,18 +1,83 @@
 <!doctype html>
 <html lang="lt"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Socialiniai tinklai</title><meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="../assets/img/clover.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/fonts.css">
 <style>
-body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;background:radial-gradient(900px 500px at 50% -10%,#2e7d32,transparent 70%),#0d2611;color:#fff;display:flex;justify-content:center}
-main{width:100%;max-width:440px;padding:48px 20px;text-align:center}
-.av{width:96px;height:96px;border-radius:50%;background:#b8f04a;color:#0d2611;display:grid;place-items:center;margin:0 auto;font:800 40px Poppins,Inter,sans-serif}
-h1{font:800 30px Poppins,Inter,sans-serif;margin:14px 0 26px;overflow-wrap:anywhere}
-a.l{display:flex;align-items:center;gap:14px;background:#fff;color:#16201a;text-decoration:none;border-radius:18px;padding:14px 18px;margin:12px 0;font:700 17px Poppins,Inter,sans-serif;box-shadow:0 10px 24px rgba(0,0,0,.25)}
-a.l svg{width:30px;height:30px;flex:none}a.l span{flex:1;text-align:left;min-width:0}a.l small{display:block;font:500 13px Inter,sans-serif;color:#56645a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-footer{margin-top:30px;font-size:13px;color:#9fbea3}footer a{color:#cfe3d1}
-</style></head><body><main id="m"></main>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;min-height:100dvh;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;--acc:#2e7d32}
+.bgdeco{display:none}
+header{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;max-width:760px;margin:0 auto}
+.hb{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:0;cursor:pointer;background:rgba(255,255,255,.85);color:#0B0B0B;text-decoration:none;padding:0}
+.hb img{width:26px;height:26px}.hb svg{width:20px;height:20px}
+main{position:relative;z-index:2;width:100%;max-width:400px;margin:0 auto;padding:76px 20px 32px;text-align:center}
+.cover{display:none}
+.av{width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px}
+.av.ini{display:grid;place-items:center;font:600 38px Poppins,Inter,sans-serif}
+.nm{display:flex;align-items:center;justify-content:center;gap:8px;margin:0}
+h1{font:500 28px/1.25 Poppins,Inter,sans-serif;margin:0;overflow-wrap:anywhere}
+.vb{width:24px;height:24px;flex:none}
+.bio{margin:8px auto 0;max-width:320px;font-size:15px;line-height:1.5}
+h2{font:500 18px Inter,sans-serif;margin:24px 0 12px}
+.links{display:flex;flex-direction:column;gap:12px}
+a.l{display:flex;align-items:center;gap:14px;text-decoration:none;min-height:70px;padding:8px 18px 8px 8px;border-radius:999px;transition:transform .15s,background .15s;text-align:left}
+a.l:active{transform:scale(.98)}
+.ih{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ih svg{width:30px;height:30px}
+.lb{flex:1;min-width:0;font:500 19px Inter,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb small{display:none}
+.chev{width:20px;height:20px;flex:none}
+footer{margin-top:36px;font-size:12px;opacity:.7}footer a{color:inherit}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0B0B0B;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:9;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
+
+/* KORTELĖ (numatytasis) */
+.t-kortele{background:linear-gradient(#F9F9F9,#F4F5FA);color:#0B0B0B}
+.t-kortele .bgdeco{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%}
+.t-kortele main{background:none}
+.t-kortele .av{box-shadow:0 0 0 4px #fff,0 6px 20px rgba(0,0,0,.08)}.t-kortele .av.ini{background:#fff;color:var(--acc)}
+.t-kortele h1{color:#323232}.t-kortele .vb{color:var(--acc)}.t-kortele .bio{color:#5b5d66}
+.t-kortele h2{color:#323232}
+.t-kortele a.l{background:rgba(247,247,249,.75);backdrop-filter:blur(4px);color:#323232}.t-kortele a.l:hover{background:rgba(255,255,255,.95)}
+.t-kortele .ih{background:#fff}.t-kortele .chev{color:#323232}
+.t-kortele.has-cover .cover{display:block;height:150px;margin:-76px -20px 0;border-radius:0 0 28px 28px;background-size:cover;background-position:center}
+.t-kortele.has-cover .av{margin-top:-48px;position:relative}
+
+/* TAMSUS */
+.t-tamsus{background:radial-gradient(700px 420px at 50% -10%,#2a2d35,transparent 70%),#0c0d10;color:#f1ede4;--acc:#c9b37e}
+.t-tamsus .hb{background:rgba(255,255,255,.08);color:#f1ede4}
+.t-tamsus .av{box-shadow:0 0 0 2px var(--acc),0 10px 30px rgba(0,0,0,.5)}.t-tamsus .av.ini{background:#16181d;color:var(--acc)}
+.t-tamsus h1{font-weight:600;letter-spacing:.01em}.t-tamsus .vb{color:var(--acc)}.t-tamsus .bio{color:#b9b4aa}
+.t-tamsus h2{color:var(--acc);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.t-tamsus a.l{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:#f6f3ec}.t-tamsus a.l:hover{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px var(--acc)}
+.t-tamsus .ih{background:#fff}.t-tamsus .chev{color:var(--acc)}
+
+/* MINIMALUS */
+.t-minimalus{background:#fff;color:#111;--acc:#111}
+.t-minimalus header{display:none}.t-minimalus main{padding-top:64px}
+.t-minimalus .av{display:none}.t-minimalus .vb{display:none}
+.t-minimalus h1{font-weight:600;font-size:24px}.t-minimalus .bio{color:#666}
+.t-minimalus h2{display:none}
+.t-minimalus .links{margin-top:28px;gap:10px}
+.t-minimalus a.l{min-height:56px;border-radius:12px;padding:8px 18px;box-shadow:inset 0 0 0 1px #dcdcdc;color:#111;background:#fff;justify-content:center;text-align:center}
+.t-minimalus a.l:hover{box-shadow:inset 0 0 0 1.5px var(--acc)}
+.t-minimalus .ih,.t-minimalus .chev{display:none}.t-minimalus .lb{font-size:16px}
+
+/* ŽALIAS */
+.t-zalias{background:radial-gradient(900px 500px at 50% -10%,#2e7d32,transparent 70%),#0d2611;color:#fff;--acc:#b8f04a}
+.t-zalias .hb{background:rgba(255,255,255,.92);color:#1f5e1f}
+.t-zalias .av{border:3px solid var(--acc);box-shadow:0 10px 30px rgba(0,0,0,.35)}.t-zalias .av.ini{background:var(--acc);color:#0d2611;border:0}
+.t-zalias h1{font-weight:800}.t-zalias .vb{color:var(--acc)}.t-zalias .bio{color:#cfe3d1}
+.t-zalias h2{color:var(--acc);font-weight:600}
+.t-zalias a.l{background:#fff;color:#16201a;border-radius:18px;box-shadow:0 10px 24px rgba(0,0,0,.25);padding-left:12px}
+.t-zalias .ih{width:40px;height:40px}.t-zalias .lb{font:700 17px Poppins,Inter,sans-serif}
+.t-zalias .lb small{display:block;font:500 13px Inter,sans-serif;color:#56645a;overflow:hidden;text-overflow:ellipsis}
+.t-zalias .chev{color:#2e7d32}
+</style></head><body class="t-kortele">
+<svg class="bgdeco" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#E9EAF1" stroke-width="58" stroke-linecap="round"><path d="M-60 120C40 40 120 -20 160 -80"/><path d="M460 140C330 180 300 300 360 420S520 560 470 700"/><path d="M-80 380C60 300 260 280 300 420S200 640 40 620"/><path d="M-40 640C40 700 110 760 140 860"/></g></svg>
+<header><a class="hb" href="../" aria-label="Krissty QR"><img src="../assets/img/clover.svg" alt=""></a>
+<button class="hb" id="share" type="button" aria-label="Dalintis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button></header>
+<main id="m"></main><div class="toast" id="toast" role="status"></div>
 <script>
 (function(){
 const I={
@@ -21,16 +86,34 @@ ig:['Instagram','<defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop 
 tt:['TikTok','<rect width="24" height="24" rx="7" fill="#000"/><path fill="#25f4ee" d="M10.2 10.6v-.8a5 5 0 1 0 3.6 4.8V8.9a5.7 5.7 0 0 0 3.4 1.1V8.3a3.4 3.4 0 0 1-3.4-3.3h-1.8v9.6a1.8 1.8 0 1 1-1.8-1.8z" transform="translate(-.6 .4)"/><path fill="#fe2c55" d="M10.2 10.6v-.8a5 5 0 1 0 3.6 4.8V8.9a5.7 5.7 0 0 0 3.4 1.1V8.3a3.4 3.4 0 0 1-3.4-3.3h-1.8v9.6a1.8 1.8 0 1 1-1.8-1.8z" transform="translate(.6 -.4)"/><path fill="#fff" d="M10.2 10.6v-.8a5 5 0 1 0 3.6 4.8V8.9a5.7 5.7 0 0 0 3.4 1.1V8.3a3.4 3.4 0 0 1-3.4-3.3h-1.8v9.6a1.8 1.8 0 1 1-1.8-1.8z"/>'],
 yt:['YouTube','<rect width="24" height="24" rx="7" fill="#ff0000"/><path fill="#fff" d="M10 8.5v7l6-3.5z"/>'],
 x:['Nuoroda','<rect width="24" height="24" rx="7" fill="#2e7d32"/><path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" d="M10.5 13.5l3-3M9 11l-1.5 1.5a2.5 2.5 0 0 0 3.5 3.5L12.5 14.5M15 13l1.5-1.5a2.5 2.5 0 0 0-3.5-3.5L11.5 9.5"/>']};
+const BADGE='<svg class="vb" viewBox="0 0 24 24" aria-label="Patvirtinta"><path fill="currentColor" d="M12 1.8l2.4 1.7 2.9-.2 1 2.8 2.5 1.5-.6 2.9 1.3 2.6-2 2.1-.2 2.9-2.8.8-1.6 2.5-2.8-.9-2.7 1.1-1.9-2.2-2.9-.4-.6-2.9-2.3-1.8 1-2.7-.8-2.8 2.3-1.8.5-2.9 2.9-.5 2-2.1z"/><path fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8 12.3l2.7 2.6L16.2 9.4"/></svg>';
+const CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+const TPL=['kortele','tamsus','minimalus','zalias'];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let d={t:'',l:[]};
-try{let h=location.hash.slice(1).replace(/-/g,'+').replace(/_/g,'/');d=JSON.parse(decodeURIComponent(escape(atob(h))))}catch(e){}
+try{let h=location.hash.slice(1).replace(/-/g,'+').replace(/_/g,'/');d=JSON.parse(decodeURIComponent(escape(atob(h))))||d}catch(e){}
+const tp=TPL.includes(d.template)?d.template:'kortele';
+document.body.className='t-'+tp;
+const hex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
+if(hex(d.c))document.body.style.setProperty('--acc',d.c);
+if(hex(d.bg)){document.body.style.background=d.bg;const bd=document.querySelector('.bgdeco');if(bd)bd.style.opacity=.6}
 const links=(d.l||[]).filter(x=>Array.isArray(x)&&/^https?:\/\//i.test(x[1])).slice(0,20);
-const t=(d.t||'').slice(0,100);if(t)document.title=t;
+const t=String(d.t||'').slice(0,100);if(t)document.title=t;
+const bio=String(d.d||'').slice(0,160);
+const av=typeof d.a==='string'&&/^https:\/\//i.test(d.a)?d.a:'';
 const m=document.getElementById('m');
+const toast=s=>{const e=document.getElementById('toast');e.textContent=s;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2200)};
+document.getElementById('share').addEventListener('click',async()=>{const u=location.href;
+ if(navigator.share){try{await navigator.share({title:t||document.title,url:u});return}catch(e){if(e&&e.name==='AbortError')return}}
+ try{await navigator.clipboard.writeText(u);toast('Nuoroda nukopijuota')}catch(e){prompt('Nukopijuok nuorodą:',u)}});
 if(!links.length){m.innerHTML='<h1>Nuorodų nerasta</h1><p>Šiame kode nėra nuorodų.</p>';return}
-m.innerHTML=(t?`<div class="av">${esc(t.trim()[0].toUpperCase())}</div><h1>${esc(t)}</h1>`:'<div style="height:20px"></div>')+
- '<p style="margin:-14px 0 18px;color:#cfe3d1;font-weight:600">Sek mane čia:</p>'+links.map(([k,u,lb])=>{const ic=I[k]?I[k].slice():I.x.slice();if(!I[k]||k==='x'){ic[0]=esc(lb||'Nuoroda')}let sub=u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
-  return `<a class="l" href="${esc(u)}" rel="noopener noreferrer"><svg viewBox="0 0 24 24">${ic[1]}</svg><span>${ic[0]}<small>${esc(sub)}</small></span></a>`}).join('')+
+if(av&&tp==='kortele')document.body.classList.add('has-cover');
+const avHtml=av?`<img class="av" src="${esc(av)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:(t?`<div class="av ini">${esc(t.trim()[0].toUpperCase())}</div>`:'');
+m.innerHTML=(av&&tp==='kortele'?`<div class="cover" style="background-image:linear-gradient(rgba(0,0,0,.05),rgba(0,0,0,.15)),url('${esc(av).replace(/'/g,'%27')}')"></div>`:'')+avHtml+
+ (t?`<div class="nm"><h1>${esc(t)}</h1>${BADGE}</div>`:'')+(bio?`<p class="bio">${esc(bio)}</p>`:'')+
+ '<h2>Rask mane:</h2><div class="links">'+links.map(([k,u,lb])=>{const ic=I[k]&&k!=='x'?I[k]:I.x;const name=I[k]&&k!=='x'?ic[0]:(lb||'Nuoroda');
+  const sub=u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+  return `<a class="l" href="${esc(u)}" rel="noopener noreferrer" aria-label="${esc(name)}"><span class="ih"><svg viewBox="0 0 24 24">${ic[1]}</svg></span><span class="lb">${esc(name)}<small>${esc(sub)}</small></span>${CHEV}</a>`}).join('')+'</div>'+
  '<footer>Sukurta su <a href="../">Krissty QR</a></footer>';
 })();
 </script></body></html>
