@@ -5,29 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
-<meta name="theme-color" content="#D9654B">
+<meta name="theme-color" content="#0D0A12">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Tikri – pažinčių programėlės peržiūra su netikrais duomenimis.">
 <title>Tikri – peržiūra</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="assets/css/app.css?v=1">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/app.css?v=2">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE2B8"/><stop offset="1" stop-color="#F0B56F"/></linearGradient>
+    <linearGradient id="mk-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A1834"/><stop offset="1" stop-color="#120B19"/></linearGradient>
+    <linearGradient id="mk-ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB27F"/><stop offset="1" stop-color="#FF6A4D"/></linearGradient>
+    <symbol id="tikri-mark" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="18" fill="url(#mk-bg)"/>
+      <rect x=".75" y=".75" width="62.5" height="62.5" rx="17.25" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="1.5"/>
+      <circle cx="25" cy="32" r="13" fill="none" stroke="url(#mk-ring)" stroke-width="4"/>
+      <circle cx="39" cy="32" r="13" fill="none" stroke="url(#mk-ring)" stroke-width="4" stroke-opacity=".9"/>
+      <path d="M32 21.05A13 13 0 0 1 32 42.95A13 13 0 0 1 32 21.05z" fill="url(#mk-ring)"/>
+    </symbol>
+  </defs>
+</svg>
 <div class="preview-badge" role="note" data-testid="preview-badge">PERŽIŪRA – netikri duomenys</div>
+<div id="splash" aria-hidden="true">
+  <svg class="splash-mark" viewBox="0 0 64 64" width="96" height="96"><use href="#tikri-mark"/></svg>
+  <div class="splash-word">Tikri</div>
+  <div class="splash-sub">Tikri žmonės. Tikri susitikimai.</div>
+</div>
 <div id="shell">
   <main id="app" aria-live="polite"></main>
-  <nav class="tabbar" id="tabbar" aria-label="Pagrindinis meniu" hidden>
-    <a href="#/nearby" data-tab="nearby"><svg class="ico" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>Šalia</a>
-    <a href="#/chats" data-tab="chats"><svg class="ico" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5a2.5 2.5 0 0 1 2.5-2.5h10a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4 3.5V16a2.5 2.5 0 0 1-1.5-2.3z"/><path d="M8.5 9h7M8.5 12h4.5"/></svg><span class="badge" hidden></span>Pokalbiai</a>
-    <a href="#/me" data-tab="me"><svg class="ico" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></svg>Profilis</a>
-    <a href="#/premium" data-tab="premium"><svg class="ico" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10l3.5 5L12 20 3.5 9z"/><path d="M3.5 9h17M9.5 4 8 9l4 11 4-11-1.5-5"/></svg>Premium</a>
-  </nav>
+  <nav class="tabbar" id="tabbar" aria-label="Pagrindinis meniu" hidden></nav>
 </div>
 <div id="sheet-root"></div>
+<div id="match-root"></div>
 <noscript><p style="padding:60px 20px">Šiai peržiūrai reikia įjungti JavaScript.</p></noscript>
-<script src="assets/js/data.js?v=1"></script>
-<script src="assets/js/icons.js?v=1"></script>
-<script src="assets/js/app.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/data.js?v=2"></script>
+<script src="assets/js/icons.js?v=2"></script>
+<script src="assets/js/app.js?v=2"></script>
 </body>
 </html>
