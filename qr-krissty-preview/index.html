@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Krissty QR · QR kodų kūrimas su savo dizainu</title>
+<meta name="description" content="Kurk QR kodus su savo spalvomis, logotipu ir rėmeliu. Statiniai kodai nemokami ir veikia visada.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="assets/img/clover.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/fonts.css"><link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<header class="top"><div class="wrap">
+ <a class="brand" href="./"><img src="assets/img/clover.svg" alt="">Krissty<b>QR</b></a>
+ <nav class="menu"><a href="#kurti">Kurti QR</a><a href="#galimybes">Galimybės</a><a href="#kainos">Kainos</a><a href="#duk">DUK</a><a href="links/">Krissty nuorodos</a></nav>
+</div></header>
+
+<section class="hero"><div class="wrap">
+ <h1>QR kodai, kurie <em>nedings</em>, kai nustosi mokėti</h1>
+ <p>Sukurk QR kodą su savo spalvomis, logotipu ir rėmeliu per minutę. Statiniai kodai nemokami ir veikia visada, o dinaminius gali keisti net jau atspausdintus.</p>
+ <div class="chips"><span class="chip">✓ Be registracijos</span><span class="chip">✓ PNG ir SVG spaudai</span><span class="chip">✓ Be vandens ženklo</span><span class="chip">✓ Be paslėptų mokesčių</span></div>
+</div></section>
+
+<main class="wrap tool" id="kurti">
+ <div class="card">
+  <div class="tabs" role="group" aria-label="QR tipas" id="types"></div>
+  <div id="fields"></div>
+
+  <details open><summary>Spalvos</summary>
+   <label>Greitas pasirinkimas</label><div class="swatches" id="presets"></div>
+   <div class="row">
+    <div><label for="fg">Taškų spalva</label><input type="color" id="fg" value="#1f5e1f"></div>
+    <div><label for="bg">Fono spalva</label><input type="color" id="bg" value="#ffffff"></div>
+   </div>
+   <label><input type="checkbox" id="grad"> Spalvų perėjimas (gradientas)</label>
+   <div id="gradRow" hidden><label for="fg2">Antra spalva</label><input type="color" id="fg2" value="#43a047"></div>
+  </details>
+
+  <details open><summary>Forma</summary>
+   <label>Taškai</label><div class="opts" id="dots"></div>
+   <label>Kampų rėmeliai</label><div class="opts" id="corners"></div>
+  </details>
+
+  <details><summary>Logotipas</summary>
+   <div class="opts" id="logos"></div>
+   <label for="logoFile">Arba įkelk savo (PNG, JPG, SVG)</label><input type="file" id="logoFile" accept="image/*">
+   <label for="logoSize">Logotipo dydis</label><input type="range" id="logoSize" min="0.15" max="0.4" step="0.01" value="0.3">
+   <p class="note">Logotipas lieka tik tavo naršyklėje, į serverį jis nesiunčiamas.</p>
+  </details>
+
+  <details><summary>Rėmelis su užrašu</summary>
+   <label><input type="checkbox" id="frameOn"> Rodyti rėmelį</label>
+   <div class="row"><div><label for="frameTxt">Užrašas</label><input type="text" id="frameTxt" value="Nuskenuok mane" maxlength="28"></div>
+   <div><label for="frameCol">Rėmelio spalva</label><input type="color" id="frameCol" value="#1f5e1f"></div></div>
+  </details>
+
+  <details><summary>Dydis ir kokybė</summary>
+   <label for="size">Dydis: <span id="sizeV">1000</span> px</label><input type="range" id="size" min="300" max="3000" step="100" value="1000">
+   <label for="ecl">Klaidų taisymas</label>
+   <select id="ecl"><option value="M">Vidutinis (M)</option><option value="Q">Aukštas (Q)</option><option value="H" selected>Didžiausias (H), geriausia su logotipu</option><option value="L">Mažas (L)</option></select>
+  </details>
+ </div>
+
+ <aside class="card preview" aria-live="polite">
+  <div id="qr"></div>
+  <div class="dl">
+   <button class="btn green" id="dlPng">Atsisiųsti PNG</button>
+   <button class="btn line" id="dlSvg">SVG</button>
+  </div>
+  <p class="note" id="contentNote"></p>
+  <div class="warn" id="contrastWarn" hidden>Taškų ir fono kontrastas per mažas, todėl kai kurie telefonai gali kodo nenuskaityti. Rinkis tamsesnius taškus ant šviesaus fono.</div>
+  <p class="note"><span class="ok">Statinis kodas</span>: turinys įrašytas tiesiai į kodą, todėl jis veiks visada, net jei ši svetainė užsidarytų.</p>
+ </aside>
+</main>
+
+<section class="blk" id="galimybes"><div class="wrap">
+ <h2>Viskas, ko reikia QR kodams</h2>
+ <p class="lead">Dalis galimybių veikia jau dabar. Pažymėtos „Netrukus“ atsiras kartu su paskyromis.</p>
+ <div class="grid3">
+  <div class="card feat"><div class="ic">🔗</div><h3>11 kodo tipų</h3><p>Nuoroda, tekstas, Wi-Fi, vizitinė kortelė, el. paštas, SMS, telefonas, vieta, renginys, socialiniai tinklai ir kt.</p></div>
+  <div class="card feat"><div class="ic">🎨</div><h3>Tavo dizainas</h3><p>Spalvos, gradientai, taškų ir kampų formos, logotipas, rėmelis su užrašu.</p></div>
+  <div class="card feat"><div class="ic">🖨️</div><h3>Paruošta spaudai</h3><p>PNG iki 3000 px ir vektorinis SVG, be vandens ženklų.</p></div>
+  <div class="card feat"><div class="ic">✏️</div><h3>Dinaminiai kodai <span class="tag">Netrukus</span></h3><p>Keisk, kur veda kodas, net kai jis jau atspausdintas. Kodas veda per tavo domeną.</p></div>
+  <div class="card feat"><div class="ic">📊</div><h3>Statistika <span class="tag">Netrukus</span></h3><p>Skenavimai pagal dieną, šalį, miestą ir įrenginį, be slapukų stebėjimo.</p></div>
+  <div class="card feat"><div class="ic">📄</div><h3>Nuorodų puslapiai <span class="tag">Netrukus</span></h3><p>Vienas kodas, visi tavo tinklai, kaip <a href="links/">Krissty nuorodos</a>.</p></div>
+ </div>
+ <table class="cmp"><thead><tr><th>Kas svarbu</th><th>Krissty QR</th></tr></thead><tbody>
+  <tr><td>Statiniai kodai veikia visada ir nemokamai</td><td>✓</td></tr>
+  <tr><td>Kaina parodyta prieš mokant, be „bandymo už €1“ spąstų</td><td>✓</td></tr>
+  <tr><td>Atšaukti galima vienu paspaudimu paskyroje</td><td>✓</td></tr>
+  <tr><td>Nustojus mokėti, dinaminius kodus galima paversti nukreipimu į tavo puslapį</td><td>✓</td></tr>
+  <tr><td>Galima naudoti savo domeną (pvz. qr.tavoimone.lt)</td><td>✓</td></tr>
+ </tbody></table>
+</div></section>
+
+<section class="blk" id="kainos" style="background:#fff"><div class="wrap">
+ <h2>Kainos</h2>
+ <p class="lead">Galutinės kainos dar derinamos. Viena aiški kaina, be automatinio brangimo, ir atšaukti galima bet kada.</p>
+ <div class="plans">
+  <div class="card plan"><span class="tag">Visada</span><h3>Nemokamas</h3><div class="price">€0</div><ul><li>Neriboti statiniai kodai</li><li>Visas dizainas ir logotipas</li><li>PNG ir SVG</li></ul></div>
+  <div class="card plan best"><span class="tag">Populiariausias</span><h3>Pro</h3><div class="price">Netrukus</div><ul><li>Dinaminiai kodai</li><li>Skenavimų statistika</li><li>Nuorodų puslapiai</li></ul></div>
+  <div class="card plan"><span class="tag">Įmonėms</span><h3>Verslas</h3><div class="price">Netrukus</div><ul><li>Savas domenas</li><li>Komandos nariai</li><li>Daug kodų vienu metu (CSV)</li></ul></div>
+ </div>
+</div></section>
+
+<section class="blk faq" id="duk"><div class="wrap">
+ <h2>Dažni klausimai</h2>
+ <details><summary>Ar mano kodas nustos veikti?</summary><p>Statinis kodas, sukurtas čia, niekada nenustos veikti: jame įrašyta tiesiai tavo nuoroda arba duomenys. Dinaminiai kodai veiks, kol galioja planas, o atšaukus planą galėsi juos nukreipti į pastovią savo nuorodą.</p></details>
+ <details><summary>Kuo skiriasi statinis ir dinaminis kodas?</summary><p>Statinio kodo turinio pakeisti negalima, bet jis veikia be jokio serverio. Dinaminis kodas veda per trumpą nuorodą, todėl jo paskirtį gali keisti ir matyti skenavimų statistiką.</p></details>
+ <details><summary>Ar reikia registruotis?</summary><p>Statiniams kodams nereikia. Paskyra reikalinga tik dinaminiams kodams ir statistikai.</p></details>
+ <details><summary>Ar galiu naudoti kodus komerciškai?</summary><p>Taip, visi tavo sukurti kodai priklauso tau.</p></details>
+</div></section>
+
+<footer><div class="wrap">© 2026 Krissty QR · <a href="links/">Krissty nuorodos</a></div></footer>
+<div class="preview-badge">PERŽIŪRA</div>
+<script src="assets/js/qr-code-styling.js"></script>
+<script src="assets/js/app.js"></script>
+</body></html>
