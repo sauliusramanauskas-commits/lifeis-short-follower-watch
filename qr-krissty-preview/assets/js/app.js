@@ -6,6 +6,7 @@ let tpl='kortele';
 const NETS=['facebook','instagram','tiktok','youtube','whatsapp','messenger','linkedin','x','telegram','pinterest'];
 const NETBASE={facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/@',youtube:'https://www.youtube.com/@',messenger:'https://m.me/',linkedin:'https://www.linkedin.com/in/',x:'https://x.com/',telegram:'https://t.me/',pinterest:'https://www.pinterest.com/'};
 function normNet(k,raw){let u=String(raw||'').trim();if(!u)return '';
+ if(k==='messenger'){const m=u.match(/^(?:https?:\/\/)?(?:www\.)?messenger\.com\/(?:t\/)?([\w.-]+)\/?$/i);if(m)return 'https://m.me/'+m[1]}
  if(/^https?:\/\//i.test(u))return u;
  if(k==='whatsapp'&&/^[+\d][\d\s().-]{4,}$/.test(u))return 'https://wa.me/'+u.replace(/\D/g,'');
  u=u.replace(/^@/,'');
@@ -16,8 +17,8 @@ const TYPES={
  social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['d','Trumpas aprašymas (neprivaloma)','text',''],['a','Nuotraukos nuoroda (neprivaloma)','url',''],
   ['facebook','Facebook (nuoroda arba vardas)','text',''],['instagram','Instagram (@vardas arba nuoroda)','text',''],['tiktok','TikTok (@vardas arba nuoroda)','text',''],['youtube','YouTube (@kanalas arba nuoroda)','text',''],
   ['whatsapp','WhatsApp (telefono numeris arba nuoroda)','tel','',1],['messenger','Messenger (vardas arba m.me nuoroda)','text','',1],['linkedin','LinkedIn (vardas arba nuoroda)','text','',1],['x','X (@vardas arba nuoroda)','text','',1],['telegram','Telegram (@vardas arba nuoroda)','text','',1],['pinterest','Pinterest (vardas arba nuoroda)','text','',1]],
-  b:v=>{const L=[];for(const k of NETS){const u=normNet(k,v[k]);if(u)L.push([k,u])}
-   for(const c of customs){let u=(c.u||'').trim();if(!u||!c.l.trim())continue;if(!/^https?:\/\//i.test(u))u='https://'+u;L.push(['custom',u,c.l.trim().slice(0,40)])}
+  b:v=>{const L=[],seen=new Set();for(const k of NETS){const u=normNet(k,v[k]);if(!u||seen.has(k)||!DOM[k].test(host(u)))continue;seen.add(k);L.push([k,u])}
+   for(const c of validCustoms()){let u=c.u.trim();if(!/^https?:\/\//i.test(u))u='https://'+u;L.push(['custom',u,c.l.trim().slice(0,40)])}
    const o={t:v.ti||'',l:L,template:tpl};const bio=(v.d||'').trim().slice(0,160);if(bio)o.d=bio;
    let av=(v.a||'').trim();if(av){if(!/^https?:\/\//i.test(av))av='https://'+av;o.a=av}
    if(pageColors()){o.c=$('#pcAcc').value;o.bg=$('#pcBg').value}
@@ -39,10 +40,18 @@ const TYPES={
   b:v=>['BCD','002','1','SCT','',v.nm,v.ib.replace(/\s/g,''),v.am?'EUR'+(+v.am.replace(',','.')).toFixed(2):'','','',v.ds].join('\n')}
 };
 let type='social',moreOpen=false;const customs=[];
-const DOM={facebook:/(^|\.)(facebook\.com|fb\.com|fb\.me)$/i,instagram:/(^|\.)instagram\.com$/i,tiktok:/(^|\.)tiktok\.com$/i,youtube:/(^|\.)(youtube\.com|youtu\.be)$/i,
+const DOM={facebook:/(^|\.)(facebook\.com|fb\.com|fb\.me)$/i,instagram:/(^|\.)(instagram\.com|instagr\.am)$/i,tiktok:/(^|\.)tiktok\.com$/i,youtube:/(^|\.)(youtube\.com|youtu\.be)$/i,
  whatsapp:/(^|\.)(wa\.me|whatsapp\.com)$/i,messenger:/(^|\.)m\.me$/i,linkedin:/(^|\.)linkedin\.com$/i,x:/(^|\.)(x\.com|twitter\.com)$/i,telegram:/(^|\.)t\.me$/i,pinterest:/(^|\.)(pinterest\.com|pin\.it)$/i};
 const NETNM={facebook:'Facebook',instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',whatsapp:'WhatsApp',messenger:'Messenger',linkedin:'LinkedIn',x:'X',telegram:'Telegram',pinterest:'Pinterest'};
-const NETNAME=/f[a4@]c[e3]b[o0]{2}k|[i1l]nst[a4@]gr[a4@]m|t[i1l]kt[o0]k|y[o0]utub[e3]|wh[a4@]ts?[a4@]pp|m[e3]ss[e3]ng[e3]r|l[i1l]nk[e3]d[i1l]n|tw[i1l]tt[e3]r|t[e3]l[e3]gr[a4@]m|p[i1l]nt[e3]r[e3]st|\b(fb|ig|x|wa|tg|yt)\b/i;const vals={};
+/* Kaip serverio isPlatformLabel(), plius panašių raidžių variantai (lnstagram, rn->m, vv->w). */
+const NW=['facebook','instagram','tiktok','youtube','instagr','youtu','fbook','whatsapp','whatsap','messenger','linkedin','twitter','telegram','pinterest'];
+const NS=['fb','ig','insta','yt','tt','meta','wa','x','li','tg','pin','msgr'];
+function normLabel(t){const L={'0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','@':'a','$':'s','|':'l','!':'i'};
+ return String(t||'').normalize('NFKD').replace(/[\u0300-\u036f\u200b-\u200f\u2060\ufeff]/g,'').toLowerCase().replace(/[0-9@$|!]/g,c=>L[c]||c).replace(/[^a-z]/g,'')}
+function isNetLabel(t){const n=normLabel(t);if(!n)return false;
+ const vs=[n,n.replace(/l/g,'i'),n.replace(/i/g,'l'),n.replace(/rn/g,'m'),n.replace(/vv/g,'w'),n.replace(/l/g,'i').replace(/rn/g,'m').replace(/vv/g,'w')];
+ return vs.some(v=>NW.some(w=>v.includes(w))||NS.includes(v))}
+function validCustoms(){return customs.filter(c=>c.u.trim()&&c.l.trim()&&!isNetLabel(c.l)).slice(0,10)}const vals={};
 function drawFields(){
  const t=TYPES[type];vals[type]=vals[type]||{};
  const fld=([k,l,kind,def])=>{
@@ -64,23 +73,24 @@ function drawFields(){
 function drawCustoms(){
  const box=$('#customs');if(!box)return;
  box.innerHTML='<label style="margin-top:16px">Savos nuorodos <span class="tag">Daugiau nuorodų turi Pilnas planas</span></label>'+
-  customs.map((c,i)=>`<div class="row" style="grid-template-columns:1fr 1.4fr auto;align-items:center;margin-top:8px"><input type="text" placeholder="Mygtuko užrašas" maxlength="40" data-ci="${i}" data-cf="l" value="${c.l.replace(/"/g,'&quot;')}"><input type="url" placeholder="https://" data-ci="${i}" data-cf="u" value="${c.u.replace(/"/g,'&quot;')}"><button type="button" class="btn line" style="min-height:40px;padding:8px 14px" data-del="${i}" aria-label="Pašalinti">✕</button></div>`).join('')+
+  customs.map((c,i)=>`<div class="row" style="grid-template-columns:1fr 1.4fr auto;align-items:center;margin-top:8px"><input type="text" placeholder="Mygtuko užrašas" maxlength="40" data-ci="${i}" data-cf="l" value="${c.l.replace(/"/g,'&quot;')}"><input type="url" placeholder="https://" data-ci="${i}" data-cf="u" value="${c.u.replace(/"/g,'&quot;')}"><button type="button" class="btn line" style="min-height:40px;padding:8px 14px" data-del="${i}" aria-label="Pašalinti">✕</button></div><p class="warn" data-cw="${i}" hidden></p>`).join('')+
   (customs.length<10?'<button type="button" class="btn line" id="addC" style="margin-top:10px;min-height:42px">+ Pridėti nuorodą</button>':'<p class="note">Daugiausia 10 savų nuorodų.</p>')+
-  '<p class="note">Savos nuorodos ir neriboti puslapiai yra Pilname plane. Basic plane gali pridėti tik 4 tinklus.</p>';
+  '<p class="note">Savos nuorodos (iki 10) yra Pilname ir Premium planuose. Basic plane gali pridėti tik tinklų nuorodas viršuje.</p>';
  box.querySelectorAll('[data-ci]').forEach(e=>e.addEventListener('input',()=>{customs[+e.dataset.ci][e.dataset.cf]=e.value;checkNet();upd()}));
- box.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{customs.splice(+b.dataset.del,1);drawCustoms();upd()}));
+ box.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{customs.splice(+b.dataset.del,1);drawCustoms();checkNet();upd()}));
  const a=$('#addC');if(a)a.addEventListener('click',()=>{customs.push({l:'',u:''});drawCustoms();box.querySelector('[data-ci="'+(customs.length-1)+'"]').focus()});
 }
 function host(u){try{return new URL(/^https?:/i.test(u)?u:'https://'+u).hostname}catch(e){return ''}}
 function checkNet(){
  const w=$('#netWarn');if(!w)return;const v=vals.social||{},msg=[];
  const nm=NETNM;
- for(const k in DOM){const raw=(v[k]||'').trim();if(!raw)continue;const u=normNet(k,raw);if(!DOM[k].test(host(u)))msg.push(`${nm[k]} laukelyje turi būti ${nm[k]} adresas.`)}
- customs.forEach(c=>{if(NETNAME.test(c.l))msg.push(`Savos nuorodos užrašas „${c.l}“ panašus į tinklo pavadinimą. Tinklams naudok jų laukelius viršuje.`)});
+ for(const k in DOM){const raw=(v[k]||'').trim();if(!raw)continue;const u=normNet(k,raw);if(!DOM[k].test(host(u)))msg.push(k==='messenger'?'Messenger laukelyje tinka tik m.me/… nuoroda, todėl ši nuoroda į QR neįtraukta.':`${nm[k]} laukelyje turi būti ${nm[k]} adresas, todėl ši nuoroda į QR neįtraukta.`)}
+ document.querySelectorAll('[data-cw]').forEach(e=>{const c=customs[+e.dataset.cw];const bad=!!c&&isNetLabel(c.l);
+  e.textContent=bad?`Užrašas „${c.l}“ panašus į tinklo pavadinimą, todėl ši nuoroda į QR neįtraukta. Tinklams naudok jų laukelius viršuje.`:'';e.hidden=!bad});
  w.textContent=msg.join(' ');w.hidden=!msg.length;
 }
 function pageColors(){return !!($('#pcOn')&&$('#pcOn').checked)}
-function fullReasons(){if(type!=='social')return [];const r=[];if(customs.some(c=>c.u.trim()))r.push('Pridėjai savų nuorodų');
+function fullReasons(){if(type!=='social')return [];const r=[];if(validCustoms().length)r.push('Pridėjai savų nuorodų');
  if(tpl!=='kortele')r.push('Pasirinkai šabloną „'+TPLS.find(x=>x[0]===tpl)[1]+'“');if(pageColors())r.push('Pasirinkai savas puslapio spalvas');return r}
 function needsFull(){return fullReasons().length>0}
 $('#tpls').innerHTML=TPLS.map(([k,l,d,lock])=>`<button type="button" class="tp" data-tpl="${k}" aria-pressed="${k===tpl}"><span class="mini ${k}"><i></i><em></em><u></u><u></u><u></u></span><b>${l}</b><small>${d}</small>${lock?'<span class="tag lock">Pilname plane</span>':''}</button>`).join('');
