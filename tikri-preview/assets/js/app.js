@@ -418,17 +418,18 @@
       var pl = PL[id];
       if (!yr) return eur(pl.price) + ' <small>/ ' + pl.days + ' d.</small>';
       var save = Math.round((pl.price * 12 - pl.yearPrice) * 100) / 100;
-      return eur(pl.yearPrice) + ' <small>/ metams</small><span class="yr-note">' + eur(perMonth(pl.yearPrice)) + ' per mėn. · Sutaupai ' + eur(save) + '</span>';
+      return eur(pl.yearPrice) + ' <small>/ metams</small><span class="yr-note">' + eur(perMonth(pl.yearPrice)) + ' per mėn.</span>';
     };
+    var badge = function (id) { if (!yr) return ''; var pl = PL[id]; return ' <span class="pill hot" data-testid="save-' + id + '">Sutaupai ' + eur(Math.round((pl.price * 12 - pl.yearPrice) * 100) / 100) + '</span>'; };
     return { tab: 'premium', html:
       '<div class="topbar"><div class="grow"><span class="eyebrow">Tikri ' + esc(PL.premium.name) + '</span><h1>Daugiau galimybių</h1></div></div>' +
       '<p class="muted">Tikri veikia ir nemokamai. Mokami planai tiesiog nuima ribas ir prideda papildomų funkcijų.</p>' +
       (cur ? '<div class="notice" style="margin-top:16px">' + ic('check') + '<span>Aktyvus demo planas: <b>' + planLabel(cur) + '</b>. <button class="link" data-action="cancel-sub">Atšaukti</button></span></div>' : '') +
-      '<div class="billing" role="group" aria-label="Apmokėjimo laikotarpis"><div class="seg"><button data-action="billing" data-b="month" aria-pressed="' + !yr + '" data-testid="bill-month">Kas mėnesį</button><button data-action="billing" data-b="year" aria-pressed="' + yr + '" data-testid="bill-year">Metams – sutaupai daugiau</button></div>' + (yr ? '<span class="pill hot">Naudingiausia</span>' : '') + '</div>' +
+      '<div class="billing" role="group" aria-label="Apmokėjimo laikotarpis"><div class="seg"><button data-action="billing" data-b="month" aria-pressed="' + !yr + '" data-testid="bill-month">Kas mėnesį</button><button data-action="billing" data-b="year" aria-pressed="' + yr + '" data-testid="bill-year">Metams</button></div>' + '' + '</div>' +
       '<div class="plans">' +
       '<div class="plan"><div class="nm"><h3>' + PL.free.name + '</h3></div><div class="price">' + eur(0) + '</div><ul>' + li('Profilis ir asmenukės patvirtinimas') + li('Paieška šalia – iki ' + FREE_LIMIT + ' profilių per dieną') + li('Pagrindiniai filtrai') + li('Pokalbiai – iki ' + LIM.freeNewChatsPerDay + ' naujų per dieną') + li('Visi saugumo įrankiai') + '</ul></div>' +
-      '<div class="plan"><div class="nm"><h3>' + PL.premium.name + '</h3></div><div class="price">' + per('premium') + '</div><ul>' + li('Neribota paieška ir visi filtrai') + li('Kas peržiūrėjo tave') + li('Nematomas režimas') + li('Jokių pokalbių ribų') + '</ul>' + btn('premium', 'Rinktis ' + PL.premium.name) + '</div>' +
-      '<div class="plan hl"><span class="ribbon">Daugiausia galimybių</span><div class="nm"><h3>' + PL.plus.name + '</h3></div><div class="price">' + per('plus') + '</div><ul>' + li('Viskas, kas yra ' + PL.premium.name) + li('AI atitikimo pasiūlymai pagal interesus') + li('Profilio iškėlimas (boost) 1 kartą per savaitę') + li('Pirmenybė pagalbos tarnyboje') + '</ul>' + btn('plus', 'Rinktis ' + PL.plus.name) + '</div>' +
+      '<div class="plan"><div class="nm"><h3>' + PL.premium.name + '</h3>' + badge('premium') + '</div><div class="price">' + per('premium') + '</div><ul>' + li('Neribota paieška ir visi filtrai') + li('Kas peržiūrėjo tave') + li('Nematomas režimas') + li('Jokių pokalbių ribų') + '</ul>' + btn('premium', 'Rinktis ' + PL.premium.name) + '</div>' +
+      '<div class="plan hl"><span class="ribbon">Daugiausia galimybių</span><div class="nm"><h3>' + PL.plus.name + '</h3>' + badge('plus') + '</div><div class="price">' + per('plus') + '</div><ul>' + li('Viskas, kas yra ' + PL.premium.name) + li('AI atitikimo pasiūlymai pagal interesus') + li('Profilio iškėlimas (boost) 1 kartą per savaitę') + li('Pirmenybė pagalbos tarnyboje') + '</ul>' + btn('plus', 'Rinktis ' + PL.plus.name) + '</div>' +
       '</div>' +
       '<h2 style="margin:40px 0 16px">Palyginimas</h2>' +
       '<div class="cmp-wrap"><table class="cmp"><thead><tr><th>Funkcija</th><th>Nemok.</th><th>' + PL.premium.name + '</th><th class="plus">' + PL.plus.name + '</th></tr></thead><tbody>' +
