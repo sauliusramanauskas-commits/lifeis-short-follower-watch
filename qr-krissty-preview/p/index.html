@@ -40,8 +40,8 @@ footer{margin-top:36px;font-size:12px;opacity:.7}footer a{color:inherit}
 .t-kortele h2{color:#323232}
 .t-kortele a.l{background:rgba(247,247,249,.75);backdrop-filter:blur(4px);color:#323232}.t-kortele a.l:hover{background:rgba(255,255,255,.95)}
 .t-kortele .ih{background:#fff}.t-kortele .chev{color:#323232}
-.t-kortele.has-cover .cover{display:block;height:150px;margin:-76px -20px 0;border-radius:0 0 28px 28px;background-size:cover;background-position:center}
-.t-kortele.has-cover .av{margin-top:-48px;position:relative}
+.has-cover .cover{display:block;width:100%;object-fit:cover;background:rgba(127,127,127,.12)}.has-cover .cover+.av{position:relative}
+.t-kortele .cover{height:150px;width:calc(100% + 40px);max-width:none;margin:-76px -20px 0;border-radius:0 0 28px 28px}.t-kortele .cover+.av{margin-top:-48px}
 
 /* TAMSUS */
 .t-tamsus{background:radial-gradient(700px 420px at 50% -10%,#2a2d35,transparent 70%),#0c0d10;color:#f1ede4;--acc:#c9b37e}
@@ -50,6 +50,7 @@ footer{margin-top:36px;font-size:12px;opacity:.7}footer a{color:inherit}
 .t-tamsus h1{font-weight:600;letter-spacing:.01em}.t-tamsus .vb{color:var(--acc)}.t-tamsus .bio{color:#b9b4aa}
 .t-tamsus h2{color:var(--acc);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
 .t-tamsus a.l{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:#f6f3ec}.t-tamsus a.l:hover{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px var(--acc)}
+.t-tamsus .cover{height:160px;width:calc(100% + 40px);max-width:none;margin:-76px -20px 0;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent);opacity:.9}.t-tamsus .cover+.av{margin-top:-56px}
 .t-tamsus .ih{background:#fff}.t-tamsus .chev{color:var(--acc)}
 
 /* MINIMALUS */
@@ -61,6 +62,7 @@ footer{margin-top:36px;font-size:12px;opacity:.7}footer a{color:inherit}
 .t-minimalus .links{margin-top:28px;gap:10px}
 .t-minimalus a.l{min-height:56px;border-radius:12px;padding:8px 18px;box-shadow:inset 0 0 0 1px #dcdcdc;color:#111;background:#fff;justify-content:center;text-align:center}
 .t-minimalus a.l:hover{box-shadow:inset 0 0 0 1.5px var(--acc)}
+.t-minimalus .cover{height:64px;border-radius:12px;margin:0 0 24px;opacity:.95}
 .t-minimalus .chev{display:none}.t-minimalus .ih{width:28px;height:28px;background:none}.t-minimalus .ih svg{width:22px;height:22px}.t-minimalus .lb{font-size:16px;text-align:center;padding-right:28px}
 
 /* ŽALIAS */
@@ -73,6 +75,7 @@ footer{margin-top:36px;font-size:12px;opacity:.7}footer a{color:inherit}
 .t-zalias .ih{width:40px;height:40px}.t-zalias .lb{font:700 17px Poppins,Inter,sans-serif}
 .t-zalias .lb small{display:block;font:500 13px Inter,sans-serif;color:#56645a;overflow:hidden;text-overflow:ellipsis}
 .t-zalias .chev{color:#2e7d32}
+.t-zalias .cover{height:140px;border-radius:22px;box-shadow:0 0 0 3px rgba(184,240,74,.35),0 12px 28px rgba(0,0,0,.35)}.t-zalias .cover+.av{margin-top:-52px}
 </style></head><body class="t-kortele">
 <svg class="bgdeco" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#E9EAF1" stroke-width="58" stroke-linecap="round"><path d="M-60 120C40 40 120 -20 160 -80"/><path d="M460 140C330 180 300 300 360 420S520 560 470 700"/><path d="M-80 380C60 300 260 280 300 420S200 640 40 620"/><path d="M-40 640C40 700 110 760 140 860"/></g></svg>
 <header><a class="hb" href="../" aria-label="Krissty QR"><img src="../assets/img/clover.svg" alt=""></a>
@@ -110,15 +113,16 @@ const links=(d.l||[]).filter(x=>Array.isArray(x)&&/^https?:\/\//i.test(x[1])).sl
 const t=String(d.t||'').slice(0,100);if(t)document.title=t;
 const bio=String(d.d||'').slice(0,160);
 const av=typeof d.a==='string'&&/^https:\/\//i.test(d.a)?d.a:'';
+const cv=typeof d.cv==='string'&&/^https:\/\//i.test(d.cv)?d.cv:''; /* senuose kodiuose a = tik profilio nuotrauka */
 const m=document.getElementById('m');
 const toast=s=>{const e=document.getElementById('toast');e.textContent=s;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2200)};
 document.getElementById('share').addEventListener('click',async()=>{const u=location.href;
  if(navigator.share){try{await navigator.share({title:t||document.title,url:u});return}catch(e){if(e&&e.name==='AbortError')return}}
  try{await navigator.clipboard.writeText(u);toast('Nuoroda nukopijuota')}catch(e){prompt('Nukopijuok nuorodą:',u)}});
 if(!links.length){m.innerHTML='<h1>Nuorodų nerasta</h1><p>Šiame kode nėra nuorodų.</p>';return}
-if(av&&tp==='kortele')document.body.classList.add('has-cover');
+if(cv)document.body.classList.add('has-cover');
 const avHtml=av?`<img class="av" src="${esc(av)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:(t?`<div class="av ini">${esc(t.trim()[0].toUpperCase())}</div>`:'');
-m.innerHTML=(av&&tp==='kortele'?`<div class="cover" style="background-image:linear-gradient(rgba(0,0,0,.05),rgba(0,0,0,.15)),url('${esc(av).replace(/'/g,'%27')}')"></div>`:'')+avHtml+
+m.innerHTML=(cv?`<img class="cover" src="${esc(cv)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:'')+avHtml+
  (t?`<div class="nm"><h1>${esc(t)}</h1>${BADGE}</div>`:'')+(bio?`<p class="bio">${esc(bio)}</p>`:'')+
  '<h2>Rask mane:</h2><div class="links">'+links.map(([k,u,lb])=>{const ic=I[k];const name=k==='custom'?(lb||'Nuoroda'):ic[0];
   const sub=u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');

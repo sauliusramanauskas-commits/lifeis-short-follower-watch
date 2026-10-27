@@ -14,13 +14,13 @@ function normNet(k,raw){let u=String(raw||'').trim();if(!u)return '';
  return k==='whatsapp'?'https://wa.me/'+u.replace(/\D/g,''):NETBASE[k]+u}
 const esc=s=>String(s||'').replace(/([\\;,:"])/g,'\\$1');
 const TYPES={
- social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['d','Trumpas aprašymas (neprivaloma)','text',''],['a','Nuotraukos nuoroda (neprivaloma)','url',''],
+ social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['d','Trumpas aprašymas (neprivaloma)','text',''],['a','Profilio nuotrauka (neprivaloma)','url',''],['cv','Viršelio nuotrauka (neprivaloma)','url',''],
   ['facebook','Facebook (nuoroda arba vardas)','text',''],['instagram','Instagram (@vardas arba nuoroda)','text',''],['tiktok','TikTok (@vardas arba nuoroda)','text',''],['youtube','YouTube (@kanalas arba nuoroda)','text',''],
   ['whatsapp','WhatsApp (telefono numeris arba nuoroda)','tel','',1],['messenger','Messenger (vardas arba m.me nuoroda)','text','',1],['linkedin','LinkedIn (vardas arba nuoroda)','text','',1],['x','X (@vardas arba nuoroda)','text','',1],['telegram','Telegram (@vardas arba nuoroda)','text','',1],['pinterest','Pinterest (vardas arba nuoroda)','text','',1]],
   b:v=>{const L=[],seen=new Set();for(const k of NETS){const u=normNet(k,v[k]);if(!u||seen.has(k)||!DOM[k].test(host(u)))continue;seen.add(k);L.push([k,u])}
    for(const c of validCustoms()){let u=c.u.trim();if(!/^https?:\/\//i.test(u))u='https://'+u;L.push(['custom',u,c.l.trim().slice(0,40)])}
    const o={t:v.ti||'',l:L,template:tpl};const bio=(v.d||'').trim().slice(0,160);if(bio)o.d=bio;
-   let av=(v.a||'').trim();if(av){if(!/^https?:\/\//i.test(av))av='https://'+av;o.a=av}
+   const img=s=>{s=(s||'').trim();if(!s)return'';s=s.replace(/^http:\/\//i,'https://');return /^https:\/\//i.test(s)?s:'https://'+s};const av=img(v.a),cv=img(v.cv);if(av)o.a=av;if(cv)o.cv=cv;
    if(pageColors()){o.c=$('#pcAcc').value;o.bg=$('#pcBg').value}
    const d=btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
    return new URL('../p/',location.href).href+'#'+d}},
