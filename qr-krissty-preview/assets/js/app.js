@@ -85,8 +85,13 @@ async function framedPng(size){
  return new Promise(r=>c.toBlob(r,'image/png'));
 }
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
-$('#dlPng').addEventListener('click',async()=>save(await framedPng(+$('#size').value),fname()+'.png'));
-$('#dlSvg').addEventListener('click',async()=>{
+let pending=null;const dlg=$('#pay');
+function gate(fn){pending=fn;dlg.showModal()}
+$('#payClose').addEventListener('click',()=>dlg.close());
+$('#payGo').addEventListener('click',async()=>{dlg.close();if(pending)await pending();pending=null});
+const doPng=async()=>save(await framedPng(+$('#size').value),fname()+'.png');
+$('#dlPng').addEventListener('click',()=>gate(doPng));
+const doSvg=async()=>{
  const s=1000,cfg=Object.assign(config(s),{type:'svg'});
  if(cfg.image&&cfg.image.startsWith('assets/')){cfg.image=await fetch(cfg.image).then(r=>r.text()).then(t=>'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(t))))}
  const q=new QRCodeStyling(cfg);let svg=await (await q.getRawData('svg')).text();
@@ -94,6 +99,7 @@ $('#dlSvg').addEventListener('click',async()=>{
   const txt=$('#frameTxt').value.replace(/[<&>]/g,c=>({'<':'&lt;','&':'&amp;','>':'&gt;'}[c]));
   svg=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" rx="70" fill="${$('#frameCol').value}"/>${inner}<text x="${W/2}" y="${s+pad+th/2+20}" fill="#fff" font-family="Poppins,Inter,sans-serif" font-weight="700" font-size="75" text-anchor="middle" dominant-baseline="middle">${txt}</text></svg>`}
  save(new Blob([svg],{type:'image/svg+xml'}),fname()+'.svg');
-});
+};
+$('#dlSvg').addEventListener('click',()=>gate(doSvg));
 upd();
 })();
