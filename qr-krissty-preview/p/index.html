@@ -29,7 +29,7 @@ const t=(d.t||'').slice(0,100);if(t)document.title=t;
 const m=document.getElementById('m');
 if(!links.length){m.innerHTML='<h1>Nuorodų nerasta</h1><p>Šiame kode nėra nuorodų.</p>';return}
 m.innerHTML=(t?`<div class="av">${esc(t.trim()[0].toUpperCase())}</div><h1>${esc(t)}</h1>`:'<div style="height:20px"></div>')+
- links.map(([k,u])=>{const ic=I[k]||I.x;let sub=u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+ '<p style="margin:-14px 0 18px;color:#cfe3d1;font-weight:600">Sek mane čia:</p>'+links.map(([k,u,lb])=>{const ic=I[k]?I[k].slice():I.x.slice();if(!I[k]||k==='x'){ic[0]=esc(lb||'Nuoroda')}let sub=u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
   return `<a class="l" href="${esc(u)}" rel="noopener noreferrer"><svg viewBox="0 0 24 24">${ic[1]}</svg><span>${ic[0]}<small>${esc(sub)}</small></span></a>`}).join('')+
  '<footer>Sukurta su <a href="../">Krissty QR</a></footer>';
 })();

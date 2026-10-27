@@ -2,11 +2,12 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s||'').replace(/([\\;,:"])/g,'\\$1');
 const TYPES={
- social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['fb','Facebook (nuoroda arba vardas)','text',''],['ig','Instagram (@vardas arba nuoroda)','text',''],['tt','TikTok (@vardas arba nuoroda)','text',''],['yt','YouTube (@kanalas arba nuoroda)','text',''],['x1','Kita nuoroda','url',''],['x2','Dar viena nuoroda','url','']],
+ social:{l:'Socialiniai tinklai',f:[['ti','Pavadinimas (vardas ar įmonė)','text','Krissty'],['fb','Facebook (nuoroda arba vardas)','text',''],['ig','Instagram (@vardas arba nuoroda)','text',''],['tt','TikTok (@vardas arba nuoroda)','text',''],['yt','YouTube (@kanalas arba nuoroda)','text','']],
   b:v=>{const N={fb:'https://www.facebook.com/',ig:'https://www.instagram.com/',tt:'https://www.tiktok.com/@',yt:'https://www.youtube.com/@'};
-   const L=[];for(const k of ['fb','ig','tt','yt','x1','x2']){let u=(v[k]||'').trim();if(!u)continue;
-    if(!/^https?:\/\//i.test(u)){if(N[k]){u=u.replace(/^@/,'');u=/\./.test(u)&&!/^[\w.]+$/.test(u)?'https://'+u:N[k]+u}else u='https://'+u}
+   const L=[];for(const k of ['fb','ig','tt','yt']){let u=(v[k]||'').trim();if(!u)continue;
+    if(!/^https?:\/\//i.test(u)){u=u.replace(/^@/,'');u=/[\/.]/.test(u)&&!/^[\w.]+$/.test(u)?'https://'+u:N[k]+u}
     L.push([k,u])}
+   for(const c of customs){let u=(c.u||'').trim();if(!u||!c.l.trim())continue;if(!/^https?:\/\//i.test(u))u='https://'+u;L.push(['x',u,c.l.trim().slice(0,80)])}
    const d=btoa(unescape(encodeURIComponent(JSON.stringify({t:v.ti||'',l:L})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
    return new URL('p/',location.href.split('#')[0].replace(/[^/]*$/,'')).href+'#'+d}},
  url:{l:'Nuoroda',f:[['url','Nuoroda','url','https://krissty.lt']],b:v=>{let u=v.url.trim();if(u&&!/^[a-z]+:/i.test(u))u='https://'+u;return u}},
@@ -24,7 +25,9 @@ const TYPES={
  pay:{l:'Mokėjimas (SEPA)',f:[['nm','Gavėjas','text',''],['ib','IBAN','text','LT'],['am','Suma, €','text',''],['ds','Mokėjimo paskirtis','text','']],
   b:v=>['BCD','002','1','SCT','',v.nm,v.ib.replace(/\s/g,''),v.am?'EUR'+(+v.am.replace(',','.')).toFixed(2):'','','',v.ds].join('\n')}
 };
-let type='social';const vals={};
+let type='social';const customs=[];
+const DOM={fb:/(^|\.)(facebook\.com|fb\.com|fb\.me)$/i,ig:/(^|\.)instagram\.com$/i,tt:/(^|\.)tiktok\.com$/i,yt:/(^|\.)(youtube\.com|youtu\.be)$/i};
+const NETNAME=/f[a4@]c[e3]b[o0]{2}k|[i1l]nst[a4@]gr[a4@]m|t[i1l]kt[o0]k|y[o0]utub[e3]|\bfb\b|\big\b/i;const vals={};
 function drawFields(){
  const t=TYPES[type];vals[type]=vals[type]||{};
  $('#fields').innerHTML=t.f.map(([k,l,kind,def])=>{
@@ -33,8 +36,31 @@ function drawFields(){
   if(kind.startsWith('sel:'))return `<label for="${id}">${l}</label><select id="${id}" data-k="${k}">${kind.slice(4).split('|').map(o=>`<option ${o===v?'selected':''} value="${o}">${o==='nopass'?'Be slaptažodžio':o}</option>`).join('')}</select>`;
   const it=kind==='dt'?'datetime-local':kind;
   return `<label for="${id}">${l}</label><input type="${it}" id="${id}" data-k="${k}" value="${String(v).replace(/"/g,'&quot;')}">`}).join('');
- $('#fields').querySelectorAll('[data-k]').forEach(e=>e.addEventListener('input',()=>{vals[type][e.dataset.k]=e.value;upd()}));
+ $('#fields').querySelectorAll('[data-k]').forEach(e=>e.addEventListener('input',()=>{vals[type][e.dataset.k]=e.value;checkNet();upd()}));
+ if(type==='social'){
+  const box=document.createElement('div');box.id='customs';$('#fields').appendChild(box);drawCustoms();
+  const w=document.createElement('p');w.id='netWarn';w.className='warn';w.hidden=true;$('#fields').appendChild(w);checkNet();
+ }
 }
+function drawCustoms(){
+ const box=$('#customs');if(!box)return;
+ box.innerHTML='<label style="margin-top:16px">Savos nuorodos <span class="tag">Pilname plane</span></label>'+
+  customs.map((c,i)=>`<div class="row" style="grid-template-columns:1fr 1.4fr auto;align-items:center;margin-top:8px"><input type="text" placeholder="Mygtuko užrašas" maxlength="80" data-ci="${i}" data-cf="l" value="${c.l.replace(/"/g,'&quot;')}"><input type="url" placeholder="https://" data-ci="${i}" data-cf="u" value="${c.u.replace(/"/g,'&quot;')}"><button type="button" class="btn line" style="min-height:40px;padding:8px 14px" data-del="${i}" aria-label="Pašalinti">✕</button></div>`).join('')+
+  (customs.length<10?'<button type="button" class="btn line" id="addC" style="margin-top:10px;min-height:42px">+ Pridėti nuorodą</button>':'<p class="note">Daugiausia 10 savų nuorodų.</p>')+
+  '<p class="note">Savos nuorodos ir neriboti puslapiai yra Pilname plane. Basic plane gali pridėti tik 4 tinklus.</p>';
+ box.querySelectorAll('[data-ci]').forEach(e=>e.addEventListener('input',()=>{customs[+e.dataset.ci][e.dataset.cf]=e.value;checkNet();upd()}));
+ box.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{customs.splice(+b.dataset.del,1);drawCustoms();upd()}));
+ const a=$('#addC');if(a)a.addEventListener('click',()=>{customs.push({l:'',u:''});drawCustoms();box.querySelector('[data-ci="'+(customs.length-1)+'"]').focus()});
+}
+function host(u){try{return new URL(/^https?:/i.test(u)?u:'https://'+u).hostname}catch(e){return ''}}
+function checkNet(){
+ const w=$('#netWarn');if(!w)return;const v=vals.social||{},msg=[];
+ const nm={fb:'Facebook',ig:'Instagram',tt:'TikTok',yt:'YouTube'};
+ for(const k in DOM){const u=(v[k]||'').trim();if(u&&/[\/.]/.test(u)&&!/^@?[\w.]+$/.test(u)&&!DOM[k].test(host(u)))msg.push(`${nm[k]} laukelyje turi būti ${nm[k]} adresas.`)}
+ customs.forEach(c=>{if(NETNAME.test(c.l))msg.push(`Savos nuorodos užrašas „${c.l}“ panašus į tinklo pavadinimą. Tinklams naudok jų laukelius viršuje.`)});
+ w.textContent=msg.join(' ');w.hidden=!msg.length;
+}
+function needsFull(){return type==='social'&&customs.some(c=>c.u.trim())}
 $('#types').innerHTML=Object.entries(TYPES).map(([k,t])=>`<button type="button" data-t="${k}" aria-pressed="${k===type}">${t.l}</button>`).join('');
 $('#types').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;type=b.dataset.t;$('#types').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawFields();upd()});
 
@@ -93,7 +119,8 @@ async function framedPng(size){
 }
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
 let pending=null;const dlg=$('#pay');
-function gate(fn){pending=fn;dlg.showModal()}
+function gate(fn){pending=fn;const full=needsFull(),b=document.querySelector('input[name=plan][value=basic]');b.disabled=full;if(full)document.querySelector('input[name=plan][value=full]').checked=true;
+ $('#fullOnly').hidden=!full;dlg.showModal()}
 $('#payClose').addEventListener('click',()=>dlg.close());
 $('#payGo').addEventListener('click',async()=>{dlg.close();if(pending)await pending();pending=null});
 const doPng=async()=>save(await framedPng(+$('#size').value),fname()+'.png');
