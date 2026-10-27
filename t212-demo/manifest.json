@@ -1,0 +1,17 @@
+{
+  "name": "T212 Demo (netikri pinigai)",
+  "short_name": "T212 Demo",
+  "description": "Trading 212 DEMO (Practice) sąskaitos stebėjimas – netikri pinigai.",
+  "id": "./?app=t212-demo",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1206",
+  "theme_color": "#e8590c",
+  "lang": "lt",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
