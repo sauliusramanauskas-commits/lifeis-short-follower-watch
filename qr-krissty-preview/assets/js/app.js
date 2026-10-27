@@ -44,7 +44,7 @@ function drawFields(){
 }
 function drawCustoms(){
  const box=$('#customs');if(!box)return;
- box.innerHTML='<label style="margin-top:16px">Savos nuorodos <span class="tag">Pilname plane</span></label>'+
+ box.innerHTML='<label style="margin-top:16px">Savos nuorodos <span class="tag">Daugiau nuorodų turi Pilnas planas</span></label>'+
   customs.map((c,i)=>`<div class="row" style="grid-template-columns:1fr 1.4fr auto;align-items:center;margin-top:8px"><input type="text" placeholder="Mygtuko užrašas" maxlength="80" data-ci="${i}" data-cf="l" value="${c.l.replace(/"/g,'&quot;')}"><input type="url" placeholder="https://" data-ci="${i}" data-cf="u" value="${c.u.replace(/"/g,'&quot;')}"><button type="button" class="btn line" style="min-height:40px;padding:8px 14px" data-del="${i}" aria-label="Pašalinti">✕</button></div>`).join('')+
   (customs.length<10?'<button type="button" class="btn line" id="addC" style="margin-top:10px;min-height:42px">+ Pridėti nuorodą</button>':'<p class="note">Daugiausia 10 savų nuorodų.</p>')+
   '<p class="note">Savos nuorodos ir neriboti puslapiai yra Pilname plane. Basic plane gali pridėti tik 4 tinklus.</p>';
