@@ -1,7 +1,7 @@
 /* Tikri – PERŽIŪRA (statinė PWA). Jokio serverio; duomenys tik šioje naršyklėje (localStorage). */
 (function () {
   'use strict';
-  var D = window.TIKRI_DATA, I = window.TIKRI_ICONS, C = window.TIKRI_CONFIG, PL = C.PLANS, LIM = C.LIMITS;
+  var D = window.TIKRI_DATA, I = window.TIKRI_ICONS, C = window.TIKRI_CONFIG, PL = C.PLANS, LIM = C.LIMITS, Z = C.ZODIAC;
   var LS = 'tikri-preview-v2';
   var BANDS = ['<1 km', '1–2 km', '2–5 km', '5–10 km', '10+ km'];
   var FREE_LIMIT = LIM.freeProfilesPerDay;
@@ -15,8 +15,8 @@
       consentTerms: false, consentSensitive: false, consentMarketing: false },
     premium: null, // null | 'premium' | 'plus' (tik demo)
     blocked: [], reported: [], likes: [], matches: [], swiped: {}, history: [], view: 'swipe',
-    filters: { ageMin: 18, ageMax: 60, band: 4, seek: 'visų', verifiedOnly: false, interests: [], onlineOnly: false, goal: '' },
-    settings: { hideDistance: false, invisible: false, showAge: true, notifications: true },
+    filters: { ageMin: 18, ageMax: 60, band: 4, seek: 'visų', verifiedOnly: false, interests: [], onlineOnly: false, goal: '', zodiacOnly: false },
+    settings: { hideDistance: false, invisible: false, showAge: true, show_zodiac: true, notifications: true },
     chats: null, share: null, openerIdx: {}
   };
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -36,6 +36,21 @@
   function byId(id) { for (var i = 0; i < D.profiles.length; i++) if (D.profiles[i].id === id) return D.profiles[i]; return null; }
   function bandIdx(p) { return Math.max(0, BANDS.indexOf(p.distLabel)); }
   function isPremium() { return !!S.premium; }
+  function isPlus() { return S.premium === 'plus'; }
+  /* ---------- Zodiakas (pramogai) ---------- */
+  function mySign() { return Z.signFor(S.user.birth); }
+  function theirSign(p) { return p.show_zodiac && p.zodiac ? Z.byId(p.zodiac) : null; } /* null, jei paslėpė (show_zodiac: false) */
+  function zodCompat(p) { var m = mySign(), t = theirSign(p); return m && t ? Z.compat(m.id, t.id) : null; } /* zodiac_compat: high | medium | low | null */
+  function zodPct(p) { return Z.pct(zodCompat(p)); }
+  function zodRank(p) { var c = zodCompat(p); return c ? Z.LEVELS[c].rank : 3; }
+  function zodAllowed() { return !Z.plusOnlyFilter || isPlus(); }
+  function zodFilterOn() { return zodAllowed() && S.filters.zodiacOnly && !!mySign(); }
+  function zsym(sg) { return '<span class="zsym" aria-hidden="true">' + sg.sym + '</span>'; }
+  function zchip(p) {
+    var sg = theirSign(p); if (!sg) return '';
+    var c = zodCompat(p), pc = Z.pct(c);
+    return '<span class="zchip" data-testid="zchip" data-sign="' + sg.id + '"' + (c ? ' data-zcompat="' + c + '" data-zscore="' + pc + '"' : '') + '>' + zsym(sg) + '<span class="zn">' + esc(sg.name) + '</span>' + (c ? '<span class="zp">Zodiakas ' + pc + '%</span>' : '') + '</span>';
+  }
   function eur(n) { return n ? n.toFixed(2).replace('.', ',') + ' €' : '0 €'; }
   function yearly() { return S.billing === 'year'; }
   function perMonth(n) { return (Math.round(n / 12 * 100) / 100); }
@@ -148,7 +163,7 @@
       html = obShell(1, 'Susipažinkime', 'Kaip tave vadinti ir kada gimei?',
         '<label class="field"><span>Vardas (rodomas profilyje)</span><input class="input" id="f-name" maxlength="30" autocomplete="given-name" value="' + esc(u.name) + '" placeholder="pvz. Rasa"></label>' +
         dobPicker(u.birth) +
-        '<p class="muted small">Tikri skirta tik 18+ metų žmonėms. Profilyje rodomas tik amžius metais, ne gimimo data.</p>',
+        '<p class="muted small">Tikri skirta tik 18+ metų žmonėms. Profilyje rodomas tik amžius metais ir zodiako ženklas, ne gimimo data.</p>',
         '<button class="btn block" data-action="step1">Toliau</button>');
     } else if (n === 2) {
       var g = function (v, l) { return '<button class="chip" data-gender="' + v + '" aria-pressed="' + (u.gender === v) + '">' + l + '</button>'; };
@@ -207,6 +222,7 @@
       if (f.interests.length && !p.interests.some(function (x) { return f.interests.indexOf(x) >= 0; })) return false;
       if (prem && f.onlineOnly && !p.online) return false;
       if (prem && f.goal && p.goal !== f.goal) return false;
+      if (zodFilterOn() && zodCompat(p) !== Z.minCompat) return false;
       return true;
     });
   }
@@ -214,14 +230,16 @@
     var f = S.filters, n = 0;
     if (f.ageMin !== 18 || f.ageMax !== 60) n++; if (f.band !== 4) n++; if (f.seek !== 'visų') n++;
     if (f.verifiedOnly) n++; if (f.interests.length) n++; if (isPremium() && (f.onlineOnly || f.goal)) n++;
+    if (zodAllowed() && f.zodiacOnly) n++;
     return n;
   }
-  // Tvarka: pagal atstumo juostas, juostos viduje – sumaišyta (seed = diena), kad tvarka neišduotų tikslaus atstumo.
+  // Tvarka: pagal atstumo juostas, tada pagal zodiako lygį, grupės viduje – sumaišyta (seed = diena), kad tvarka neišduotų tikslaus atstumo.
   function deck() {
     var list = visibleProfiles(), day = Math.floor(Date.now() / 864e5), shown = 0, hidden = 0;
     var limit = isPremium() ? Infinity : FREE_LIMIT, bands = [];
     BANDS.forEach(function (b, bi) {
       var inBand = shuffleIn(list.filter(function (p) { return bandIdx(p) === bi; }), day * 7 + bi + 1), items = [];
+      inBand.sort(function (a, b) { return zodRank(a) - zodRank(b); }); /* kaip serveryje: juosta → zodiac_compat (high, medium, low, null) → sumaišyta (stabilus rikiavimas) */
       inBand.forEach(function (p) { if (shown < limit) { items.push(p); shown++; } else hidden++; });
       if (items.length) bands.push({ band: b, items: items });
     });
@@ -230,7 +248,7 @@
   function pcard(p) {
     return '<a class="pcard" href="#/profile/' + p.id + '" data-testid="pcard"><span class="skel"></span>' + photo(p) + AI + (p.online ? '<span class="dot-online" title="Neseniai aktyvus(-i)"></span>' : '') + '<span class="shade"></span>' +
       '<span class="meta"><span class="nm">' + esc(p.name) + ', ' + p.age + verifiedBadge(p) + '</span>' +
-      '<span class="sub"><span class="band">' + ic('near') + esc(p.distLabel) + '</span><span class="match-pct">' + matchPct(p) + '%</span></span></span></a>';
+      '<span class="sub"><span class="band">' + ic('near') + esc(p.distLabel) + '</span><span class="match-pct">' + matchPct(p) + '%</span></span>' + zchip(p) + '</span></a>';
   }
   function swCard(p, pos) {
     var sh = shared(p), goalTxt = { 'draugystė': 'Draugystė', 'pažintys': 'Pažintys', 'santykiai': 'Santykiai' }[p.goal];
@@ -241,7 +259,7 @@
       '<div class="sc-photos">' + photos + '</div><div class="shade"></div>' + bars + AI +
       '<span class="stamp like">PATINKA</span><span class="stamp pass">PRALEISTI</span>' +
       '<div class="sc-info"><div class="sc-name">' + esc(p.name) + ' <span class="age">' + p.age + '</span>' + verifiedBadge(p) + '</div>' +
-      '<div class="sc-meta"><span class="pill">' + ic('near', 14) + esc(p.distLabel) + '</span><span class="pill">' + esc(goalTxt) + '</span><span class="pill hot">' + matchPct(p) + '% atitikimas</span></div>' +
+      '<div class="sc-meta"><span class="pill">' + ic('near', 14) + esc(p.distLabel) + '</span><span class="pill">' + esc(goalTxt) + '</span><span class="pill hot">' + matchPct(p) + '% atitikimas</span>' + zchip(p) + '</div>' +
       '<div class="sc-bio">' + esc(p.bio) + '</div><div class="sc-meta">' + chips + '</div></div></article>';
   }
   function stackList() { var d = deck(), all = []; d.bands.forEach(function (b) { all = all.concat(b.items); }); return { list: all.filter(function (p) { return !S.swiped[p.id]; }), hidden: d.hidden, total: all.length }; }
@@ -296,6 +314,7 @@
       '<section><h3>Ieško / rodyti</h3><div class="chips">' + seekChip('vyrų', 'Vyrus') + seekChip('moterų', 'Moteris') + seekChip('visų', 'Visus') + '</div></section>' +
       '<section><div class="switch-row"><span class="lbl">Tik patvirtinti profiliai<small>Su asmenukės patvirtinimu ' + I.verified + '</small></span>' + sw('f-verified', f.verifiedOnly) + '</div></section>' +
       '<section><h3>Interesai</h3><div class="chips">' + D.INTERESTS.map(function (x) { return '<button class="chip" data-finterest="' + esc(x) + '" aria-pressed="' + (f.interests.indexOf(x) >= 0) + '">' + esc(x) + '</button>'; }).join('') + '</div></section>' +
+      zodiacFilterSection() +
       '<section class="card" style="margin-top:24px"><div class="row between"><h3 style="margin:0">Išplėstiniai filtrai</h3>' + (prem ? '<span class="tag sage">Aktyvu</span>' : '<span class="tag">Premium</span>') + '</div>' +
       '<div class="switch-row"><span class="lbl">Tik neseniai aktyvūs</span>' + (prem ? sw('f-online', f.onlineOnly) : '<button class="chip locked" data-action="locked" data-what="Tik neseniai aktyvūs">' + ic('lock', 14) + '</button>') + '</div>' +
       '<p class="small" style="margin:8px 0"><b>Ko ieško</b></p><div class="chips">' + goal('draugystė', 'Draugystės') + goal('pažintys', 'Pažinčių') + goal('santykiai', 'Santykių') + '</div></section>' +
@@ -308,8 +327,37 @@
     draft = clone(S.filters);
   }
   var draft = null;
+  function zodiacFilterSection() {
+    var f = S.filters, ok = zodAllowed(), m = mySign();
+    var row = function (name, on, label, sub, lockedLabel, tid) {
+      return '<div class="switch-row"><span class="lbl">' + (ok ? label : lockedLabel) + '<small>' + sub + '</small></span>' +
+        (ok ? sw(name, on) : '<a class="chip locked" href="#/premium" data-testid="' + tid + '" aria-label="' + esc(lockedLabel) + '">' + ic('lock', 14) + '</a>') + '</div>';
+    };
+    return '<section class="card zfilter" style="margin-top:24px" data-testid="zodiac-filter"><div class="row between"><h3 style="margin:0">Zodiakas' + (m ? ' · ' + zsym(m) + esc(m.name) : '') + '</h3>' + (ok ? '<span class="tag sage">Plus</span>' : '<span class="tag gold">Plus</span>') + '</div>' +
+      row('f-zodiac', f.zodiacOnly, 'Tik suderinami ženklai', 'Rodyti tik „' + Z.label('high') + '“ ženklus (' + Z.pct('high') + ' %). Paslėpę ženklą nerodomi.', 'Tik suderinami ženklai – su Plus', 'zodiac-locked') +
+      '<p class="tiny muted" style="margin:8px 0 0">' + esc(Z.NOTE) + '</p></section>';
+  }
 
   /* ---------- Profilis ---------- */
+  function zodiacBlock(p) {
+    var m = mySign(), t = theirSign(p);
+    var side = function (sg, who) { return '<div class="zside"><span class="zbig">' + sg.sym + '</span><b>' + esc(sg.name) + '</b><small>' + esc(who) + ' · ' + Z.ELEMENTS[sg.el] + '</small></div>'; };
+    var h = '<div class="sect"><h3>Zodiakas</h3><div class="zcard" data-testid="zodiac-card">';
+    if (!t) return h + '<p class="zexp" data-testid="zodiac-explain">' + esc(p.name) + ' nerodo savo zodiako ženklo.</p><p class="tiny faint znote">' + esc(Z.NOTE) + '</p></div></div>';
+    if (!m) return h + '<div class="zpair">' + side(t, p.name) + '</div><p class="zexp" data-testid="zodiac-explain">Gimimo datos nėra – suderinamumo neskaičiuojame.</p><p class="tiny faint znote">' + esc(Z.NOTE) + '</p></div></div>';
+    var c = Z.compat(m.id, t.id);
+    h += '<div class="zpair">' + side(m, 'Tu') + '<div class="zmid"><span class="zpct" data-testid="zodiac-pct">' + Z.pct(c) + '%</span><small>Zodiakas</small></div>' + side(t, p.name) + '</div>' +
+      '<p class="zlabel" data-testid="zodiac-label">' + esc(Z.label(c)) + '</p>' +
+      '<p class="zexp" data-testid="zodiac-explain">' + esc(Z.explain(m.id, t.id)) + '</p>';
+    if (isPlus()) {
+      var names = function (lv) { return Z.byLevel(m.id, lv).map(function (x) { return esc(x.name); }).join(', '); };
+      h += '<p class="zmore" data-testid="zodiac-plus">' + ic('spark', 16) + '<span><b>Išsamiau:</b> tavo elementas – ' + Z.ELEMENTS[m.el] + ', ' + esc(p.name) + ' – ' + Z.ELEMENTS[t.el] + '.<br>' + esc(Z.label('high')) + ': ' + names('high') + '.<br>' + esc(Z.label('medium')) + ': ' + names('medium') + '.<br>' + esc(Z.label('low')) + ': ' + names('low') + '.</span></p>';
+    } else {
+      h += '<a class="zmore locked" href="#/premium" data-testid="zodiac-plus-locked">' + ic('lock', 16) + '<span>Išsamus zodiako suderinamumas – su Plus</span></a>';
+    }
+    return h + '<p class="tiny faint znote">' + esc(Z.NOTE) + '</p></div></div>';
+  }
+
   function profile(m) {
     var p = byId(m[1]);
     if (!p) return { tab: 'nearby', html: '<p>Profilis nerastas.</p><a href="#/nearby">Atgal</a>' };
@@ -326,6 +374,7 @@
       '<div class="pjob">' + esc(p.job) + '</div>' +
       '<div class="facts"><span class="fact">' + ic('near') + esc(p.distLabel) + '</span><span class="fact">' + ic('heart') + esc(goalTxt) + '</span>' + (p.verified ? '<span class="fact ok-f">' + ic('shield') + 'Patvirtinta asmenuke</span>' : '<span class="fact">Dar nepatvirtinta</span>') + (p.online ? '<span class="fact"><span class="dot-online" style="width:8px;height:8px"></span>Neseniai aktyvus(-i)</span>' : '') + '</div>' +
       '<div class="sect"><h3>Apie mane</h3><p class="bio-t">' + esc(p.bio) + '</p></div>' +
+      zodiacBlock(p) +
       prompt(p.prompts[0]) +
       '<div class="sect"><h3>Interesai</h3><div class="chips">' + p.interests.map(function (x) { return '<span class="chip static' + (sh.indexOf(x) >= 0 ? ' shared' : '') + '">' + (sh.indexOf(x) >= 0 ? ic('check', 14) : '') + esc(x) + '</span>'; }).join('') + '</div>' +
       (sh.length ? '<p class="small muted" style="margin-top:12px">Bendri interesai: ' + sh.length + '</p>' : '') + '</div>' +
@@ -411,6 +460,7 @@
       '<span class="tag ' + (S.premium ? 'gold' : '') + '">' + esc(plan) + ' planas</span></div>' +
       (u.verified ? '' : '<div class="notice" style="margin-top:16px">' + ic('camera') + '<span>Profilis dar nepatvirtintas. <a class="link" href="#/register/5">Patvirtinti asmenuke</a></span></div>') +
       '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">Interesai</h3><div class="chips">' + (u.interests.length ? u.interests.map(function (x) { return '<span class="chip static">' + esc(x) + '</span>'; }).join('') : '<span class="muted small">Nepasirinkta</span>') + '</div><a class="btn ghost small" style="margin-top:16px" href="#/register/3">Redaguoti</a></div>' +
+      (mySign() ? '<div class="card zme" style="margin-top:16px" data-testid="my-sign"><div class="row" style="gap:16px"><span class="zbig">' + mySign().sym + '</span><div><h3 style="margin:0">Mano zodiako ženklas</h3><div class="zme-n" data-testid="my-sign-name">' + esc(mySign().name) + ' <span class="muted small">· ' + Z.ELEMENTS[mySign().el] + '</span></div></div></div><p class="small muted" style="margin:12px 0 0">Apskaičiuota automatiškai iš gimimo datos. ' + (S.settings.show_zodiac ? 'Kiti mato tavo ženklą.' : 'Tavo ženklo kiti nemato (galima keisti nustatymuose).') + ' ' + esc(Z.NOTE) + '</p></div>' : '') +
       '<div class="card" style="margin-top:16px"><div class="row between"><h3>' + ic('eye', 18) + ' Kas peržiūrėjo tave</h3>' + (prem ? '' : '<span class="tag">Premium</span>') + '</div>' +
       '<div class="row" style="margin-top:16px;gap:12px"><span class="row' + (prem ? '' : ' blur-row') + '" style="gap:12px">' + viewers + '</span><span class="small muted">3 per pastarąją savaitę</span></div>' +
       (prem ? '' : '<button class="btn soft small" style="margin-top:16px" data-action="locked" data-what="Kas peržiūrėjo tave">' + ic('lock', 16) + ' Pamatyti</button>') + '</div>' +
@@ -458,13 +508,13 @@
       '<div class="plans">' +
       '<div class="plan"><div class="nm"><h3>' + PL.free.name + '</h3></div><div class="price">' + eur(0) + '</div><ul>' + li('Profilis ir asmenukės patvirtinimas') + li('Paieška šalia – iki ' + FREE_LIMIT + ' profilių per dieną') + li('Pagrindiniai filtrai') + li('Pokalbiai – iki ' + LIM.freeNewChatsPerDay + ' naujų per dieną') + li('Visi saugumo įrankiai') + '</ul></div>' +
       '<div class="plan"><div class="nm"><h3>' + PL.premium.name + '</h3>' + badge('premium') + '</div><div class="price">' + per('premium') + '</div><ul>' + li('Neribota paieška ir visi filtrai') + li('Kas peržiūrėjo tave') + li('Nematomas režimas') + li('Jokių pokalbių ribų') + '</ul>' + btn('premium', 'Rinktis ' + PL.premium.name) + '</div>' +
-      '<div class="plan hl"><span class="ribbon">Daugiausia galimybių</span><div class="nm"><h3>' + PL.plus.name + '</h3>' + badge('plus') + '</div><div class="price">' + per('plus') + '</div><ul>' + li('Viskas, kas yra ' + PL.premium.name) + li('AI atitikimo pasiūlymai pagal interesus') + li('Profilio iškėlimas (boost) 1 kartą per savaitę') + li('Pirmenybė pagalbos tarnyboje') + '</ul>' + btn('plus', 'Rinktis ' + PL.plus.name) + '</div>' +
+      '<div class="plan hl"><span class="ribbon">Daugiausia galimybių</span><div class="nm"><h3>' + PL.plus.name + '</h3>' + badge('plus') + '</div><div class="price">' + per('plus') + '</div><ul>' + li('Viskas, kas yra ' + PL.premium.name) + li('AI atitikimo pasiūlymai pagal interesus') + li('Išsamus zodiako suderinamumas ir filtras pagal ženklą') + li('Profilio iškėlimas (boost) 1 kartą per savaitę') + li('Pirmenybė pagalbos tarnyboje') + '</ul>' + btn('plus', 'Rinktis ' + PL.plus.name) + '</div>' +
       '</div>' +
       '<h2 style="margin:40px 0 16px">Palyginimas</h2>' +
       '<div class="cmp-wrap"><table class="cmp"><thead><tr><th>Funkcija</th><th>Nemok.</th><th>' + PL.premium.name + '</th><th class="plus">' + PL.plus.name + '</th></tr></thead><tbody>' +
       row('Profilis, patvirtinimas', true, true, true) + row('Paieška šalia', 'iki ' + FREE_LIMIT + '/d.', 'be ribų', 'be ribų') + row('Išplėstiniai filtrai', false, true, true) +
       row('Nauji pokalbiai', LIM.freeNewChatsPerDay + '/d.', 'be ribų', 'be ribų') + row('Kas peržiūrėjo tave', false, true, true) + row('Nematomas režimas', false, true, true) +
-      row('AI atitikimo pasiūlymai', false, false, true) + row('Iškėlimas (boost)', false, false, '1/sav.') + row('Saugumo įrankiai', true, true, true) +
+      row('AI atitikimo pasiūlymai', false, false, true) + row('Zodiako filtras', false, false, true) + row('Iškėlimas (boost)', false, false, '1/sav.') + row('Saugumo įrankiai', true, true, true) +
       '</tbody></table></div>' +
       '<div class="card terms"><p><b>Kainos nurodytos ' + C.VAT_NOTE.replace('su PVM', 'su PVM') + '.</b> Prenumerata atsinaujina ' + (yr ? 'kas 12 mėn.' : 'kas ' + PL.premium.days + ' d.') + ', kol jos neatšauki.</p>' + (yr ? '<p><b>Mokama vieną kartą metams.</b> Per 14 dienų gali atsisakyti ir atgausi pinigus. Prenumeratą gali atšaukti bet kada vienu paspaudimu.</p>' : '') + '<p><b>Atšaukti gali bet kada</b> – nustatymuose, vienu paspaudimu. Planas veiks iki apmokėto laikotarpio pabaigos, papildomų mokesčių nėra.</p><p><b>Diskretiškai:</b> banko išraše matysi neutralų aprašą (pvz. „' + C.BANK_DESCRIPTOR + '“) – be žodžių „pažintys“ ar programėlės pavadinimo.</p><p class="faint">Peržiūroje mokėjimai neveikia: mygtukai tik įjungia demo planą, kad galėtum išbandyti funkcijas.</p></div>' };
   }
@@ -476,6 +526,7 @@
       '<h3 class="eyebrow" style="margin-bottom:8px">Privatumas</h3><div class="card" style="padding:0 16px">' +
       '<div class="switch-row"><span class="lbl">Slėpti mano atstumą<small>Kiti nematys net atstumo juostos.</small></span>' + sw('hideDistance', st.hideDistance) + '</div>' +
       '<div class="switch-row"><span class="lbl">Rodyti mano amžių</span>' + sw('showAge', st.showAge) + '</div>' +
+      '<div class="switch-row"><span class="lbl">Rodyti mano zodiako ženklą<small>Išjungus kiti nemato tavo ženklo, bet tu matai jų.</small></span>' + sw('show_zodiac', st.show_zodiac) + '</div>' +
       '<div class="switch-row"><span class="lbl">Nematomas režimas ' + (isPremium() ? '' : '<span class="tag">Premium</span>') + '<small>Valdoma skiltyje „Saugumas“.</small></span>' + (isPremium() ? sw('invisible', st.invisible) : '<a class="chip locked" href="#/safety">' + ic('lock', 14) + '</a>') + '</div>' +
       '<div class="switch-row"><span class="lbl">Pranešimai</span>' + sw('notifications', st.notifications) + '</div></div>' +
       '<h3 class="eyebrow" style="margin:32px 0 8px">Sutikimai</h3><div class="card" style="padding:0 16px">' +
@@ -577,10 +628,15 @@
     requestAnimationFrame(function () { card.style.transform = 'translate(' + (sgn * 520) + 'px,-40px) rotate(' + (sgn * 26) + 'deg)'; card.style.opacity = '0'; });
     setTimeout(function () { busy = false; commitSwipe(card.dataset.id, dir); }, 330);
   }
+  function zodiacMatch(p) {
+    var m = mySign(), t = theirSign(p); if (!m || !t) return '';
+    var c = Z.compat(m.id, t.id);
+    return '<div class="zmatch" data-testid="match-zodiac"><span class="zm-s">' + zsym(m) + esc(m.name) + '</span><span class="zm-plus">+</span><span class="zm-s">' + zsym(t) + esc(t.name) + '</span><b>Zodiakas ' + Z.pct(c) + '% · ' + esc(Z.label(c)) + '</b></div><div class="zm-note">' + esc(Z.NOTE) + '</div>';
+  }
   function showMatch(p) {
     matchRoot.innerHTML = '<div class="match-screen" role="dialog" aria-modal="true" aria-label="Abipusis susidomėjimas" data-testid="match-screen">' +
       '<div class="match-pair"><div class="match-photo a">' + (S.user.photo ? '<img class="ph in" src="' + ME_PHOTO + '" alt="">' : '') + '</div><div class="match-photo b"><img class="ph in" src="' + src(p.photos[0]) + '" alt="DI sugeneruota nuotrauka – ' + esc(p.name) + '"></div><span class="match-heart">' + ic('heart') + '</span></div>' +
-      '<h1>Abipusis susidomėjimas!</h1><p>Jūs su ' + esc(p.name) + ' vienas kitu susidomėjote. Pradėkite pokalbį – nuorodos ir kontaktai atsiras po ' + CONTACT_UNLOCK + ' žinučių iš abiejų pusių.</p>' +
+      '<h1>Abipusis susidomėjimas!</h1>' + zodiacMatch(p) + '<p>Jūs su ' + esc(p.name) + ' vienas kitu susidomėjote. Pradėkite pokalbį – nuorodos ir kontaktai atsiras po ' + CONTACT_UNLOCK + ' žinučių iš abiejų pusių.</p>' +
       '<div class="actions"><button class="btn block" data-action="match-write" data-id="' + p.id + '" data-testid="match-write">' + ic('chat', 20) + ' Parašyti žinutę</button><button class="btn ghost block" data-action="match-close" data-testid="match-close">Tęsti naršymą</button></div></div>';
   }
   var drag = null;
@@ -701,6 +757,7 @@
         draft.ageMin = +document.getElementById('age-min').value; draft.ageMax = +document.getElementById('age-max').value;
         var vs = document.querySelector('[data-switch="f-verified"]'); draft.verifiedOnly = vs.checked;
         var os = document.querySelector('[data-switch="f-online"]'); if (os) draft.onlineOnly = os.checked;
+        var zs = document.querySelector('[data-switch="f-zodiac"]'); if (zs && zodAllowed()) draft.zodiacOnly = zs.checked;
         S.filters = draft; save(); render(); break;
       }
       case 'reset-filters': S.filters = clone(defaults.filters); save(); render(); break;
@@ -763,8 +820,8 @@
         var plan = t.dataset.plan, pp = PL[plan], yb = yearly();
         openSheet('<h2>' + pp.name + ' – ' + (yb ? eur(pp.yearPrice) + ' / metams' : eur(pp.price) + ' / ' + pp.days + ' d.') + '</h2><p class="muted small" style="margin:8px 0 16px">Kaina su PVM. ' + (yb ? 'Mokama vieną kartą metams. Per 14 dienų gali atsisakyti ir atgausi pinigus. ' : 'Atsinaujina kas ' + pp.days + ' d., ') + 'Atšaukti gali bet kada vienu paspaudimu. Banko išraše – neutralus aprašas „' + C.BANK_DESCRIPTOR + '“.</p><div class="notice gold" style="margin-bottom:24px">' + ic('info') + '<span>Tai peržiūra – tikro mokėjimo nėra. Galime įjungti demo planą, kad išbandytum funkcijas.</span></div><button class="btn block" data-action="demo-activate" data-plan="' + plan + '" data-testid="demo-activate">Įjungti demo planą (be mokėjimo)</button><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">Atšaukti</button>'); break;
       }
-      case 'demo-activate': S.premium = t.dataset.plan; save(); closeSheet(); render(); toast('Demo planas įjungtas.'); break;
-      case 'cancel-sub': S.premium = null; S.settings.invisible = false; S.filters.onlineOnly = false; S.filters.goal = ''; save(); render(); toast('Prenumerata atšaukta.'); break;
+      case 'demo-activate': S.premium = t.dataset.plan; if (S.premium !== 'plus') { S.filters.zodiacOnly = false; } save(); closeSheet(); render(); toast('Demo planas įjungtas.'); break;
+      case 'cancel-sub': S.premium = null; S.settings.invisible = false; S.filters.onlineOnly = false; S.filters.goal = ''; S.filters.zodiacOnly = false; save(); render(); toast('Prenumerata atšaukta.'); break;
       case 'export': {
         var blob = new Blob([JSON.stringify({ pastaba: 'Tikri peržiūra – duomenys tik šioje naršyklėje', duomenys: S }, null, 2)], { type: 'application/json' });
         var aEl = document.createElement('a'); aEl.href = URL.createObjectURL(blob); aEl.download = 'tikri-mano-duomenys.json'; document.body.appendChild(aEl); aEl.click(); aEl.remove(); toast('Duomenų failas paruoštas.'); break;
@@ -778,7 +835,7 @@
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t.dataset || !t.dataset.switch) return;
     var k = t.dataset.switch;
-    if (k === 'f-verified' || k === 'f-online') return; // taikoma paspaudus „Rodyti rezultatus“
+    if (k === 'f-verified' || k === 'f-online' || k === 'f-zodiac') return; // taikoma paspaudus „Rodyti rezultatus“
     if (k === 'consentSensitive' || k === 'consentMarketing') {
       S.user[k] = t.checked;
       if (k === 'consentSensitive') toast(t.checked ? 'Sutikimas suteiktas – paieška įjungta.' : 'Sutikimas atšauktas – paieška išjungta.');

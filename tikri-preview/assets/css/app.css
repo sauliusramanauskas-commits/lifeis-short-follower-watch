@@ -487,3 +487,39 @@ select.input{padding-right:var(--s4);background-image:linear-gradient(45deg,tran
 .carousel .ai-tag{bottom:72px}
 
 .dob{display:grid;grid-template-columns:1.1fr 1.5fr .9fr;gap:var(--s2,8px)}
+
+/* ---------- Zodiakas (pramogai) ---------- */
+.zsym{font-family:'Noto Sans Symbols','Noto Sans Symbols 2','Segoe UI Symbol','DejaVu Sans',system-ui,sans-serif;font-variant-emoji:text;font-style:normal;font-weight:400;line-height:1;color:var(--gold)}
+.zchip{display:inline-flex;align-items:center;gap:5px;min-height:24px;max-width:100%;padding:0 10px 0 8px;border-radius:var(--r-pill);font-size:11.5px;font-weight:600;color:#fff;background:rgba(10,7,14,.62);box-shadow:inset 0 0 0 1px rgba(242,201,138,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);white-space:nowrap}
+.zchip .zsym{font-size:14px}
+.zchip .zp{color:var(--gold);font-weight:700}
+.pcard .zchip{margin-top:4px;align-self:flex-start;min-height:22px;padding:0 8px 0 6px;font-size:10.5px;gap:4px}
+.pcard .zchip .zn{overflow:hidden;text-overflow:ellipsis}
+.scard .zchip{pointer-events:none}
+.zcard{background:var(--surface);border-radius:var(--r);padding:var(--s2);box-shadow:inset 0 0 0 1px rgba(242,201,138,.22),var(--sh-1)}
+.zpair{display:flex;align-items:center;justify-content:space-between;gap:var(--s1)}
+.zside{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
+.zside b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.zside small{font-size:12px;color:var(--muted)}
+.zbig{font-family:'Noto Sans Symbols','Noto Sans Symbols 2','Segoe UI Symbol','DejaVu Sans',system-ui,sans-serif;font-variant-emoji:text;font-size:32px;line-height:1.1;color:var(--gold)}
+.zmid{display:flex;flex-direction:column;align-items:center;flex:none;padding:0 var(--s1)}
+.zpct{font-size:28px;font-weight:800;letter-spacing:-.03em;color:var(--accent-hi)}
+.zmid small{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.zexp{margin:var(--s2) 0 0;font-size:14px;color:var(--text);text-align:center}
+.zmore{display:flex;gap:10px;align-items:flex-start;margin:var(--s2) 0 0;padding:12px;border-radius:var(--r-sm);background:rgba(242,201,138,.08);box-shadow:inset 0 0 0 1px rgba(242,201,138,.2);font-size:13px;color:var(--muted);line-height:1.5}
+.zmore .ico{color:var(--gold);flex:none;margin-top:1px}
+.zmore b{color:var(--text)}
+.zmore.locked{color:var(--gold);font-weight:600;align-items:center}
+.znote{margin:var(--s1) 0 0;text-align:center}
+.zme .zbig{font-size:40px}
+.zme-n{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.zmatch{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;padding:10px 16px;border-radius:var(--r);background:rgba(242,201,138,.1);box-shadow:inset 0 0 0 1px rgba(242,201,138,.3);font-size:14px;font-weight:600;animation:rise .6s .5s var(--ease) both}
+.zmatch .zm-s{display:inline-flex;align-items:center;gap:6px}
+.zmatch .zsym{font-size:20px}
+.zmatch .zm-plus{color:var(--faint)}
+.zmatch b{flex-basis:100%;color:var(--gold);font-size:18px;font-weight:800}
+.zm-note{margin-top:-12px;font-size:12px;color:var(--faint);animation:rise .6s .55s var(--ease) both}
+.zfilter .tag{flex:none}
+.zfilter h3 .zsym{margin:0 4px 0 2px}
+.zlabel{margin:var(--s1) 0 0;text-align:center;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.02em}
+.zlabel+.zexp{margin-top:4px}

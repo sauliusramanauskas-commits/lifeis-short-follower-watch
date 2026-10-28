@@ -73,9 +73,17 @@ window.TIKRI_DATA = (function () {
       ['p16'], 'Iliustruotojas/-a', false,
       [['Ieškau žmogaus, kuris…', 'mėgsta kurti, nebijo nesėkmingų bandymų ir pripažįsta, kad nemoka piešti.'], ['Geriausias vakaras – kai…', 'Visi stalai užversti popieriais, groja tyli muzika, o kava atšalo.']]]
   ];
+  // Gimimo diena (MM-DD) – ženklui. Metai apskaičiuojami taip, kad amžius sutaptų su nurodytu 2026-10-28 (peržiūros etalonas).
+  var BDAY = { p1: '07-14', p2: '11-05', p3: '03-30', p4: '08-12', p5: '05-08', p6: '12-02', p7: '09-21', p8: '10-09',
+    p9: '02-25', p10: '06-10', p11: '01-27', p12: '12-29', p13: '10-25', p14: '07-30', p15: '11-30', p16: '02-03' };
+  var Zd = window.TIKRI_CONFIG.ZODIAC;
+  var HIDE_SIGN = { p13: true }; // šis fiktyvus profilis paslėpė savo ženklą (show_zodiac: false)
+  function birthFor(id, age) { var md = BDAY[id]; return (md > '10-28' ? 2025 : 2026) - age + '-' + md; }
   var profiles = P.map(function (r) {
+    var birth = birthFor(r[0], r[2]);
     return { id: r[0], name: r[1], age: r[2], gender: r[3], dist: r[4], distLabel: r[5], verified: r[6],
-      online: r[7], goal: r[8], interests: r[9], bio: r[10], photos: r[11], job: r[12], likesMe: r[13], prompts: r[14] };
+      online: r[7], goal: r[8], interests: r[9], bio: r[10], photos: r[11], job: r[12], likesMe: r[13], prompts: r[14],
+      birth: birth, zodiac: Zd.signFor(birth).id, show_zodiac: !HIDE_SIGN[r[0]] };
   });
 
   var now = Date.now();

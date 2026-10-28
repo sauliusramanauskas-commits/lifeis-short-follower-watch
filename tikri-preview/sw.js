@@ -1,6 +1,6 @@
 /* Tikri peržiūra – service worker (tik savo aplanko failai, network-first, kad atnaujinimai matytųsi). */
-var CACHE = 'tikri-preview-v3';
-var ASSETS = ['./', 'index.html', 'assets/css/app.css?v=2', 'assets/js/config.js?v=2', 'assets/js/data.js?v=2', 'assets/js/icons.js?v=2', 'assets/js/app.js?v=2', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'assets/fonts/inter-latin-wght-normal.woff2', 'assets/fonts/inter-latin-ext-wght-normal.woff2'];
+var CACHE = 'tikri-preview-v4';
+var ASSETS = ['./', 'index.html', 'assets/css/app.css?v=3', 'assets/js/config.js?v=3', 'assets/js/data.js?v=3', 'assets/js/icons.js?v=3', 'assets/js/app.js?v=3', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'assets/fonts/inter-latin-wght-normal.woff2', 'assets/fonts/inter-latin-ext-wght-normal.woff2'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); })); });
 self.addEventListener('activate', function (e) { e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('tikri-preview-') === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); })); }).then(function () { return self.clients.claim(); })); });
 self.addEventListener('fetch', function (e) {
