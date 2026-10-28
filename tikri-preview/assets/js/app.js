@@ -113,12 +113,41 @@
       '<div class="ob-body">' + body + '</div><div class="ob-foot"><div class="err" id="err" role="alert"></div>' + foot + '</div></div>';
   }
 
+  var LT_MONTHS = ['sausis','vasaris','kovas','balandis','gegužė','birželis','liepa','rugpjūtis','rugsėjis','spalis','lapkritis','gruodis'];
+  function daysIn(y, m) { return (y && m) ? new Date(+y, +m, 0).getDate() : 31; }
+  function dayOpts(y, m, sel) { var h = '<option value="">Diena</option>', n = daysIn(y, m); for (var d = 1; d <= n; d++) h += '<option value="' + d + '"' + (+sel === d ? ' selected' : '') + '>' + d + '</option>'; return h; }
+  function dobPicker(birth) {
+    var p = (birth || '').split('-'), by = p[0] || '', bm = p[1] ? +p[1] : '', bd = p[2] ? +p[2] : '';
+    var top = new Date().getFullYear() - 18, yo = '<option value="">Metai</option>', mo = '<option value="">Mėnuo</option>';
+    for (var y = top; y >= top - 82; y--) yo += '<option value="' + y + '"' + (+by === y ? ' selected' : '') + '>' + y + '</option>';
+    for (var i = 1; i <= 12; i++) mo += '<option value="' + i + '"' + (bm === i ? ' selected' : '') + '>' + LT_MONTHS[i - 1] + '</option>';
+    return '<div class="field"><span>Gimimo data</span><div class="dob" role="group" aria-label="Gimimo data">' +
+      '<select class="input" id="f-by" aria-label="Metai">' + yo + '</select>' +
+      '<select class="input" id="f-bm" aria-label="Mėnuo">' + mo + '</select>' +
+      '<select class="input" id="f-bd" aria-label="Diena">' + dayOpts(by, bm, bd) + '</select></div></div>';
+  }
+  function dobValue() {
+    var y = document.getElementById('f-by').value, m = document.getElementById('f-bm').value, d = document.getElementById('f-bd').value;
+    if (!y || !m || !d) return '';
+    return y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2);
+  }
+  document.addEventListener('change', function (e) {
+    var id = e.target && e.target.id;
+    if (id === 'f-by' || id === 'f-bm' || id === 'f-bd') { var er = document.getElementById('err'); if (er) er.textContent = ''; }
+    if (id === 'f-by' || id === 'f-bm') {
+      var y = document.getElementById('f-by').value, m = document.getElementById('f-bm').value, bd = document.getElementById('f-bd');
+      var keep = Math.min(+bd.value || 0, daysIn(y, m)); bd.innerHTML = dayOpts(y, m, keep);
+      if (id === 'f-by' && y && !m) document.getElementById('f-bm').focus();
+      if (id === 'f-bm' && m && !bd.value) bd.focus();
+    }
+  });
+
   function register(m) {
     var n = +m[1], u = S.user, html = '';
     if (n === 1) {
       html = obShell(1, 'Susipažinkime', 'Kaip tave vadinti ir kada gimei?',
         '<label class="field"><span>Vardas (rodomas profilyje)</span><input class="input" id="f-name" maxlength="30" autocomplete="given-name" value="' + esc(u.name) + '" placeholder="pvz. Rasa"></label>' +
-        '<label class="field"><span>Gimimo data</span><input class="input" id="f-birth" type="date" value="' + esc(u.birth) + '" max="' + new Date().toISOString().slice(0, 10) + '"></label>' +
+        dobPicker(u.birth) +
         '<p class="muted small">Tikri skirta tik 18+ metų žmonėms. Profilyje rodomas tik amžius metais, ne gimimo data.</p>',
         '<button class="btn block" data-action="step1">Toliau</button>');
     } else if (n === 2) {
@@ -631,7 +660,7 @@
         merge(S.user, { name: 'Svečias', birth: '1995-05-05', gender: 'kita', seeking: ['visų'], interests: ['Kava', 'Kelionės', 'Muzika', 'Knygos'], verified: true, photo: true, consentTerms: true, consentSensitive: true });
         S.onboarded = true; save(); location.hash = '#/nearby'; break;
       case 'step1': {
-        var name = document.getElementById('f-name').value.trim(), birth = document.getElementById('f-birth').value, age = ageFrom(birth);
+        var name = document.getElementById('f-name').value.trim(), birth = dobValue(), age = ageFrom(birth);
         if (!name) return err('Įvesk vardą.');
         if (age === null) return err('Įvesk gimimo datą.');
         if (age < 18) return err('Atsiprašome – Tikri skirta tik 18 metų ir vyresniems žmonėms.');
