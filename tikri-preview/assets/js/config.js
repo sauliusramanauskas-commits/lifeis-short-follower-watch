@@ -86,16 +86,16 @@ window.TIKRI_CONFIG.ZODIAC = (function () {
   return Z;
 })();
 
-/* ---- v5 (demo): patikra, „šiandien laisvas“, saugumas pokalbyje, profilio klausimai, balso demo. Visi duomenys netikri. ----
+/* ---- v5 (demo): patikra, „šiandien ✓“ (galiu susitikti), saugumas pokalbyje, profilio klausimai, balso demo. Visi duomenys netikri. ----
    Serverio laukai (žr. FEATURES_V5.md): verified, available_until, voice_url, prompts. */
 window.TIKRI_CONFIG.V5 = {
   CHECKED_IDS: ['p1', 'p2', 'p3', 'p5', 'p7', 'p9', 'p10', 'p13', 'p14'],     /* demo profiliai su ženkleliu „Patikrinta“ */
-  AVAILABLE_IDS: ['p1', 'p3', 'p4', 'p6', 'p9', 'p14', 'p16'],                /* demo profiliai, kurie šiandien laisvi */
+  AVAILABLE_IDS: ['p1', 'p3', 'p4', 'p6', 'p9', 'p14', 'p16'],                /* demo profiliai, kurie šiandien gali susitikti */
   VOICE_IDS: ['p1', 'p3', 'p9'],                                              /* demo profiliai su balso prisistatymu */
   DURATIONS: [
-    { id: '1h', label: '1 val.', hours: 1 },
-    { id: '3h', label: '3 val.', hours: 3 },
-    { id: 'midnight', label: 'Iki vidurnakčio', hours: 0 }
+    { id: '1h', label: '1 val.', en: '1 h', hours: 1 },
+    { id: '3h', label: '3 val.', en: '3 h', hours: 3 },
+    { id: 'midnight', label: 'Iki vidurnakčio', en: 'Until midnight', hours: 0 }
   ],
   PROMPT_MAX: 140,
   PROMPT_QUESTIONS: ['Mano idealus savaitgalis…', 'Negaliu gyventi be…', 'Pirmo pasimatymo idėja…', 'Geriausias vakaras – kai…', 'Mano keistas talentas…', 'Ieškau žmogaus, kuris…'],
@@ -104,6 +104,20 @@ window.TIKRI_CONFIG.V5 = {
     { q: 'Pirmo pasimatymo idėja…', a: 'Kava su vaizdu ir pokalbis, kurio nenori baigti.' },
     { q: 'Mano keistas talentas…', a: 'Atpažįstu dainą iš pirmų trijų natų.' }
   ],
+  /* Anglų kalbos tekstai (LT raktai lieka saugomi; rodomas vertimas). */
+  EN: {
+    Q: { 'Mano idealus savaitgalis…': 'My ideal weekend…', 'Negaliu gyventi be…': 'I cannot live without…', 'Pirmo pasimatymo idėja…': 'My first-date idea…', 'Geriausias vakaras – kai…': 'The best evening is when…', 'Mano keistas talentas…': 'My weird talent…', 'Ieškau žmogaus, kuris…': 'I am looking for someone who…' },
+    DEFAULT_A: ['A slow morning, the market and a long walk by the river.', 'Coffee with a view and a conversation you do not want to end.', 'I can name a song from its first three notes.'],
+    OPENERS: {
+      'Mano idealus savaitgalis…': 'Your ideal weekend sounds great. What would this coming weekend look like?',
+      'Negaliu gyventi be…': 'You wrote what you cannot live without. How did that become part of your everyday life?',
+      'Pirmo pasimatymo idėja…': 'I like your first-date idea. When could we try it?',
+      'Geriausias vakaras – kai…': 'Your best evening sounds lovely. When did one last happen?',
+      'Mano keistas talentas…': 'A weird talent? Prove it – first question is on you.',
+      'Ieškau žmogaus, kuris…': 'You wrote who you are looking for. What does that person look like through your eyes?'
+    },
+    FALLBACK: ['Hi! What is the best thing about your week so far?', 'Hi! What would be your perfect Sunday?', 'Hi! Coffee, tea or something else – and where?']
+  },
   /* pirmų žinučių šablonai pagal kito žmogaus klausimą; {a} – trumpas jo/jos atsakymo fragmentas */
   OPENER_TEMPLATES: {
     'Mano idealus savaitgalis…': 'Tavo idealus savaitgalis – „{a}“ – skamba puikiai. Kaip atrodytų artimiausio savaitgalio versija?',
@@ -116,7 +130,12 @@ window.TIKRI_CONFIG.V5 = {
   /* Balso demo: trys švelnūs tonai (Web Audio, jokio įrašo). Dažniai Hz, trukmė s. */
   VOICE: { notes: [[392, 0.55], [494, 0.55], [587, 0.9]], total: 2.1 },
   /* Nuotraukos (API.md „Photos“): iki 6 (laukiančios + patvirtintos), 10 įkėlimų per valandą. Demo naudoja tą pačią DI nuotrauką su skirtingu iškirpimu. */
-  PHOTOS: { MAX: 6, PER_HOUR: 10, CROPS: ['50% 15%', '15% 30%', '85% 30%', '50% 80%', '25% 65%', '75% 65%'] },
+  PHOTOS: { MAX: 6, PER_HOUR: 10, PER_DAY: 20, CROPS: ['50% 15%', '15% 30%', '85% 30%', '50% 80%', '25% 65%', '75% 65%'] },
   /* Anti-spam demo ribos (API.md „Anti-spam“): rate_limited + reason like_velocity | first_message_velocity */
-  RATE: { LIKES_PER_HOUR: 25, FIRST_PER_HOUR: 8, WINDOW_MS: 3600000 }
+  RATE: {
+    HOUR_MS: 3600000, DAY_MS: 86400000, NEW_ACCOUNT_MS: 86400000,          /* „naujas paskyra“ = pirmos 24 val. (NEW_ACCOUNT_HOURS) */
+    NORMAL: { likesHour: 60, likesDay: 400, firstHour: 15, firstDay: 50 },
+    NEW: { likesHour: 15, likesDay: 40, firstHour: 5, firstDay: 15 },
+    PLAN_LIKES_DAY: { free: 30, premium: 150, plus: 400 }                  /* planų dienos kvota; Plus – neribota, bet ne daugiau nei 400/d. */
+  }
 };

@@ -43,10 +43,11 @@
     u.show_me = old.map(normS).filter(Boolean); if (u.show_me.indexOf('visi') >= 0) u.show_me = ['visi'];
     if (!Array.isArray(u.photos)) u.photos = [];
     if (!S.rate) S.rate = { likes: [], first: [], photos: [] };
+    if (!S.created) S.created = Date.now();                                                   /* paskyros amžius – naujos paskyros ribos griežtesnės */
     if (S.settings.incognito === undefined) S.settings.incognito = false;
     if (u.language !== 'en') u.language = 'lt';
     if (!u.prompts || u.prompts.length !== 3) u.prompts = clone(V5.DEFAULT_PROMPTS);
-    if (S.available && !(S.available.until > Date.now())) S.available = null;                /* laisvumas pasibaigė */
+    if (S.available && !(S.available.until > Date.now())) S.available = null;                /* ženklelis pasibaigė */
     var pc = null, i;
     for (i = 0; i < S.chats.length; i++) if (S.chats[i].id === 'p2') pc = S.chats[i];
     if (pc && !pc.messages.some(function (m) { return m.img; })) pc.messages.push({ from: 'them', img: 'p2b', text: 'Štai vaizdas iš paskutinės kelionės po Dzūkiją.', t: Date.now() - 1000 * 60 * 90 });
@@ -130,13 +131,12 @@
   }
   function verifiedBadge(p) { return p.verified ? I.verified : ''; }
 
-  /* ---------- v5: „Patikrinta“, „Šiandien laisvas“, balsas, klausimai ---------- */
+  /* ---------- v5: „Patikrinta“, „Šiandien ✓“, balsas, klausimai ---------- */
   function isChecked(p) { return V5.CHECKED_IDS.indexOf(p.id) >= 0; }
   function isFreeToday(p) { return V5.AVAILABLE_IDS.indexOf(p.id) >= 0; }
-  function freeWord(p) { return p.gender === 'moteris' ? 'laisva' : p.gender === 'vyras' ? 'laisvas' : 'laisvas(-a)'; }
-  function checkedBadge() { return '<span class="bdg ok" data-testid="checked-badge">' + ic('shield', 12) + 'Patikrinta</span>'; }
-  function freeBadge(p) { return '<span class="bdg free" data-testid="free-badge"><i></i>Šiandien ' + freeWord(p) + '</span>'; }
-  function badgesHtml(p) { var h = (isChecked(p) ? checkedBadge() : '') + (isFreeToday(p) ? freeBadge(p) : ''); return h ? '<span class="bdgs">' + h + '</span>' : ''; }
+  function checkedBadge() { return '<span class="bdg ok" data-testid="checked-badge">' + ic('shield', 12) + T('Patikrinta', 'Verified') + '</span>'; }
+  function freeBadge() { return '<span class="bdg free" data-testid="free-badge" title="' + T('Šiandien galiu susitikti', 'Free to meet today') + '"><i></i>' + T('Šiandien ✓', 'Today ✓') + '</span>'; }
+  function badgesHtml(p) { var h = (isChecked(p) ? checkedBadge() : '') + (isFreeToday(p) ? freeBadge() : ''); return h ? '<span class="bdgs">' + h + '</span>' : ''; }
   var ICON_MORE = '<svg class="ico" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
   var ICON_PLAY = '<svg class="ico" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6a1 1 0 0 0 1.5.86l11-6.8a1 1 0 0 0 0-1.72l-11-6.8A1 1 0 0 0 8 5.2z"/></svg>';
   var ICON_PAUSE = '<svg class="ico" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>';
@@ -147,35 +147,42 @@
     if (d.id === 'midnight') { var m = new Date(); m.setHours(24, 0, 0, 0); until = m.getTime(); } else until = Date.now() + d.hours * 36e5;
     S.available = { opt: d.id, until: until }; save();
   }
-  function leftText(until) { var mins = Math.max(1, Math.ceil((until - Date.now()) / 6e4)); return mins >= 60 ? 'liko ~' + Math.floor(mins / 60) + ' val. ' + (mins % 60 ? (mins % 60) + ' min.' : '') : 'liko ~' + mins + ' min.'; }
+  function durLabel(d) { return T(d.label, d.en); }
+  function leftText(until) {
+    var mins = Math.max(1, Math.ceil((until - Date.now()) / 6e4)), h = Math.floor(mins / 60), m = mins % 60;
+    return mins >= 60 ? T('liko ~' + h + ' val. ' + (m ? m + ' min.' : ''), '~' + h + ' h ' + (m ? m + ' min' : '') + ' left') : T('liko ~' + mins + ' min.', '~' + mins + ' min left');
+  }
   function availCard() {
     var a = availLeft();
-    return '<div class="card availcard' + (a ? ' on' : '') + '" id="avail-card" data-testid="avail-card" style="margin-top:16px"><div class="switch-row" style="padding:0"><span class="lbl"><b>' + ic('clock', 18) + ' Šiandien laisvas</b>' +
-      '<small data-testid="avail-status">' + (a ? 'Aktyvu iki ' + hhmm(a.until) + ' · ' + leftText(a.until) : 'Parodyk, kad šiandien gali susitikti. Ženklelis pats dings, kai baigsis laikas.') + '</small></span>' + sw('available', !!a) + '</div>' +
-      (a ? '<div class="chips" style="margin-top:16px" role="group" aria-label="Kiek laiko laisvas">' + V5.DURATIONS.map(function (d) { return '<button class="chip" data-action="avail-opt" data-opt="' + d.id + '" data-testid="avail-' + d.id + '" aria-pressed="' + (a.opt === d.id) + '">' + d.label + '</button>'; }).join('') + '</div>' : '') +
-      '<p class="tiny muted" style="margin:16px 0 0">Kiti mato tik ženklelį „Šiandien laisvas“ – ne vietos ir ne tikslaus laiko. Pasirinkimas išsaugomas tik šioje naršyklėje.</p></div>';
+    return '<div class="card availcard' + (a ? ' on' : '') + '" id="avail-card" data-testid="avail-card" style="margin-top:16px"><div class="switch-row" style="padding:0"><span class="lbl"><b>' + ic('clock', 18) + ' ' + T('Šiandien galiu susitikti', 'Free to meet today') + '</b>' +
+      '<small data-testid="avail-status">' + (a ? T('Aktyvu iki ', 'Active until ') + hhmm(a.until) + ' · ' + leftText(a.until) : T('Parodyk, kad šiandien gali susitikti. Ženklelis pats dings, kai baigsis laikas.', 'Show that you can meet today. The badge disappears by itself when the time runs out.')) + '</small></span>' + sw('available', !!a) + '</div>' +
+      (a ? '<div class="chips" style="margin-top:16px" role="group" aria-label="' + T('Kiek laiko', 'For how long') + '">' + V5.DURATIONS.map(function (d) { return '<button class="chip" data-action="avail-opt" data-opt="' + d.id + '" data-testid="avail-' + d.id + '" aria-pressed="' + (a.opt === d.id) + '">' + durLabel(d) + '</button>'; }).join('') + '</div>' : '') +
+      '<p class="tiny muted" style="margin:16px 0 0">' + T('Kiti mato tik ženklelį „Šiandien ✓“ – ne vietos ir ne tikslaus laiko. Pasirinkimas išsaugomas tik šioje naršyklėje.', 'Others only see the “Today ✓” badge – not your location or exact time. Your choice is saved only in this browser.') + '</p></div>';
   }
   function verifyCard() {
     var ok = S.user.checked;
-    return '<div class="card vcard' + (ok ? ' ok' : '') + '" data-testid="verify-card" style="margin-top:16px"><div class="row between"><h3>' + ic('shield', 18) + ' Patikra</h3>' + (ok ? '<span class="tag sage">Patikrinta</span>' : '<span class="tag">Nemokama</span>') + '</div>' +
-      '<p class="small muted" style="margin:8px 0 16px">' + (ok ? 'Tavo profilis turi ženklelį „Patikrinta“. Kiti gali rodyti tik patikrintus profilius.' : 'Gauk ženklelį „Patikrinta“ – 4 trumpi žingsniai. Nuotrauka ištrinama iškart po patikros.') + '</p>' +
-      '<a class="btn small ' + (ok ? 'ghost' : '') + ' block" href="#/verify" data-testid="verify-link">' + (ok ? 'Peržiūrėti žingsnius' : 'Pradėti patikrą (demo)') + '</a></div>';
+    return '<div class="card vcard' + (ok ? ' ok' : '') + '" data-testid="verify-card" style="margin-top:16px"><div class="row between"><h3>' + ic('shield', 18) + ' ' + T('Patikra', 'Verification') + '</h3>' + (ok ? '<span class="tag sage">' + T('Patikrinta', 'Verified') + '</span>' : '<span class="tag">' + T('Nemokama', 'Free') + '</span>') + '</div>' +
+      '<p class="small muted" style="margin:8px 0 16px">' + (ok ? T('Tavo profilis turi ženklelį „Patikrinta“. Kiti gali rodyti tik patikrintus profilius.', 'Your profile has the “Verified” badge. Others can choose to see only verified profiles.') : T('Gauk ženklelį „Patikrinta“ – 4 trumpi žingsniai. Nuotrauka ištrinama iškart po patikros.', 'Get the “Verified” badge – 4 short steps. The photo is deleted right after the check.')) + '</p>' +
+      '<a class="btn small ' + (ok ? 'ghost' : '') + ' block" href="#/verify" data-testid="verify-link">' + (ok ? T('Peržiūrėti žingsnius', 'View the steps') : T('Pradėti patikrą (demo)', 'Start verification (demo)')) + '</a></div>';
   }
+  function qT(q) { return lang() === 'en' ? (V5.EN.Q[q] || q) : q; }
+  function ansT(i, a) { return (lang() === 'en' && a === V5.DEFAULT_PROMPTS[i].a) ? V5.EN.DEFAULT_A[i] : a; }
   function promptsCard() {
     var ps = S.user.prompts;
     var rows = ps.map(function (x, i) {
-      return '<div class="pedit"><label class="sr" for="pq-' + i + '">Klausimas ' + (i + 1) + '</label><select class="input pq" id="pq-' + i + '" data-testid="pq-' + i + '">' +
-        V5.PROMPT_QUESTIONS.map(function (q) { return '<option' + (q === x.q ? ' selected' : '') + '>' + esc(q) + '</option>'; }).join('') + '</select>' +
-        '<label class="sr" for="pa-' + i + '">Atsakymas ' + (i + 1) + '</label><textarea class="input pa" id="pa-' + i + '" data-testid="pa-' + i + '" rows="2" maxlength="' + V5.PROMPT_MAX + '" placeholder="Parašyk trumpai…">' + esc(x.a) + '</textarea>' +
-        '<span class="tiny faint pcount" data-for="pa-' + i + '">' + x.a.length + '/' + V5.PROMPT_MAX + '</span></div>';
+      var av = ansT(i, x.a);
+      return '<div class="pedit"><label class="sr" for="pq-' + i + '">' + T('Klausimas ', 'Question ') + (i + 1) + '</label><select class="input pq" id="pq-' + i + '" data-testid="pq-' + i + '">' +
+        V5.PROMPT_QUESTIONS.map(function (q) { return '<option value="' + esc(q) + '"' + (q === x.q ? ' selected' : '') + '>' + esc(qT(q)) + '</option>'; }).join('') + '</select>' +
+        '<label class="sr" for="pa-' + i + '">' + T('Atsakymas ', 'Answer ') + (i + 1) + '</label><textarea class="input pa" id="pa-' + i + '" data-testid="pa-' + i + '" rows="2" maxlength="' + V5.PROMPT_MAX + '" placeholder="' + T('Parašyk trumpai…', 'Keep it short…') + '">' + esc(av) + '</textarea>' +
+        '<span class="tiny faint pcount" data-for="pa-' + i + '">' + av.length + '/' + V5.PROMPT_MAX + '</span></div>';
     }).join('');
-    return '<div class="card" data-testid="prompts-card" style="margin-top:16px"><div class="row between"><h3>' + ic('chat', 18) + ' Mano atsakymai</h3><span class="tag sage">3 klausimai</span></div>' +
-      '<p class="small muted" style="margin:8px 0 16px">Pasirink klausimus ir atsakyk savais žodžiais. Pagal juos kiti gaus pirmos žinutės idėjų.</p>' + rows +
-      '<div class="err" id="err" role="alert"></div><button class="btn small block" data-action="save-prompts" data-testid="save-prompts">Išsaugoti atsakymus</button></div>';
+    return '<div class="card" data-testid="prompts-card" style="margin-top:16px"><div class="row between"><h3>' + ic('chat', 18) + ' ' + T('Mano atsakymai', 'My answers') + '</h3><span class="tag sage">' + T('3 klausimai', '3 questions') + '</span></div>' +
+      '<p class="small muted" style="margin:8px 0 16px">' + T('Pasirink klausimus ir atsakyk savais žodžiais. Pagal juos kiti gaus pirmos žinutės idėjų.', 'Pick questions and answer in your own words. Others get first-message ideas based on them.') + '</p>' + rows +
+      '<div class="err" id="err" role="alert"></div><button class="btn small block" data-action="save-prompts" data-testid="save-prompts">' + T('Išsaugoti atsakymus', 'Save answers') + '</button></div>';
   }
   var VBARS = [6, 10, 16, 9, 20, 14, 8, 18, 24, 12, 7, 15, 21, 10, 6, 13, 19, 9, 5, 11, 17, 8, 12, 6];
   function voiceCard(tid, title, sub) {
-    return '<div class="voice" data-state="idle" data-testid="' + tid + '"><button class="vplay" data-action="voice-play" aria-label="Groti demo signalą" data-testid="' + tid + '-play">' + ICON_PLAY + '</button>' +
+    return '<div class="voice" data-state="idle" data-testid="' + tid + '"><button class="vplay" data-action="voice-play" aria-label="' + T('Groti demo signalą', 'Play the demo tone') + '" data-testid="' + tid + '-play">' + ICON_PLAY + '</button>' +
       '<div class="vmain"><b>' + esc(title) + '</b><span class="vbars" aria-hidden="true">' + VBARS.map(function (h) { return '<i style="height:' + h + 'px"></i>'; }).join('') + '</span><small>' + esc(sub) + '</small></div><span class="vtime">0:02</span></div>';
   }
   var audio = { ctx: null, stopFn: null, el: null, raf: 0, plays: 0 };
@@ -220,13 +227,14 @@
   function snippet(a) { var t = String(a).split(/[.,;!?]/)[0].trim(); if (t.length > 46) t = t.slice(0, 43).replace(/\s+\S*$/, '') + '…'; return t.charAt(0).toLowerCase() + t.slice(1); }
   function suggestOpeners(p) {
     var out = [];
-    p.prompts.forEach(function (pr) { var tpl = V5.OPENER_TEMPLATES[pr[0]]; if (tpl) out.push(tpl.replace('{a}', snippet(pr[1]))); });
+    var en = lang() === 'en';
+    p.prompts.forEach(function (pr) { var tpl = en ? V5.EN.OPENERS[pr[0]] : V5.OPENER_TEMPLATES[pr[0]]; if (tpl) out.push(tpl.replace('{a}', snippet(pr[1]))); });
     var shr = shared(p), it = (shr.length ? shr : p.interests)[0];
-    out.push((D.openers[it] || D.openers._)[0]);
+    out.push(en ? V5.EN.FALLBACK[(it || '').length % V5.EN.FALLBACK.length] : (D.openers[it] || D.openers._)[0]);
     return out.slice(0, 3);
   }
   function suggestHtml(p) {
-    return '<div class="sugg" data-testid="opener-suggest"><div class="sugg-h">' + ic('spark', 16) + 'Pirmos žinutės idėjos pagal ' + esc(p.name) + ' atsakymus</div>' +
+    return '<div class="sugg" data-testid="opener-suggest"><div class="sugg-h">' + ic('spark', 16) + T('Pirmos žinutės idėjos pagal ' + esc(p.name) + ' atsakymus', 'First-message ideas based on ' + esc(p.name) + '’s answers') + '</div>' +
       suggestOpeners(p).map(function (t, i) { return '<button class="sugg-i" data-action="pick-opener" data-id="' + p.id + '" data-i="' + i + '" data-testid="opener-' + i + '">' + esc(t) + '</button>'; }).join('') + '</div>';
   }
   var pendingDraft = {};
@@ -259,26 +267,50 @@
       '<small data-testid="incognito-desc">' + T('Tave mato tik tie, kuriuos pamėgai', 'Only people you like can see you') + '</small></span>' + sw('incognito', on) + '</div>' +
       (on ? '<p class="tiny muted" style="margin:12px 0 0" data-testid="incognito-on">' + T('Įjungta. Kai pamėgsti žmogų, jis gali pamatyti tavo profilį. Jei Plus baigsis, nustatymas liks įjungtas, bet pakartotinai įjungti be Plus negalėsi.', 'On. When you like someone, they can see your profile. If Plus ends the setting stays on, but you cannot turn it back on without Plus.') + '</p>' : '') + '</div>';
   }
-  function rateWait(list) {
-    var now = Date.now(), w = V5.RATE.WINDOW_MS; S.rate[list] = (S.rate[list] || []).filter(function (x) { return now - x < w; });
-    var lim = list === 'likes' ? V5.RATE.LIKES_PER_HOUR : list === 'first' ? V5.RATE.FIRST_PER_HOUR : V5.PHOTOS.PER_HOUR;
-    return S.rate[list].length >= lim ? Math.max(1, Math.ceil((S.rate[list][0] + w - now) / 1000)) : 0;
+  /* rate_limited (API.md „Anti-spam“): valandos ir dienos ribos, griežtesnės pirmas 24 val.; dienos patiktukų kvota pagal planą */
+  function acctNew() { return S.created ? Date.now() - S.created < V5.RATE.NEW_ACCOUNT_MS : true; }
+  function rateLimits() {
+    var R = V5.RATE, t = acctNew() ? R.NEW : R.NORMAL, plan = S.premium || 'free', pd = R.PLAN_LIKES_DAY[plan] || R.PLAN_LIKES_DAY.free;
+    return { newAccount: acctNew(), plan: plan, planLikesDay: pd, accountLikesDay: t.likesDay, likesHour: t.likesHour, likesDay: Math.min(t.likesDay, pd),
+      firstHour: t.firstHour, firstDay: t.firstDay, photosHour: V5.PHOTOS.PER_HOUR, photosDay: V5.PHOTOS.PER_DAY };
   }
-  var RATE_TXT = {
-    like_velocity: ['Per trumpą laiką davei daug patiktukų. Pailsėk kelias minutes – tada vėl galėsi.', 'You have liked a lot of people in a short time. Take a short break and you can carry on.'],
-    first_message_velocity: ['Per daug naujų pokalbių per trumpą laiką. Esamuose pokalbiuose rašyti gali toliau – pirmas žinutes siųsk šiek tiek lėčiau.', 'That is a lot of new conversations in a short time. You can keep chatting in existing ones – just send first messages a bit slower.'],
-    spam_throttle: ['Palauk šiek tiek prieš siųsdamas(-a) naują žinutę. Esamuose pokalbiuose rašyti gali.', 'Please wait a little before sending another new message. You can still write in existing conversations.'],
-    upload: ['Per daug nuotraukų įkelta per valandą. Pabandyk šiek tiek vėliau.', 'You have uploaded a lot of photos this hour. Please try again a little later.']
-  };
-  function rateSheet(reason, retryS) {
-    var m = Math.max(1, Math.ceil(retryS / 60)), tx = RATE_TXT[reason] || RATE_TXT.like_velocity;
+  window.__tikriRate = rateLimits;                                                           /* derinimui / testams: kokios ribos dabar galioja */
+  function rateCheck(list) {
+    var R = V5.RATE, L = rateLimits(), now = Date.now(), arr = (S.rate[list] || []).filter(function (x) { return now - x < R.DAY_MS; });
+    S.rate[list] = arr;
+    var hr = arr.filter(function (x) { return now - x < R.HOUR_MS; });
+    var h = list === 'likes' ? L.likesHour : list === 'first' ? L.firstHour : L.photosHour, d = list === 'likes' ? L.likesDay : list === 'first' ? L.firstDay : L.photosDay;
+    var reason = list === 'likes' ? 'like_velocity' : list === 'first' ? 'first_message_velocity' : 'photos';
+    if (hr.length >= h) return { list: list, reason: reason, scope: 'hour', limit: h, retry: Math.max(1, Math.ceil((hr[0] + R.HOUR_MS - now) / 1000)) };
+    if (arr.length >= d) return { list: list, reason: (list === 'likes' && L.planLikesDay < L.accountLikesDay) ? null : reason, scope: 'day', limit: d, plan: L.plan, retry: Math.max(1, Math.ceil((arr[0] + R.DAY_MS - now) / 1000)) };
+    return null;
+  }
+  function rateText(r) {
+    var n = r.limit;
+    if (r.list === 'likes') {
+      if (r.scope === 'hour') return [T('Per trumpą laiką davei daug patiktukų. Pailsėk kelias minutes – tada vėl galėsi.', 'You have liked a lot of people in a short time. Take a short break and you can carry on.')];
+      if (!r.reason) return [T('Šiandienos patiktukų limitas (' + n + ') pasiektas. Nauji patiktukai atsiras po paros' + (r.plan === 'plus' ? '.' : '; daugiau per dieną – Premium ir Plus planuose.'), 'You have used today’s likes (' + n + '). More will be available in 24 hours' + (r.plan === 'plus' ? '.' : '; Premium and Plus include more per day.'))];
+      return [T('Šiandien davei labai daug patiktukų. Pailsėk – vėl galėsi po paros.', 'You have liked a lot of people today. Take a rest – you can carry on in a day.')];
+    }
+    if (r.list === 'first') return [r.scope === 'hour'
+      ? T('Per daug naujų pokalbių per trumpą laiką. Esamuose pokalbiuose rašyti gali toliau – pirmas žinutes siųsk šiek tiek lėčiau.', 'That is a lot of new conversations in a short time. You can keep chatting in existing ones – just send first messages a bit slower.')
+      : T('Šiandien pradėjai daug naujų pokalbių. Esamuose pokalbiuose rašyti gali toliau, o naujus pradėsi vėliau.', 'You have started many new conversations today. You can keep chatting in existing ones and start new ones a little later.')];
+    return [r.scope === 'hour' ? T('Per daug nuotraukų įkelta per valandą. Pabandyk šiek tiek vėliau.', 'You have uploaded a lot of photos this hour. Please try again a little later.') : T('Šiandien įkelta daug nuotraukų. Pabandyk vėliau.', 'You have uploaded many photos today. Please try again later.')];
+  }
+  function rateWaitText(s) {
+    if (s >= 7200) { var h = Math.ceil(s / 3600); return T('Pabandyk vėl po ~' + h + ' val.', 'Try again in ~' + h + ' h.'); }
+    var m = Math.max(1, Math.ceil(s / 60)); return T('Pabandyk vėl po ~' + m + ' min.', 'Try again in ~' + m + ' min.');
+  }
+  function rateSheet(r) {
+    var code = 'rate_limited' + (r.reason ? ' · reason: ' + r.reason : '') + ' · scope: ' + (r.reason ? r.scope : 'likes_per_day (' + r.plan + ': ' + r.limit + ')') + ' · Retry-After: ' + r.retry + ' s';
+    var up = (!r.reason && r.plan !== 'plus') ? '<a class="btn block" href="#/premium" data-action="close-sheet" data-testid="rate-upgrade" style="margin-bottom:8px">' + T('Peržiūrėti planus', 'See plans') + '</a>' : '';
     openSheet('<div class="row between"><h2 style="margin:0">' + T('Lėtinam tempą', 'Let us slow down a little') + '</h2><button class="icon-btn" data-action="close-sheet" aria-label="' + T('Uždaryti', 'Close') + '">' + I.close + '</button></div>' +
-      '<p style="margin:12px 0 8px" data-testid="rate-msg">' + esc(T(tx[0], tx[1])) + '</p>' +
-      '<p class="muted small" style="margin:0 0 8px" data-testid="rate-wait">' + T('Pabandyk vėl po ~' + m + ' min.', 'Try again in ~' + m + ' min.') + '</p>' +
-      '<p class="tiny faint" style="margin:0 0 24px" data-testid="rate-code">rate_limited · reason: ' + (reason === 'upload' ? 'photos' : reason) + ' · Retry-After: ' + retryS + ' s</p>' +
-      '<button class="btn block" data-action="close-sheet" data-testid="rate-ok">' + T('Gerai', 'OK') + '</button>');
+      '<p style="margin:12px 0 8px" data-testid="rate-msg">' + esc(rateText(r)[0]) + '</p>' +
+      '<p class="muted small" style="margin:0 0 8px" data-testid="rate-wait">' + rateWaitText(r.retry) + '</p>' +
+      '<p class="tiny faint" style="margin:0 0 24px" data-testid="rate-code">' + code + '</p>' + up +
+      '<button class="btn ' + (up ? 'ghost ' : '') + 'block" data-action="close-sheet" data-testid="rate-ok">' + T('Gerai', 'OK') + '</button>');
   }
-  function likeBlocked() { var r = rateWait('likes'); if (r) { rateSheet('like_velocity', r); return true; } return false; }
+  function likeBlocked() { var r = rateCheck('likes'); if (r) { rateSheet(r); return true; } return false; }
   function plusSheet() {
     openSheet('<div class="row between"><h2 style="margin:0">' + T('Incognito – tik su Plus', 'Incognito needs Plus') + '</h2><button class="icon-btn" data-action="close-sheet" aria-label="' + T('Uždaryti', 'Close') + '">' + I.close + '</button></div>' +
       '<p class="muted" style="margin:12px 0 8px">' + T('Tave mato tik tie, kuriuos pamėgai', 'Only people you like can see you') + '. ' + T('Šis režimas yra Plus plane. Mokėti nebūtina – nemokama versija veikia kaip anksčiau.', 'This mode is part of the Plus plan. Paying is optional – the free version works as before.') + '</p>' +
@@ -286,9 +318,9 @@
       '<a class="btn block" href="#/premium" data-action="close-sheet" data-testid="incognito-upgrade">' + T('Peržiūrėti Plus', 'See Plus') + '</a><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">' + T('Ne dabar', 'Not now') + '</button>');
   }
   function photoHtml(x, idx, cid) {
-    return '<div class="pimg' + (x.shown ? ' shown' : '') + '" data-testid="chat-photo" data-i="' + idx + '"><span class="skel" style="position:absolute;inset:0"></span><img class="ph in" src="' + src(x.img) + '" alt="DI sugeneruota pokalbio nuotrauka" draggable="false">' +
-      '<div class="pveil"><span class="pv-t">' + ic('eyeOff', 22) + 'Neryškinta nuotrauka</span><button class="btn small" data-action="photo-show" data-id="' + cid + '" data-i="' + idx + '" data-testid="photo-show">Rodyti</button></div>' +
-      '<button class="phide" data-action="photo-hide" data-id="' + cid + '" data-i="' + idx + '" aria-label="Paslėpti nuotrauką">' + ic('eyeOff', 16) + ' Paslėpti</button></div>';
+    return '<div class="pimg' + (x.shown ? ' shown' : '') + '" data-testid="chat-photo" data-i="' + idx + '"><span class="skel" style="position:absolute;inset:0"></span><img class="ph in" src="' + src(x.img) + '" alt="' + T('DI sugeneruota pokalbio nuotrauka', 'AI-generated chat photo') + '" draggable="false">' +
+      '<div class="pveil"><span class="pv-t">' + ic('eyeOff', 22) + T('Neryškinta nuotrauka', 'Blurred photo') + '</span><button class="btn small" data-action="photo-show" data-id="' + cid + '" data-i="' + idx + '" data-testid="photo-show">' + T('Rodyti', 'Show') + '</button></div>' +
+      '<button class="phide" data-action="photo-hide" data-id="' + cid + '" data-i="' + idx + '" aria-label="' + T('Paslėpti nuotrauką', 'Hide photo') + '">' + ic('eyeOff', 16) + ' ' + T('Paslėpti', 'Hide') + '</button></div>';
   }
   function copyText(t, done) {
     function fb() { var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0;top:0'; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* */ } ta.remove(); done(ok); }
@@ -296,19 +328,21 @@
   }
   function dateText() {
     var g = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
+    if (lang() === 'en') return 'Date with ' + (g('d-who') || '(name)') + ' (we met on Tikri)\nPlace: ' + (g('d-place') || '(add a place)') + '\nTime: ' + (g('d-day') || 'Today') + ' ' + (g('d-time') || '19:00') +
+      '\nI will message you when I arrive and when I get home. If I do not reply within an hour after the date – please call me.';
     return 'Pasimatymas su ' + (g('d-who') || '(vardas)') + ' (susipažinome per Tikri)\nVieta: ' + (g('d-place') || '(įrašyk vietą)') + '\nLaikas: ' + (g('d-day') || 'Šiandien') + ' ' + (g('d-time') || '19:00') +
       '\nParašysiu, kai ateisiu ir kai grįšiu namo. Jei per valandą po pasimatymo neatsakysiu – paskambink man.';
   }
   function dateSheet(p) {
-    openSheet('<div class="row between"><h2 style="margin:0">Pasidalink pasimatymu su draugu</h2><button class="icon-btn" data-action="close-sheet" aria-label="Uždaryti">' + I.close + '</button></div>' +
-      '<p class="muted small" style="margin:8px 0 16px">Paruošk trumpą tekstą ir nusiųsk jį draugui. Peržiūroje niekas nesiunčiama – tekstas lieka tavo įrenginyje.</p>' +
-      '<label class="field"><span>Vieta</span><input class="input" id="d-place" data-testid="d-place" maxlength="70" placeholder="pvz. kavinė „Tiltas“, Gedimino pr."></label>' +
-      '<div class="two"><label class="field"><span>Diena</span><select class="input" id="d-day" data-testid="d-day"><option>Šiandien</option><option>Rytoj</option></select></label>' +
-      '<label class="field"><span>Laikas</span><input class="input" id="d-time" data-testid="d-time" type="time" value="19:00"></label></div>' +
-      '<label class="field"><span>Su kuo</span><input class="input" id="d-who" data-testid="d-who" maxlength="40" value="' + esc(p.name) + '"></label>' +
-      '<div class="dprev"><div class="eyebrow">Tekstas draugui</div><pre id="d-text" data-testid="date-text"></pre></div>' +
+    openSheet('<div class="row between"><h2 style="margin:0">' + T('Pasidalink pasimatymu su draugu', 'Share your date with a friend') + '</h2><button class="icon-btn" data-action="close-sheet" aria-label="' + T('Uždaryti', 'Close') + '">' + I.close + '</button></div>' +
+      '<p class="muted small" style="margin:8px 0 16px">' + T('Paruošk trumpą tekstą ir nusiųsk jį draugui. Peržiūroje niekas nesiunčiama – tekstas lieka tavo įrenginyje.', 'Prepare a short text and send it to a friend. Nothing is sent in this preview – the text stays on your device.') + '</p>' +
+      '<label class="field"><span>' + T('Vieta', 'Place') + '</span><input class="input" id="d-place" data-testid="d-place" maxlength="70" placeholder="' + T('pvz. kavinė „Tiltas“, Gedimino pr.', 'e.g. Tiltas café, Gedimino pr.') + '"></label>' +
+      '<div class="two"><label class="field"><span>' + T('Diena', 'Day') + '</span><select class="input" id="d-day" data-testid="d-day"><option>' + T('Šiandien', 'Today') + '</option><option>' + T('Rytoj', 'Tomorrow') + '</option></select></label>' +
+      '<label class="field"><span>' + T('Laikas', 'Time') + '</span><input class="input" id="d-time" data-testid="d-time" type="time" value="19:00"></label></div>' +
+      '<label class="field"><span>' + T('Su kuo', 'With whom') + '</span><input class="input" id="d-who" data-testid="d-who" maxlength="40" value="' + esc(p.name) + '"></label>' +
+      '<div class="dprev"><div class="eyebrow">' + T('Tekstas draugui', 'Text for your friend') + '</div><pre id="d-text" data-testid="date-text"></pre></div>' +
       '<div class="err" id="err" role="alert"></div>' +
-      '<div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" data-action="date-copy" data-testid="date-copy">Kopijuoti</button><button class="btn" style="flex:1" data-action="date-share" data-testid="date-share">' + ic('share', 18) + ' Dalintis</button></div>',
+      '<div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" data-action="date-copy" data-testid="date-copy">' + T('Kopijuoti', 'Copy') + '</button><button class="btn" style="flex:1" data-action="date-share" data-testid="date-share">' + ic('share', 18) + ' ' + T('Dalintis', 'Share') + '</button></div>',
       function (el) {
         var out = el.querySelector('#d-text');
         function upd() { out.textContent = dateText(); }
@@ -533,8 +567,8 @@
       '<section><h3>Atstumas</h3><div class="chips">' + [0, 1, 2, 3, 4].map(bandChip).join('') + '</div><p class="tiny muted" style="margin-top:8px">Tik apytikslės juostos – tikslaus atstumo nėra.</p></section>' +
       '<section><h3>Noriu matyti</h3><div class="chips">' + seekChip('vyrų', 'Vyrus') + seekChip('moterų', 'Moteris') + seekChip('visų', 'Visus') + '</div></section>' +
       '<section><div class="switch-row"><span class="lbl">Tik patvirtinti profiliai<small>Su asmenukės patvirtinimu ' + I.verified + '</small></span>' + sw('f-verified', f.verifiedOnly) + '</div>' +
-      '<div class="switch-row"><span class="lbl">Tik patikrinti<small>Su ženkleliu „Patikrinta“ · nemokama</small></span>' + sw('f-checked', f.checkedOnly) + '</div>' +
-      '<div class="switch-row"><span class="lbl">Laisvi šiandien<small>Kas šiandien pažymėjo „Šiandien laisvas“ · nemokama</small></span>' + sw('f-today', f.freeToday) + '</div></section>' +
+      '<div class="switch-row"><span class="lbl">' + T('Tik patikrinti', 'Verified only') + '<small>' + T('Su ženkleliu „Patikrinta“ · nemokama', 'With the “Verified” badge · free') + '</small></span>' + sw('f-checked', f.checkedOnly) + '</div>' +
+      '<div class="switch-row"><span class="lbl">' + T('Gali susitikti šiandien', 'Free to meet today') + '<small>' + T('Kas šiandien pažymėjo „Šiandien ✓“ · nemokama', 'Who marked “Today ✓” today · free') + '</small></span>' + sw('f-today', f.freeToday) + '</div></section>' +
       '<section><h3>Interesai</h3><div class="chips">' + D.INTERESTS.map(function (x) { return '<button class="chip" data-finterest="' + esc(x) + '" aria-pressed="' + (f.interests.indexOf(x) >= 0) + '">' + esc(x) + '</button>'; }).join('') + '</div></section>' +
       zodiacFilterSection() +
       '<section class="card" style="margin-top:24px"><div class="row between"><h3 style="margin:0">Išplėstiniai filtrai</h3>' + (prem ? '<span class="tag sage">Aktyvu</span>' : '<span class="tag">Premium</span>') + '</div>' +
@@ -594,9 +628,9 @@
       '<div class="nav"><a class="icon-btn glass" href="#/nearby" aria-label="Atgal">' + I.back + '</a><span class="pill hot" style="background:rgba(10,7,14,.5)">' + matchPct(p) + '% atitikimas</span></div>' + dots + AI + '</div>' +
       '<div class="pbody"><div class="pname">' + esc(p.name) + ' <span class="age">' + p.age + '</span>' + verifiedBadge(p) + '</div>' +
       '<div class="pjob">' + esc(p.job) + '</div>' +
-      '<div class="facts"><span class="fact">' + ic('near') + esc(p.distLabel) + '</span><span class="fact">' + ic('heart') + esc(goalTxt) + '</span>' + (p.verified ? '<span class="fact ok-f">' + ic('shield') + 'Patvirtinta asmenuke</span>' : '<span class="fact">Dar nepatvirtinta</span>') + (isChecked(p) ? '<span class="fact chk" data-testid="checked-badge">' + ic('shield') + 'Patikrinta</span>' : '') + (isFreeToday(p) ? '<span class="fact frs" data-testid="free-badge"><i class="fdot"></i>Šiandien ' + freeWord(p) + '</span>' : '') + (p.online ? '<span class="fact"><span class="dot-online" style="width:8px;height:8px"></span>Neseniai aktyvus(-i)</span>' : '') + '</div>' +
+      '<div class="facts"><span class="fact">' + ic('near') + esc(p.distLabel) + '</span><span class="fact">' + ic('heart') + esc(goalTxt) + '</span>' + (p.verified ? '<span class="fact ok-f">' + ic('shield') + 'Patvirtinta asmenuke</span>' : '<span class="fact">Dar nepatvirtinta</span>') + (isChecked(p) ? '<span class="fact chk" data-testid="checked-badge">' + ic('shield') + T('Patikrinta', 'Verified') + '</span>' : '') + (isFreeToday(p) ? '<span class="fact frs" data-testid="free-badge"><i class="fdot"></i>' + T('Šiandien ✓', 'Today ✓') + '</span>' : '') + (p.online ? '<span class="fact"><span class="dot-online" style="width:8px;height:8px"></span>Neseniai aktyvus(-i)</span>' : '') + '</div>' +
       '<div class="sect"><h3>Apie mane</h3><p class="bio-t">' + esc(p.bio) + '</p></div>' +
-      (V5.VOICE_IDS.indexOf(p.id) >= 0 ? '<div class="sect"><h3>Balso prisistatymas (demo)</h3>' + voiceCard('voice-' + p.id, 'Balso prisistatymas (demo)', 'Demo tonų signalas – ne tikras balso įrašas') + '</div>' : '') +
+      (V5.VOICE_IDS.indexOf(p.id) >= 0 ? '<div class="sect"><h3>' + T('Balso prisistatymas (demo)', 'Voice intro (demo)') + '</h3>' + voiceCard('voice-' + p.id, T('Balso prisistatymas (demo)', 'Voice intro (demo)'), T('Demo tonų signalas – ne tikras balso įrašas', 'Demo tone – not a real voice recording')) + '</div>' : '') +
       zodiacBlock(p) +
       prompt(p.prompts[0]) +
       '<div class="sect"><h3>Interesai</h3><div class="chips">' + p.interests.map(function (x) { return '<span class="chip static' + (sh.indexOf(x) >= 0 ? ' shared' : '') + '">' + (sh.indexOf(x) >= 0 ? ic('check', 14) : '') + esc(x) + '</span>'; }).join('') + '</div>' +
@@ -656,7 +690,7 @@
     var hasHidden = !contactsUnlocked(c) && c.messages.some(function (x) { CONTACT_RE.lastIndex = 0; return CONTACT_RE.test(x.text); });
     CONTACT_RE.lastIndex = 0;
     return { tab: 'chats', noTabs: true, chat: true, html:
-      '<div class="chat-head"><a class="icon-btn" href="#/chats" aria-label="Atgal">' + I.back + '</a><a href="#/profile/' + p.id + '" class="who"><span class="avatar sm"><span class="skel" style="position:absolute;inset:0"></span>' + photo(p) + '</span><span><b>' + esc(p.name) + '</b>' + verifiedBadge(p) + '<span class="st">' + (p.online ? '<span class="dot-online"></span>Neseniai aktyvus(-i) · ' : '') + esc(p.distLabel) + '</span></span></a><button class="icon-btn" data-action="chat-menu" data-id="' + p.id + '" aria-label="Pokalbio meniu" data-testid="chat-menu">' + ICON_MORE + '</button><button class="icon-btn" data-action="report" data-id="' + p.id + '" aria-label="Pranešti">' + I.flag + '</button></div>' +
+      '<div class="chat-head"><a class="icon-btn" href="#/chats" aria-label="Atgal">' + I.back + '</a><a href="#/profile/' + p.id + '" class="who"><span class="avatar sm"><span class="skel" style="position:absolute;inset:0"></span>' + photo(p) + '</span><span><b>' + esc(p.name) + '</b>' + verifiedBadge(p) + '<span class="st">' + (p.online ? '<span class="dot-online"></span>Neseniai aktyvus(-i) · ' : '') + esc(p.distLabel) + '</span></span></a><button class="icon-btn" data-action="chat-menu" data-id="' + p.id + '" aria-label="' + T('Pokalbio meniu', 'Chat menu') + '" data-testid="chat-menu">' + ICON_MORE + '</button><button class="icon-btn" data-action="report" data-id="' + p.id + '" aria-label="' + T('Pranešti', 'Report') + '">' + I.flag + '</button></div>' +
       '<div class="conv" id="conv"><div class="safe-note" id="safe-note">' + noteHtml(c, p) + '</div>' + (hasHidden ? '<p class="tiny faint center" id="hid-note">Šiame pokalbyje yra paslėptų nuorodų ar kontaktų. Niekada nesek nepažįstamų nuorodų.</p>' : '') + '<div id="msgs" style="display:contents">' + convHtml(c, p, typingFor === p.id) + '</div></div>' +
       '<div class="composer"><button class="ai-btn" data-action="ai-opener" data-id="' + p.id + '" data-testid="ai-opener">' + ic('spark', 16) + ' Padėk pradėti pokalbį</button>' +
       '<form data-form="send" data-id="' + p.id + '"><label class="sr" for="msg-input">Žinutė</label><button type="button" class="icon-btn" data-action="attach" aria-label="Pridėti nuotrauką">' + ic('image') + '</button><input class="input" id="msg-input" autocomplete="off" maxlength="500" placeholder="Rašyk žinutę…"><button class="send-btn" aria-label="Siųsti" type="submit">' + ic('send') + '</button></form>' +
@@ -686,7 +720,7 @@
       '<div class="topbar"><h1>Mano profilis</h1><a class="icon-btn" href="#/settings" aria-label="Nustatymai" data-testid="settings-link">' + I.gear + '</a></div>' +
       '<div class="me-hero">' + meAvatar('lg ring') + '<div class="nm">' + esc(u.name || 'Tu') + (a ? ', ' + a : '') + (u.verified ? I.verified : '') + '</div>' +
       '<div class="small muted" style="margin:4px 0 12px" data-testid="private-prefs">' + ic('lock', 13) + ' ' + prefsLine() + '</div>' +
-      '<div class="row" style="gap:8px;flex-wrap:wrap;justify-content:center"><span class="tag ' + (S.premium ? 'gold' : '') + '">' + esc(plan) + ' planas</span>' + (u.checked ? checkedBadge() : '') + (availLeft() ? '<span class="bdg free" data-testid="my-free-badge"><i></i>Šiandien laisvas</span>' : '') + (S.settings.incognito ? '<span class="tag" data-testid="my-incognito">Incognito</span>' : '') + '</div>' +
+      '<div class="row" style="gap:8px;flex-wrap:wrap;justify-content:center"><span class="tag ' + (S.premium ? 'gold' : '') + '">' + esc(plan) + ' planas</span>' + (u.checked ? checkedBadge() : '') + (availLeft() ? '<span class="bdg free" data-testid="my-free-badge"><i></i>' + T('Šiandien ✓', 'Today ✓') + '</span>' : '') + (S.settings.incognito ? '<span class="tag" data-testid="my-incognito">Incognito</span>' : '') + '</div>' +
       '<p class="tiny faint" style="margin:12px 0 0" data-testid="private-note">' + privateNote() + '</p>' +
       '<div class="chips" style="justify-content:center;margin-top:12px" role="group" aria-label="Kalba / Language"><button class="chip" data-lang="lt" data-testid="lang-lt" aria-pressed="' + (lang() === 'lt') + '">Lietuvių</button><button class="chip" data-lang="en" data-testid="lang-en" aria-pressed="' + (lang() === 'en') + '">English</button></div></div>' +
       photosCard() + incognitoCard() + availCard() + verifyCard() +
@@ -694,7 +728,7 @@
       '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">Interesai</h3><div class="chips">' + (u.interests.length ? u.interests.map(function (x) { return '<span class="chip static">' + esc(x) + '</span>'; }).join('') : '<span class="muted small">Nepasirinkta</span>') + '</div><a class="btn ghost small" style="margin-top:16px" href="#/register/3">Redaguoti</a></div>' +
       (mySign() ? '<div class="card zme" style="margin-top:16px" data-testid="my-sign"><div class="row" style="gap:16px"><span class="zbig">' + mySign().sym + '</span><div><h3 style="margin:0">Mano zodiako ženklas</h3><div class="zme-n" data-testid="my-sign-name">' + esc(mySign().name) + ' <span class="muted small">· ' + Z.ELEMENTS[mySign().el] + '</span></div></div></div><p class="small muted" style="margin:12px 0 0">Apskaičiuota automatiškai iš gimimo datos. ' + (S.settings.show_zodiac ? 'Kiti mato tavo ženklą.' : 'Tavo ženklo kiti nemato (galima keisti nustatymuose).') + ' ' + esc(Z.NOTE) + '</p></div>' : '') +
       promptsCard() +
-      '<div class="card" style="margin-top:16px" data-testid="voice-card"><h3 style="margin-bottom:12px">' + ic('spark', 18) + ' Balso prisistatymas (demo)</h3>' + voiceCard('voice-me', 'Balso prisistatymas (demo)', 'Vietos rezervas: čia bus tavo balso įrašas (voice_url). Dabar – tonų signalas.') + '</div>' +
+      '<div class="card" style="margin-top:16px" data-testid="voice-card"><h3 style="margin-bottom:12px">' + ic('spark', 18) + ' ' + T('Balso prisistatymas (demo)', 'Voice intro (demo)') + '</h3>' + voiceCard('voice-me', T('Balso prisistatymas (demo)', 'Voice intro (demo)'), T('Vietos rezervas: čia bus tavo balso įrašas (voice_url). Dabar – tonų signalas.', 'Placeholder: your voice recording (voice_url) will go here. For now – a demo tone.')) + '</div>' +
       '<div class="card" style="margin-top:16px"><div class="row between"><h3>' + ic('eye', 18) + ' Kas peržiūrėjo tave</h3>' + (prem ? '' : '<span class="tag">Premium</span>') + '</div>' +
       '<div class="row" style="margin-top:16px;gap:12px"><span class="row' + (prem ? '' : ' blur-row') + '" style="gap:12px">' + viewers + '</span><span class="small muted">3 per pastarąją savaitę</span></div>' +
       (prem ? '' : '<button class="btn soft small" style="margin-top:16px" data-action="locked" data-what="Kas peržiūrėjo tave">' + ic('lock', 16) + ' Pamatyti</button>') + '</div>' +
@@ -723,22 +757,28 @@
   var vstep = 1;
   function verify() {
     var s = vstep;
-    var T = [
+    var VT = lang() === 'lt' ? [
       ['Kaip tai veikia', 'Patikra užtrunka apie minutę. Palyginame, ar profilio nuotrauka atitinka gyvą žmogų, ir pridedame ženklelį „Patikrinta“.', ['Nenaudojame tavo vardo ar gimimo datos.', 'Veido šablonų nesaugome.', 'Nuotrauka ištrinama iškart po patikros.']],
       ['Pasiruošk', 'Kad patikra pavyktų iš pirmo karto:', ['Būk šviesioje vietoje, veidas gerai matomas.', 'Be akinių nuo saulės ir kepurės.', 'Kadre – tik tu.']],
       ['Nuotrauka (demo)', 'Tikroje programėlėje čia atsidarytų kamera. Šioje peržiūroje kamera neįjungiama ir jokia nuotrauka nedaroma – paspaudi mygtuką, o patikrą imituojame.', ['Nuotrauka naudojama tik palyginimui.', 'Po patikros ji ištrinama.']],
       ['Patikrinta!', 'Tavo profilis dabar turi ženklelį „Patikrinta“.', ['Nuotrauka ištrinta iškart po patikros.', 'Demo: jokia nuotrauka nebuvo daryta ar išsaugota.', 'Ženklelį gali pašalinti bet kada.']]
-    ][s - 1];
+    ] : [
+      ['How it works', 'The check takes about a minute. We compare your profile photo with a live person and add the “Verified” badge.', ['We do not use your name or date of birth.', 'We do not store face templates.', 'The photo is deleted right after the check.']],
+      ['Get ready', 'To get it right the first time:', ['Stand somewhere well lit, face clearly visible.', 'No sunglasses or hat.', 'Only you in the frame.']],
+      ['Photo (demo)', 'In the real app the camera would open here. This preview never turns the camera on and takes no photo – you press the button and we simulate the check.', ['The photo is only used for the comparison.', 'It is deleted after the check.']],
+      ['Verified!', 'Your profile now has the “Verified” badge.', ['The photo was deleted right after the check.', 'Demo: no photo was taken or saved.', 'You can remove the badge at any time.']]
+    ];
+    var Tt = VT[s - 1];
     var dots = [1, 2, 3, 4].map(function (n) { return '<i class="' + (n < s ? 'done' : n === s ? 'on' : '') + '">' + (n < s ? ic('check', 14) : n) + '</i>'; }).join('<b></b>');
-    var foot = s < 3 ? '<button class="btn block" data-action="verify-next" data-testid="verify-next">Toliau</button>'
-      : s === 3 ? '<button class="btn block" data-action="verify-run" data-testid="verify-run">' + ic('camera', 20) + ' Imituoti nuotrauką ir patikrą</button><div class="vprog" id="vprog" hidden><i></i></div><p class="tiny muted center" id="vmsg" role="status" hidden>Tikriname… (imituojama)</p>'
-      : '<a class="btn block" href="#/me" data-testid="verify-done">Grįžti į profilį</a><button class="btn ghost block" style="margin-top:8px" data-action="verify-reset" data-testid="verify-reset">Pašalinti ženklelį (demo)</button>';
+    var foot = s < 3 ? '<button class="btn block" data-action="verify-next" data-testid="verify-next">' + T('Toliau', 'Next') + '</button>'
+      : s === 3 ? '<button class="btn block" data-action="verify-run" data-testid="verify-run">' + ic('camera', 20) + ' ' + T('Imituoti nuotrauką ir patikrą', 'Simulate the photo and check') + '</button><div class="vprog" id="vprog" hidden><i></i></div><p class="tiny muted center" id="vmsg" role="status" hidden>' + T('Tikriname… (imituojama)', 'Checking… (simulated)') + '</p>'
+      : '<a class="btn block" href="#/me" data-testid="verify-done">' + T('Grįžti į profilį', 'Back to profile') + '</a><button class="btn ghost block" style="margin-top:8px" data-action="verify-reset" data-testid="verify-reset">' + T('Pašalinti ženklelį (demo)', 'Remove the badge (demo)') + '</button>';
     return { tab: 'me', html:
-      '<div class="topbar"><a class="icon-btn" href="#/me" aria-label="Atgal">' + I.back + '</a><h1>Patikra</h1></div>' +
-      '<div class="vsteps" role="img" aria-label="Žingsnis ' + s + ' iš 4" data-testid="verify-steps">' + dots + '</div>' +
-      '<div class="card stack vbody" data-testid="verify-step" data-step="' + s + '">' + (s === 4 ? '<div class="vok">' + ic('shield', 36) + '</div>' : '') + '<h2>' + T[0] + '</h2><p class="muted">' + T[1] + '</p><ul class="vlist">' + T[2].map(function (x) { return '<li>' + ic('check', 16) + '<span>' + x + '</span></li>'; }).join('') + '</ul></div>' +
-      (s === 3 || s === 2 ? '<div class="notice" style="margin-top:16px" data-testid="verify-privacy">' + ic('trash', 18) + '<span><b>Nuotrauka ištrinama iškart po patikros.</b> Kiti jos niekada nemato.</span></div>' : '') +
-      '<div class="vfoot">' + foot + (s > 1 && s < 4 ? '<button class="btn ghost block" style="margin-top:8px" data-action="verify-prev">Atgal</button>' : '') + '</div>' };
+      '<div class="topbar"><a class="icon-btn" href="#/me" aria-label="' + T('Atgal', 'Back') + '">' + I.back + '</a><h1>' + T('Patikra', 'Verification') + '</h1></div>' +
+      '<div class="vsteps" role="img" aria-label="' + T('Žingsnis ' + s + ' iš 4', 'Step ' + s + ' of 4') + '" data-testid="verify-steps">' + dots + '</div>' +
+      '<div class="card stack vbody" data-testid="verify-step" data-step="' + s + '">' + (s === 4 ? '<div class="vok">' + ic('shield', 36) + '</div>' : '') + '<h2>' + Tt[0] + '</h2><p class="muted">' + Tt[1] + '</p><ul class="vlist">' + Tt[2].map(function (x) { return '<li>' + ic('check', 16) + '<span>' + x + '</span></li>'; }).join('') + '</ul></div>' +
+      (s === 3 || s === 2 ? '<div class="notice" style="margin-top:16px" data-testid="verify-privacy">' + ic('trash', 18) + '<span><b>' + T('Nuotrauka ištrinama iškart po patikros.', 'The photo is deleted right after the check.') + '</b> ' + T('Kiti jos niekada nemato.', 'Others never see it.') + '</span></div>' : '') +
+      '<div class="vfoot">' + foot + (s > 1 && s < 4 ? '<button class="btn ghost block" style="margin-top:8px" data-action="verify-prev">' + T('Atgal', 'Back') + '</button>' : '') + '</div>' };
   }
 
   /* ---------- Premium ---------- */
@@ -1011,13 +1051,13 @@
         else if (u.show_me.length === 1) S.filters.seek = SHOW[u.show_me[0]].sel;
         S.onboarded = true; save(); location.hash = '#/nearby'; toast('Sveiki atvykę į Tikri!'); break;
       }
-      case 'avail-opt': setAvail(t.dataset.opt); render(); toast('Atnaujinta: ' + (V5.DURATIONS.filter(function (d) { return d.id === t.dataset.opt; })[0].label)); break;
+      case 'avail-opt': setAvail(t.dataset.opt); render(); toast(T('Atnaujinta: ', 'Updated: ') + durLabel(V5.DURATIONS.filter(function (d) { return d.id === t.dataset.opt; })[0])); break;
       case 'save-prompts': {
         var np = [], bad = false;
         [0, 1, 2].forEach(function (i) { var q = document.getElementById('pq-' + i).value, an = document.getElementById('pa-' + i).value.trim(); if (!an) bad = true; np.push({ q: q, a: an.slice(0, V5.PROMPT_MAX) }); });
-        if (bad) return err('Atsakyk į visus tris klausimus.');
-        var qs = np.map(function (x) { return x.q; }); if (qs.some(function (x, i) { return qs.indexOf(x) !== i; })) return err('Kiekvienas klausimas turi būti skirtingas.');
-        u.prompts = np; save(); toast('Atsakymai išsaugoti.'); break;
+        if (bad) return err(T('Atsakyk į visus tris klausimus.', 'Please answer all three questions.'));
+        var qs = np.map(function (x) { return x.q; }); if (qs.some(function (x, i) { return qs.indexOf(x) !== i; })) return err(T('Kiekvienas klausimas turi būti skirtingas.', 'Each question must be different.'));
+        u.prompts = np; save(); toast(T('Atsakymai išsaugoti.', 'Answers saved.')); break;
       }
       case 'voice-play': playVoice(t.closest('.voice')); break;
       case 'pick-opener': {
@@ -1033,25 +1073,25 @@
       }
       case 'chat-menu': {
         var cm = byId(t.dataset.id);
-        openSheet('<div class="row between"><h2 style="margin:0">Pokalbio meniu</h2><button class="icon-btn" data-action="close-sheet" aria-label="Uždaryti">' + I.close + '</button></div>' +
+        openSheet('<div class="row between"><h2 style="margin:0">' + T('Pokalbio meniu', 'Chat menu') + '</h2><button class="icon-btn" data-action="close-sheet" aria-label="' + T('Uždaryti', 'Close') + '">' + I.close + '</button></div>' +
           '<div class="menu-list" style="margin-top:16px">' +
-          '<button class="menu-i" data-action="date-share-open" data-id="' + cm.id + '" data-testid="menu-date">' + ic('share', 20) + '<span><b>Pasidalink pasimatymu su draugu</b><small>Vieta, laikas ir su kuo – paruošiame tekstą</small></span></button>' +
-          '<button class="menu-i" data-action="report" data-id="' + cm.id + '" data-testid="menu-report">' + ic('flag', 20) + '<span><b>Pranešti</b><small>Moderatorių komanda peržiūri pranešimą</small></span></button>' +
-          '<button class="menu-i danger" data-action="block" data-id="' + cm.id + '" data-testid="menu-block">' + ic('block', 20) + '<span><b>Blokuoti</b><small>' + esc(cm.name) + ' nebematys tavęs ir nebegalės rašyti</small></span></button></div>');
+          '<button class="menu-i" data-action="date-share-open" data-id="' + cm.id + '" data-testid="menu-date">' + ic('share', 20) + '<span><b>' + T('Pasidalink pasimatymu su draugu', 'Share your date with a friend') + '</b><small>' + T('Vieta, laikas ir su kuo – paruošiame tekstą', 'Place, time and who with – we prepare the text') + '</small></span></button>' +
+          '<button class="menu-i" data-action="report" data-id="' + cm.id + '" data-testid="menu-report">' + ic('flag', 20) + '<span><b>' + T('Pranešti', 'Report') + '</b><small>' + T('Moderatorių komanda peržiūri pranešimą', 'Our moderators review the report') + '</small></span></button>' +
+          '<button class="menu-i danger" data-action="block" data-id="' + cm.id + '" data-testid="menu-block">' + ic('block', 20) + '<span><b>' + T('Blokuoti', 'Block') + '</b><small>' + T(esc(cm.name) + ' nebematys tavęs ir nebegalės rašyti', esc(cm.name) + ' will no longer see you or be able to write to you') + '</small></span></button></div>');
         break;
       }
       case 'date-share-open': dateSheet(byId(t.dataset.id)); break;
-      case 'date-copy': copyText(dateText(), function (ok) { toast(ok ? 'Tekstas nukopijuotas.' : 'Nepavyko nukopijuoti – pažymėk tekstą ir nukopijuok ranka.'); }); break;
+      case 'date-copy': copyText(dateText(), function (ok) { toast(ok ? T('Tekstas nukopijuotas.', 'Text copied.') : T('Nepavyko nukopijuoti – pažymėk tekstą ir nukopijuok ranka.', 'Could not copy – select the text and copy it by hand.')); }); break;
       case 'date-share': {
         var dt = dateText();
         if (navigator.share) navigator.share({ text: dt }).catch(function () { /* atšaukta */ });
-        else copyText(dt, function (ok) { toast(ok ? 'Dalijimasis nepalaikomas – tekstas nukopijuotas.' : 'Nepavyko nukopijuoti.'); });
+        else copyText(dt, function (ok) { toast(ok ? T('Dalijimasis nepalaikomas – tekstas nukopijuotas.', 'Sharing is not supported – text copied.') : T('Nepavyko nukopijuoti.', 'Could not copy.')); });
         break;
       }
       case 'photo-add': {
         var ps = myPhotos(), mx = V5.PHOTOS.MAX;
         if (ps.length >= mx) { toast(T('Daugiausia ' + mx + ' nuotraukų (laukiančios + patvirtintos).', 'Up to ' + mx + ' photos (pending + approved).')); break; }
-        var rp2 = rateWait('photos'); if (rp2) { rateSheet('upload', rp2); break; }
+        var rp2 = rateCheck('photos'); if (rp2) { rateSheet(rp2); break; }
         S.rate.photos.push(Date.now()); ps.push({ id: 'ph' + Date.now(), status: 'pending', v: ps.length }); save(); render();
         toast(T('Nuotrauka įkelta (imitacija) – laukia patikrinimo.', 'Photo added (simulated) – pending review.')); break;
       }
@@ -1060,9 +1100,9 @@
       case 'verify-prev': vstep = Math.max(1, vstep - 1); render(); break;
       case 'verify-run': {
         t.disabled = true; var pg = document.getElementById('vprog'), vm = document.getElementById('vmsg'); if (pg) pg.hidden = false; if (vm) vm.hidden = false;
-        setTimeout(function () { u.checked = true; vstep = 4; save(); if (location.hash === '#/verify') render(); toast('Patikrinta (demo). Nuotrauka ištrinta.'); }, 1800); break;
+        setTimeout(function () { u.checked = true; vstep = 4; save(); if (location.hash === '#/verify') render(); toast(T('Patikrinta (demo). Nuotrauka ištrinta.', 'Verified (demo). Photo deleted.')); }, 1800); break;
       }
-      case 'verify-reset': u.checked = false; vstep = 1; save(); render(); toast('Ženklelis pašalintas.'); break;
+      case 'verify-reset': u.checked = false; vstep = 1; save(); render(); toast(T('Ženklelis pašalintas.', 'Badge removed.')); break;
       case 'filters': filtersSheet(); break;
       case 'apply-filters': {
         draft.ageMin = +document.getElementById('age-min').value; draft.ageMax = +document.getElementById('age-max').value;
@@ -1097,22 +1137,22 @@
       case 'attach': toast('Peržiūroje nuotraukų siuntimas išjungtas. Tikroje programėlėje pokalbių nuotraukos ištrinamos po ' + LIM.chatPhotoDays + ' d.'); break;
       case 'block': {
         var bp = byId(t.dataset.id);
-        openSheet('<h2>Blokuoti ' + esc(bp.name) + '?</h2><p class="muted" style="margin-bottom:24px">Jūs nebematysite vienas kito paieškoje, pokalbiuose ir peržiūrose. ' + esc(bp.name) + ' apie tai nebus informuotas(-a).</p><button class="btn block" data-action="block-yes" data-id="' + bp.id + '" data-testid="block-yes">Blokuoti</button><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">Atšaukti</button>'); break;
+        openSheet('<h2>' + T('Blokuoti ' + esc(bp.name) + '?', 'Block ' + esc(bp.name) + '?') + '</h2><p class="muted" style="margin-bottom:24px">' + T('Jūs nebematysite vienas kito paieškoje, pokalbiuose ir peržiūrose. ' + esc(bp.name) + ' apie tai nebus informuotas(-a).', 'You will no longer see each other in search, chats or previews. ' + esc(bp.name) + ' will not be notified.') + '</p><button class="btn block" data-action="block-yes" data-id="' + bp.id + '" data-testid="block-yes">' + T('Blokuoti', 'Block') + '</button><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">' + T('Atšaukti', 'Cancel') + '</button>'); break;
       }
-      case 'block-yes': if (S.blocked.indexOf(t.dataset.id) < 0) S.blocked.push(t.dataset.id); save(); closeSheet(); toast('Užblokuota.'); location.hash = '#/nearby'; break;
+      case 'block-yes': if (S.blocked.indexOf(t.dataset.id) < 0) S.blocked.push(t.dataset.id); save(); closeSheet(); toast(T('Užblokuota.', 'Blocked.')); location.hash = '#/nearby'; break;
       case 'unblock': S.blocked = S.blocked.filter(function (x) { return x !== t.dataset.id; }); save(); render(); toast('Atblokuota.'); break;
       case 'report': {
-        var rp = byId(t.dataset.id), reasons = ['Netikras profilis / apsimetinėjimas', 'Nepilnametis(-ė)', 'Įžeidinėjimas ar priekabiavimas', 'Sukčiavimas, prašo pinigų', 'Nepageidaujamas intymus turinys', 'Kita'];
-        openSheet('<h2>Pranešti apie ' + esc(rp.name) + '</h2><p class="muted small" style="margin-bottom:16px">Pranešimą peržiūri žmogus iš moderatorių komandos. Apie sprendimą informuosime. ' + esc(rp.name) + ' nesužinos, kas pranešė.</p>' +
+        var rp = byId(t.dataset.id), reasons = lang() === 'en' ? ['Fake profile / impersonation', 'Underage', 'Insults or harassment', 'Scam, asks for money', 'Unwanted intimate content', 'Other'] : ['Netikras profilis / apsimetinėjimas', 'Nepilnametis(-ė)', 'Įžeidinėjimas ar priekabiavimas', 'Sukčiavimas, prašo pinigų', 'Nepageidaujamas intymus turinys', 'Kita'];
+        openSheet('<h2>' + T('Pranešti apie ' + esc(rp.name), 'Report ' + esc(rp.name)) + '</h2><p class="muted small" style="margin-bottom:16px">' + T('Pranešimą peržiūri žmogus iš moderatorių komandos. Apie sprendimą informuosime. ' + esc(rp.name) + ' nesužinos, kas pranešė.', 'A person from our moderation team reviews every report. We will tell you the outcome. ' + esc(rp.name) + ' will not know who reported.') + '</p>' +
           reasons.map(function (r, i) { return '<label class="check"><input type="radio" name="reason" value="' + i + '"' + (i === 0 ? ' checked' : '') + '><span>' + r + '</span></label>'; }).join('') +
-          '<label class="check"><input type="checkbox" id="r-block" checked><span>Taip pat užblokuoti</span></label>' +
-          '<button class="btn danger block" style="margin-top:16px" data-action="report-yes" data-id="' + rp.id + '" data-testid="report-yes">Siųsti pranešimą</button><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">Atšaukti</button>'); break;
+          '<label class="check"><input type="checkbox" id="r-block" checked><span>' + T('Taip pat užblokuoti', 'Also block') + '</span></label>' +
+          '<button class="btn danger block" style="margin-top:16px" data-action="report-yes" data-id="' + rp.id + '" data-testid="report-yes">' + T('Siųsti pranešimą', 'Send report') + '</button><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">' + T('Atšaukti', 'Cancel') + '</button>'); break;
       }
       case 'report-yes': {
         S.reported.push(t.dataset.id);
         var alsoBlock = document.getElementById('r-block').checked;
         if (alsoBlock && S.blocked.indexOf(t.dataset.id) < 0) S.blocked.push(t.dataset.id);
-        save(); closeSheet(); toast('Ačiū. Pranešimas gautas (peržiūra – niekur nesiunčiama).');
+        save(); closeSheet(); toast(T('Ačiū. Pranešimas gautas (peržiūra – niekur nesiunčiama).', 'Thank you. Report received (preview – nothing is sent).'));
         if (alsoBlock) location.hash = '#/nearby'; break;
       }
       case 'ai-opener': {
@@ -1153,7 +1193,7 @@
       if (t.checked && !isPlus()) { t.checked = false; plusSheet(); return; }
       S.settings.incognito = t.checked; save(); render(); toast(t.checked ? T('Incognito įjungtas.', 'Incognito is on.') : T('Incognito išjungtas.', 'Incognito is off.')); return;
     }
-    if (k === 'available') { if (t.checked) setAvail('1h'); else S.available = null; save(); render(); toast(t.checked ? 'Esi „Šiandien laisvas“ 1 val.' : 'Ženklelis „Šiandien laisvas“ pašalintas.'); return; }
+    if (k === 'available') { if (t.checked) setAvail('1h'); else S.available = null; save(); render(); toast(t.checked ? T('Pažymėjai „Šiandien galiu susitikti“ 1 val.', 'You marked “Free to meet today” for 1 h') : T('Ženklelis „Šiandien ✓“ pašalintas.', 'The “Today ✓” badge was removed.')); return; }
     if (k === 'consentSensitive' || k === 'consentMarketing') {
       S.user[k] = t.checked;
       if (k === 'consentSensitive') toast(t.checked ? 'Sutikimas suteiktas – paieška įjungta.' : 'Sutikimas atšauktas – paieška išjungta.');
@@ -1174,7 +1214,7 @@
     var inp = f.querySelector('input'), txt = inp.value.trim(); if (!txt) return;
     var id = f.dataset.id, c = findChat(id), msg = { from: 'me', text: txt, t: Date.now(), r: false };
     if (!c.messages.some(function (m) { return m.from === 'me'; })) {
-      var rw = rateWait('first'); if (rw) { rateSheet('first_message_velocity', rw); return; }
+      var rw = rateCheck('first'); if (rw) { rateSheet(rw); return; }
       S.rate.first.push(Date.now());
     }
     c.messages.push(msg); save(); inp.value = ''; refreshChat(id);
