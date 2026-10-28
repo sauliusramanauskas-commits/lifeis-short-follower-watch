@@ -87,5 +87,55 @@ const rej = async (p, code) => { try { await p; } catch (e) { assert.strictEqual
     Api.demo.setNow(() => t0 + 4 * 60000); assert.strictEqual(st(await Api.get('/api/admin/worktime/live')), 'working');
     Api.demo.setNow(() => t0 + 5 * 60000 + 1000); assert.strictEqual(st(await Api.get('/api/admin/worktime/live')), 'idle');
   });
+  await T('API.md „Helpdesk response shapes“: klaida, heartbeat, actions, evidence, reports, refunds, sessions', async () => {
+    Api.demo.setNow(() => Date.UTC(2026, 9, 29, 14, 0, 0)); Api.reset(); Api.setIdentity('support');
+    // klaidų kūnas ir Retry-After
+    const e404 = await rej(Api.get('/api/admin/support/tickets/nera'), 'not_found');
+    assert.deepStrictEqual(Object.keys(e404.body), ['error']); assert.deepStrictEqual(Object.keys(e404.body.error).sort(), ['code', 'message']);
+    let t = Date.UTC(2026, 9, 29, 14, 0, 0); Api.demo.setNow(() => t);
+    for (let i = 0; i < 12; i++) { t += 1000; const hb = await Api.post('/api/admin/heartbeat'); assert.deepStrictEqual(Object.keys(hb).sort(), ['idle_timeout_min', 'ok', 'server_time']); }
+    const e429 = await rej(Api.post('/api/admin/heartbeat'), 'rate_limited');
+    assert.strictEqual(e429.status, 429); assert(Number(e429.headers['retry-after']) > 0); assert.deepStrictEqual(Object.keys(e429.body.error).sort(), ['code', 'message']);
+    t += 61000;
+    // reports: sąrašas su target_display_name, evidence trys formos
+    const list = (await Api.get('/api/admin/reports?status=all')).reports;
+    assert(list.every((r) => 'target_display_name' in r) && list.some((r) => typeof r.target_display_name === 'string'));
+    const full = async (type, pred) => Api.get('/api/admin/reports/' + list.find((r) => r.target_type === type && (!pred || pred(r))).id);
+    assert.strictEqual((await full('user')).evidence, null);
+    const m = (await full('message')).evidence;
+    assert(Array.isArray(m) && m.length >= 1 && m.length <= 5);
+    m.forEach((x) => assert.deepStrictEqual(Object.keys(x).sort(), ['at', 'body', 'kind', 'sender', 'seq']));
+    const ph = (await full('photo', (r) => r.status === 'open')).evidence;
+    assert.deepStrictEqual(Object.keys(ph).sort(), ['mime', 'note', 'photo_id', 'sha256', 'size_bytes', 'status', 'uploaded_at']);
+    // actions: 201 ir forma; support riba 30 d.
+    const rep = list.find((r) => r.target_type === 'user' && r.status === 'open');
+    const a = await Api.request('POST', '/api/admin/actions', { action: 'suspend', report_id: rep.id, suspend_days: 7, reason_text: 'Pakartotiniai apgaulės bandymai pagal skundą.', ground_type: 'tos', ground: 'Taisyklių 4.2 p.' });
+    assert.strictEqual(a.status, 201);
+    assert.deepStrictEqual(Object.keys(a.data).sort(), ['action', 'appeal_status', 'created_at', 'id', 'statement_of_reasons', 'suspend_until']);
+    assert.deepStrictEqual(Object.keys(a.data.statement_of_reasons).sort(), ['automated_decision', 'facts_and_circumstances', 'ground', 'ground_type', 'redress']);
+    await rej(Api.post('/api/admin/actions', { action: 'suspend', target_user: list[0].target_user_id, suspend_days: 31, reason_text: 'Per ilgas laikotarpis, bandymas.', ground_type: 'tos', ground: 'Taisyklės' }), 'forbidden');
+    // refunds requested_by
+    const mine = (await Api.get('/api/admin/refunds?state=all&requested_by=' + Api.demo.staff.support.id)).refunds;
+    assert(mine.length >= 1 && mine.every((r) => r.requested_by === Api.demo.staff.support.id));
+    assert((await Api.get('/api/admin/refunds?state=all')).refunds.length > mine.length);
+    // sesijos: id, start/end (Vilnius), *_utc
+    Api.setIdentity('admin');
+    const w = await Api.get('/api/admin/worktime?from=2026-10-01&to=2026-10-28');
+    const s0 = w.sessions[0];
+    assert.deepStrictEqual(Object.keys(s0).sort(), ['action_count', 'end', 'end_utc', 'id', 'minutes', 'role', 'staff_id', 'start', 'start_utc']);
+    assert(/[+-]\d\d:\d\d$/.test(s0.start) && /Z$/.test(s0.start_utc) && Date.parse(s0.start) === Date.parse(s0.start_utc));
+  });
+  await T('darbo laikrodis: /api/admin/worktime* NEskaičiuojamas, kitos /api/admin/* skaičiuojamos', async () => {
+    Api.demo.setNow(() => Date.UTC(2026, 9, 29, 16, 0, 0)); Api.reset();
+    const sid = Api.demo.staff.support.id, live = async () => { Api.setIdentity('admin'); return (await Api.get('/api/admin/worktime/live')).staff.find((x) => x.staff_id === sid); };
+    const t0 = Date.UTC(2026, 9, 29, 16, 0, 0), before = await live();
+    Api.demo.setNow(() => t0 + 10 * 60000); // admin skaito ataskaitas: support aktyvumo nekeičia
+    await Api.get('/api/admin/worktime?from=2026-10-01&to=2026-10-28'); await Api.request('GET', '/api/admin/worktime.csv?from=2026-10-01&to=2026-10-28');
+    const after = await live(); assert.strictEqual(after.last_activity_at, before.last_activity_at); assert.strictEqual(after.status, 'idle');
+    const adm = (await Api.get('/api/admin/worktime/live')).staff.find((x) => x.staff_id === Api.demo.staff.admin.id);
+    assert(!adm || adm.last_activity_at !== new Date(t0 + 10 * 60000).toISOString(), 'worktime* užklausos pateko į aktyvumą');
+    Api.setIdentity('support'); await Api.get('/api/admin/support/tickets'); // paprasta /api/admin/* užklausa
+    assert.strictEqual((await live()).status, 'working');
+  });
   console.log('api.test.js: ' + n + ' testai praėjo');
 })().catch((e) => { console.error('FAIL', e); process.exit(1); });

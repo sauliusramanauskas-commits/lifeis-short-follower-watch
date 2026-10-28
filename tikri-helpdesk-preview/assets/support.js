@@ -136,7 +136,7 @@
     var r = await A.get('/api/admin/reports?status=' + state.rStatus), ul = $('#report-list');
     ul.innerHTML = r.reports.length ? r.reports.map(function (x) {
       return '<li tabindex="0" data-testid="report-row" data-id="' + x.id + '"' + (x.id === state.reportId ? ' aria-current="true"' : '') + '><div class="t">' + esc(L.targetType[x.target_type]) + ': ' + esc(L.reason[x.reason] || x.reason) + '</div><div class="m">' +
-        (x.priority === 'urgent' ? U.badge('Skubus', 'urgent') : '') + (x.overdue ? U.badge('Pavėluota', 'err') : '') + U.badge(L.reportStatus[x.status], x.status) + '<span>iki ' + U.fmtDt(x.sla_due_at) + '</span><span>vartotojas ' + U.shortId(x.target_user_id) + '</span></div></li>';
+        (x.priority === 'urgent' ? U.badge('Skubus', 'urgent') : '') + (x.overdue ? U.badge('Pavėluota', 'err') : '') + U.badge(L.reportStatus[x.status], x.status) + '<span>iki ' + U.fmtDt(x.sla_due_at) + '</span><span>vartotojas ' + (x.target_display_name ? esc(x.target_display_name) + ' ' : '') + U.shortId(x.target_user_id) + '</span></div></li>';
     }).join('') : '<div class="empty">Skundų nėra.</div>';
     $$('li', ul).forEach(function (li) { var go = function () { act(function () { return openReport(li.dataset.id); }); }; li.onclick = go; li.onkeydown = function (e) { if (e.key === 'Enter') go(); }; });
   }
@@ -146,10 +146,13 @@
     var r = await A.get('/api/admin/reports/' + id);
     $$('#report-list li').forEach(function (li) { li.toggleAttribute('aria-current', li.dataset.id === id); });
     var open = r.status === 'open' || r.status === 'in_review', ev = '';
-    if (r.target_type === 'message' && Array.isArray(r.evidence)) {
-      ev = '<h3>Pokalbio įrodymai (tik skundžiama žinutė ir kontekstas)</h3><div class="evidence" data-testid="report-evidence">' + r.evidence.map(function (m) { return '<div class="e"><small class="hint">' + (m.sender === r.target_user_id ? 'Skundžiamasis' : 'Kitas dalyvis') + ' · ' + U.fmtDt(m.created_at) + (m.masked ? ' · kontaktai paslėpti' : '') + '</small><br>' + esc(m.body) + '</div>'; }).join('') + '</div>';
-    } else if (r.target_type === 'photo') ev = '<p class="hint">Skundžiama nuotrauka (demo: vaizdas nerodomas; tikrame serveryje – GET /api/photos/:id tik šiam skundui).</p>';
-    else ev = '<p class="hint">Pokalbiai šio skundo įrodymuose nepateikti, todėl nerodomi.</p>';
+    /* API.md „Helpdesk response shapes“: evidence = null (vartotojo skundas) | [{seq,sender,kind,body,at}] (žinutė, iki 5) | {photo_id,status,mime,size_bytes,sha256,uploaded_at,note} (nuotrauka) */
+    if (Array.isArray(r.evidence)) {
+      ev = '<h3>Pokalbio įrodymai (tik skundžiama žinutė ir ankstesnės, iki 5)</h3><div class="evidence" data-testid="report-evidence">' + r.evidence.map(function (m) { return '<div class="e"><small class="hint">#' + m.seq + ' · ' + (m.sender === r.target_user_id ? 'Skundžiamasis' : 'Kitas dalyvis') + ' · ' + esc(m.kind) + ' · ' + U.fmtDt(m.at) + '</small><br>' + esc(m.body) + '</div>'; }).join('') + '</div>';
+    } else if (r.evidence && typeof r.evidence === 'object') {
+      var p = r.evidence;
+      ev = '<h3>Nuotraukos duomenys</h3><dl class="kv" data-testid="report-photo-evidence"><dt>Nuotrauka</dt><dd>' + U.shortId(p.photo_id) + ' (demo: vaizdas nerodomas)</dd><dt>Būsena</dt><dd>' + esc(p.status) + '</dd><dt>Formatas / dydis</dt><dd>' + esc(p.mime) + ' · ' + Math.round(p.size_bytes / 1024) + ' KB</dd><dt>SHA-256</dt><dd style="word-break:break-all">' + esc(p.sha256) + '</dd><dt>Įkelta</dt><dd>' + U.fmtDt(p.uploaded_at) + '</dd>' + (p.note ? '<dt>Pastaba</dt><dd>' + esc(p.note) + '</dd>' : '') + '</dl>';
+    } else ev = '<p class="hint">Pokalbiai šio skundo įrodymuose nepateikti, todėl nerodomi.</p>';
     $('#report-detail').innerHTML = '<div class="card" data-testid="report-detail"><h2>' + esc(L.targetType[r.target_type]) + ': ' + esc(L.reason[r.reason] || r.reason) + '</h2><div class="row" style="margin:0 0 6px">' + (r.priority === 'urgent' ? U.badge('Skubus (24 val.)', 'urgent') : U.badge('Įprastas (72 val.)')) + U.badge(L.reportStatus[r.status], r.status) + '<span class="hint">' + (r.source === 'auto' ? 'automatinis' : r.source === 'notice' ? 'DSA pranešimas' : 'vartotojo skundas') + ' · gauta ' + U.fmtDt(r.created_at) + ' · sprendimas iki ' + U.fmtDt(r.sla_due_at) + '</span></div>' +
       (r.details ? '<p>' + esc(r.details) + '</p>' : '') + ev +
       '<dl class="kv"><dt>Skundžiamas vartotojas</dt><dd>' + U.shortId(r.target_user_id) + '</dd><dt>Ankstesni veiksmai</dt><dd>' + (r.prior_actions.length ? r.prior_actions.map(function (a) { return esc(L.action[a.action] || a.action) + ' (' + U.fmtDt(a.created_at) + ')'; }).join('; ') : 'nėra') + '</dd>' + (r.outcome ? '<dt>Rezultatas</dt><dd>' + esc(L.action[r.outcome] || r.outcome) + '</dd>' : '') + '</dl>' +
@@ -171,8 +174,8 @@
 
   // ------------------------------------------------------------------ GRĄŽINIMAI (tik mano prašymai)
   async function loadRefunds() {
-    var r = await A.get('/api/admin/refunds?state=all'), me = A.demo.currentStaffId();
-    var mine = r.refunds.filter(function (x) { return x.requested_by === me; }).sort(function (a, b) { return a.requested_at < b.requested_at ? 1 : -1; });
+    var r = await A.get('/api/admin/refunds?state=all&requested_by=' + encodeURIComponent(A.demo.currentStaffId()));
+    var mine = r.refunds.slice().sort(function (a, b) { return a.requested_at < b.requested_at ? 1 : -1; });
     $('#refund-table tbody').innerHTML = mine.length ? mine.map(function (x) {
       return '<tr data-testid="refund-row"><td>' + U.fmtDt(x.requested_at) + '</td><td>' + U.shortId(x.user_id) + '</td><td>' + U.fmtMoney(x.amount_cents, x.currency) + '</td><td>' + esc(x.reason) + (x.decision_note ? '<div class="hint">Administratoriaus pastaba: ' + esc(x.decision_note) + '</div>' : '') + '</td><td>' + (x.ticket_id ? U.shortId(x.ticket_id) : '–') + '</td><td>' + U.badge(L.refundState[x.state] || x.state, x.state === 'processed' ? 'ok' : x.state === 'rejected' ? 'err' : 'open') + '</td></tr>';
     }).join('') : '<tr><td colspan="6" class="empty">Prašymų nėra.</td></tr>';

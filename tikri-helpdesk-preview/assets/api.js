@@ -37,9 +37,10 @@
 
   // ------------------------------------------------------------------ klaidos
   var STATUS = { invalid_request: 400, unauthorized: 401, forbidden: 403, not_found: 404, conflict: 409, rate_limited: 429, internal: 500 };
-  function ApiError(code, message, extra) {
-    var e = new Error(message); e.name = 'ApiError'; e.code = code; e.status = STATUS[code] || 400; e.extra = extra || {};
-    e.body = { error: Object.assign({ code: code, message: message }, extra || {}) };
+  /** API.md: kūnas visada { error: { code, message } }; 429 rate_limited papildomai turi Retry-After antraštę (sekundėmis). */
+  function ApiError(code, message, headers) {
+    var e = new Error(message); e.name = 'ApiError'; e.code = code; e.status = STATUS[code] || 400; e.headers = headers || {};
+    e.body = { error: { code: code, message: message } };
     return e;
   }
   var bad = function (m) { return ApiError('invalid_request', m); };
@@ -163,17 +164,20 @@
     var reports = [
       rep(1, { age: 300, target_type: 'message', target_id: C(1) + ':7', target_user_id: U(6), reason: 'harassment', details: 'Po atsisakymo tęsia įžeidinėjimus ir grasina.',
         evidence: [
-          { seq: 5, sender: U(6), kind: 'text', body: 'Kodėl neatsakai? Aš tau per geras?', masked: false, masked_kinds: [], has_link: false, deleted: false, created_at: iso(ago(420)) },
-          { seq: 6, sender: U(2), kind: 'text', body: 'Atsiprašau, nenoriu toliau bendrauti.', masked: false, masked_kinds: [], has_link: false, deleted: false, created_at: iso(ago(410)) },
-          { seq: 7, sender: U(6), kind: 'text', body: 'Tu dar pasigailėsi, aš tave surasiu. Mano numeris: ***', masked: true, masked_kinds: ['phone'], has_link: false, deleted: false, created_at: iso(ago(400)) }] }),
+          { seq: 5, sender: U(6), kind: 'text', body: 'Kodėl neatsakai? Aš tau per geras?', at: iso(ago(420)) },
+          { seq: 6, sender: U(2), kind: 'text', body: 'Atsiprašau, nenoriu toliau bendrauti.', at: iso(ago(410)) },
+          { seq: 7, sender: U(6), kind: 'text', body: 'Tu dar pasigailėsi, aš tave surasiu. Mano numeris: ***', at: iso(ago(400)) }] }),
       rep(2, { age: 160, target_type: 'user', target_id: U(8), target_user_id: U(8), reason: 'fake_profile', details: 'Nuotraukos atrodo paimtos iš interneto, aprašyme – svetimas vardas.' }),
       rep(3, { age: 55, target_type: 'user', target_id: U(2), target_user_id: U(2), reason: 'scam', details: 'Prašo „paskolinti“ pinigų jau antrame pranešime.', prior_actions: [{ id: mkId('AC', 9), action: 'warn', created_at: iso(ago(20000)) }] }),
       rep(4, { age: 25 * 60, priority: 'urgent', target_type: 'user', target_id: U(4), target_user_id: U(4), reason: 'threat', details: 'Pasakojo, kad pakenks kitam vartotojui.' }),
       rep(5, { age: 90, source: 'auto', target_type: 'message', target_id: C(2) + ':3', target_user_id: U(7), reason: 'spam', details: 'Automatinis pranešimas: tas pats tekstas išsiųstas 4 skirtingiems žmonėms.',
         evidence: [
-          { seq: 2, sender: U(7), kind: 'text', body: 'Labas! Užeik į mano kanalą, rasi daugiau: ***', masked: true, masked_kinds: ['link'], has_link: true, deleted: false, created_at: iso(ago(100)) },
-          { seq: 3, sender: U(7), kind: 'text', body: 'Labas! Užeik į mano kanalą, rasi daugiau: ***', masked: true, masked_kinds: ['link'], has_link: true, deleted: false, created_at: iso(ago(95)) }] }),
-      rep(6, { age: 4000, target_type: 'photo', target_id: mkId('PH', 1), target_user_id: U(5), reason: 'nudity', status: 'resolved', resolved_at: iso(ago(3900)), outcome: 'hide_content' })
+          { seq: 2, sender: U(7), kind: 'text', body: 'Labas! Užeik į mano kanalą, rasi daugiau: ***', at: iso(ago(100)) },
+          { seq: 3, sender: U(7), kind: 'text', body: 'Labas! Užeik į mano kanalą, rasi daugiau: ***', at: iso(ago(95)) }] }),
+      rep(6, { age: 4000, target_type: 'photo', target_id: mkId('PH', 1), target_user_id: U(5), reason: 'nudity', status: 'resolved', resolved_at: iso(ago(3900)), outcome: 'hide_content',
+        evidence: { photo_id: mkId('PH', 1), status: 'rejected', mime: 'image/jpeg', size_bytes: 482113, sha256: 'a3f1c0de5b7e49c2a1d8e6f03b94c7d2e5f60a1b8c93d4e7f2a6b5c0d1e8f934', uploaded_at: iso(ago(4100)), note: 'Paslėpta moderavimo (demo: vaizdas nerodomas).' } }),
+      rep(7, { age: 200, target_type: 'photo', target_id: mkId('PH', 2), target_user_id: U(4), reason: 'fake_profile', details: 'Nuotrauka atrodo kaip žinomo žmogaus nuotrauka iš žurnalo.',
+        evidence: { photo_id: mkId('PH', 2), status: 'approved', mime: 'image/webp', size_bytes: 215876, sha256: '7be2d4a90c1f36e85a0b9d7c4e2f1a63b5d8c0e9f47a2b13c6d5e8f0a9b7c412', uploaded_at: iso(ago(30000)), note: null } })
     ];
     var refunds = [
       { id: F(1), user_id: U(1), amount_cents: 699, currency: 'eur', reason: 'Dvigubas nuskaitymas už tą patį laikotarpį (žr. užklausą).', ticket_id: T(1), state: 'requested', requested_by: STAFF.support.id, requested_at: iso(ago(150)), decided_at: null, decision_note: null, payment_ref: 'inv_1' },
@@ -215,7 +219,7 @@
   // --- darbo laikas
   route('POST', /^\/api\/admin\/heartbeat$/, 'support', function (db) {
     var now = nowFn(), list = (db.hb[identity.id] || []).filter(function (t) { return now - t < MIN; });
-    if (list.length >= CFG.HEARTBEATS_PER_MINUTE) { db.hb[identity.id] = list; throw ApiError('rate_limited', 'Too many heartbeats', { retry_after: 5 }); }
+    if (list.length >= CFG.HEARTBEATS_PER_MINUTE) { db.hb[identity.id] = list; throw ApiError('rate_limited', 'Too many heartbeats', { 'retry-after': '5' }); }
     list.push(now); db.hb[identity.id] = list;
     return { ok: true, server_time: iso(now), idle_timeout_min: CFG.IDLE_TIMEOUT_MIN };
   });
@@ -287,7 +291,7 @@
   });
   route('GET', /^\/api\/admin\/refunds$/, 'support', function (db, m, q) {
     var state = q.state || 'requested'; vEnum(state, 'state', ['requested', 'approved', 'rejected', 'processed', 'failed', 'all']);
-    return { refunds: db.refunds.filter(function (r) { return state === 'all' || r.state === state; }).sort(function (a, b) { return a.requested_at < b.requested_at ? -1 : 1; }).slice(0, 100).map(refundOut) };
+    return { refunds: db.refunds.filter(function (r) { return (state === 'all' || r.state === state) && (!q.requested_by || r.requested_by === q.requested_by); }).sort(function (a, b) { return a.requested_at < b.requested_at ? -1 : 1; }).slice(0, 100).map(refundOut) };
   });
   route('POST', /^\/api\/admin\/refunds\/([^/]+)\/decision$/, 'admin', function (db, m, q, body) {
     noUnknown(body, ['decision', 'note']); var decision = vEnum(body && body.decision, 'decision', ['approve', 'reject']);
@@ -309,7 +313,7 @@
     var now = nowFn();
     var list = db.reports.filter(function (r) { return (status === 'all' || r.status === status) && (!q.priority || r.priority === q.priority); })
       .sort(function (a, b) { return (a.priority === 'urgent' ? 0 : 1) - (b.priority === 'urgent' ? 0 : 1) || (a.sla_due_at < b.sla_due_at ? -1 : 1); }).slice(0, 50);
-    return { reports: list.map(function (r) { return { id: r.id, source: r.source, target_type: r.target_type, target_id: r.target_id, target_user_id: r.target_user_id, reason: r.reason, priority: r.priority, status: r.status, created_at: r.created_at, sla_due_at: r.sla_due_at, overdue: r.status === 'open' && Date.parse(r.sla_due_at) < now }; }) };
+    return { reports: list.map(function (r) { return { id: r.id, source: r.source, target_type: r.target_type, target_id: r.target_id, target_user_id: r.target_user_id, target_display_name: (db.users[r.target_user_id] && db.users[r.target_user_id].profile) ? db.users[r.target_user_id].profile.display_name : null, reason: r.reason, priority: r.priority, status: r.status, created_at: r.created_at, sla_due_at: r.sla_due_at, overdue: r.status === 'open' && Date.parse(r.sla_due_at) < now }; }) };
   });
   route('GET', /^\/api\/admin\/reports\/([^/]+)$/, 'any', function (db, m) {
     var r = db.reports.find(function (x) { return x.id === m[1]; }); if (!r) throw ApiError('not_found', 'Report not found');
@@ -375,7 +379,7 @@
     all.sort(function (a, b) { return a.start - b.start; }).forEach(function (s) {
       if (s.end < q.fromMs || s.start >= q.toMs) return;
       var sid = s.staff_id, key = sid + '@' + s.start, counted = false, a = s.start;
-      list.push({ staff_id: sid, role: roleOf(sid), start: localIso(s.start), end: localIso(s.end), minutes: s.minutes, action_count: s.action_count });
+      list.push({ id: 'WS' + sid.slice(-4) + '_' + s.start, staff_id: sid, role: roleOf(sid), start: localIso(s.start), end: localIso(s.end), start_utc: iso(s.start), end_utc: iso(s.end), minutes: s.minutes, action_count: s.action_count });
       while (a < s.end || (a === s.end && s.start === s.end)) { // sesija dalijama per Vilniaus vidurnaktį
         var dayEnd = nextDayStart(a), b = Math.min(s.end, dayEnd);
         if (a >= q.fromMs && a < q.toMs) {
@@ -436,7 +440,7 @@
   function handle(method, url, body) {
     var u = parseUrl(url), db = load(), now = nowFn(), staffNow = identity.role === 'support' || identity.role === 'admin';
     try {
-      if (staffNow && u.path.indexOf('/api/admin/') === 0) { (db.activity[identity.id] || (db.activity[identity.id] = [])).push(now); } // kiekviena /api/admin/* užklausa = aktyvumas
+      if (staffNow && u.path.indexOf('/api/admin/') === 0 && u.path.indexOf('/api/admin/worktime') !== 0) { (db.activity[identity.id] || (db.activity[identity.id] = [])).push(now); } // kiekviena /api/admin/* užklausa = aktyvumas, IŠSKYRUS /api/admin/worktime* (API.md)
       if (identity.role === 'support' && !SUPPORT_PREFIXES.some(function (p) { return u.path === p || u.path.indexOf(p + '/') === 0; })) { audit(db, 'support_denied', null, method + ' ' + u.path); throw ApiError('forbidden', 'Support accounts cannot use this endpoint'); }
       for (var i = 0; i < routes.length; i++) {
         var r = routes[i], m = r.method === method && r.re.exec(u.path);

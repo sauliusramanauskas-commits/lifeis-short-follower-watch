@@ -30,7 +30,7 @@
     var t = document.createElement('div'); t.className = 'toast ' + (kind || ''); t.setAttribute('role', kind === 'err' ? 'alert' : 'status'); t.textContent = msg; host.appendChild(t);
     setTimeout(function () { t.remove(); }, 5000);
   }
-  var errHelp = { conflict: 'veiksmas jau atliktas arba šiuo metu negalimas (pvz., jau yra atviras prašymas šiam mokėjimui, užklausa uždaryta).', forbidden: 'šio veiksmo jūsų rolė atlikti negali.', rate_limited: 'per daug užklausų, bandykite po kelių sekundžių.', not_found: 'įrašas nerastas.' };
+  var errHelp = { conflict: 'veiksmas jau atliktas arba šiuo metu negalimas (pvz., jau yra atviras prašymas šiam mokėjimui, užklausa uždaryta).', forbidden: 'šio veiksmo jūsų rolė atlikti negali.', rate_limited: 'per daug užklausų, bandykite po kelių sekundžių (Retry-After).', not_found: 'įrašas nerastas.' };
   /* Šakojamės pagal error.code (ne pagal tekstą); validacijos žinutę (invalid_request) rodome kaip API.md nurodo. */
   function errText(e) { return (L.errors[e.code] || 'Klaida') + ': ' + (e.code === 'invalid_request' ? e.message : (errHelp[e.code] || 'bandykite dar kartą.')); }
   function $(sel, root) { return (root || document).querySelector(sel); }
