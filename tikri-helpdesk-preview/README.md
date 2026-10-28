@@ -9,3 +9,4 @@ Netikri duomenys, jokio serverio. UI lietuvių kalba. `index.html` – pagalbos 
 * Abu puslapiai dalijasi localStorage: veiksmai `index.html` pasirodo `admin.html` („Dirba dabar“, sesijos, auditas).
 
 Suderinta su `server/API.md` skyriumi „Helpdesk response shapes (clarified 2026-10-29)“: klaidų kūnas `{error:{code,message}}` (+ `Retry-After` antraštė 429), `evidence` (null / žinučių masyvas `{seq,sender,kind,body,at}` / nuotraukos metaduomenys), `target_display_name`, `requested_by` filtras, sesijos su `id`/`*_utc`, `/api/admin/worktime*` neskaičiuojamas kaip aktyvumas.
+`GET /api/photos/:id` (nuotrauka skundo detalėje): įkeliama tik paspaudus „Rodyti nuotrauką“; support – tik skundo objektui (kitaip 404 not_found, kaip API.md/serveris), kiekvienas peržiūrėjimas -> audit `photo_view`, detail `report:<id>`. Demo grąžina neutralų SVG; `TikriApi.getImageUrl()` pavers atsakymą objectURL.

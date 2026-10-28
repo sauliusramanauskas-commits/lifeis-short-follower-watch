@@ -137,5 +137,24 @@ const rej = async (p, code) => { try { await p; } catch (e) { assert.strictEqual
     Api.setIdentity('support'); await Api.get('/api/admin/support/tickets'); // paprasta /api/admin/* užklausa
     assert.strictEqual((await live()).status, 'working');
   });
+  await T('GET /api/photos/:id: tik skundo nuotrauka, vaizdas + audit photo_view; kitaip not_found; support kiti /api/photos* -> 403', async () => {
+    Api.demo.setNow(() => Date.UTC(2026, 9, 29, 18, 0, 0)); Api.reset(); Api.setIdentity('support');
+    const rl = (await Api.get('/api/admin/reports?status=all')).reports.filter((r) => r.target_type === 'photo');
+    assert(rl.length >= 1 && !JSON.stringify(rl).includes('<svg') && !JSON.stringify(rl).includes('image/svg'), 'sąraše vaizdo nėra');
+    const full = await Api.get('/api/admin/reports/' + rl[0].id), pid = full.evidence.photo_id;
+    assert(!JSON.stringify(full).includes('<svg'), 'detalėje iki paspaudimo vaizdo nėra');
+    const img = await Api.request('GET', '/api/photos/' + pid);
+    assert.strictEqual(img.status, 200); assert(/^image\//.test(img.headers['content-type'])); assert(img.data.length > 100);
+    const nf = await rej(Api.get('/api/photos/01K9PH00000000000000000099'), 'not_found'); assert.strictEqual(nf.status, 404);
+    await rej(Api.request('POST', '/api/photos', {}), 'forbidden');        // įkėlimas support'ui uždraustas
+    await rej(Api.get('/api/photos'), 'forbidden');                           // nuotraukų sąrašas irgi
+    Api.setIdentity('admin');
+    const log = (await Api.get('/api/admin/audit-log')).entries;
+    const pv = log.filter((e) => e.action === 'photo_view');
+    assert.strictEqual(pv.length, 1); assert.strictEqual(pv[0].actor, Api.demo.staff.support.id);
+    assert.strictEqual(pv[0].detail, 'report:' + rl[0].id); assert.strictEqual(pv[0].target, rl[0].target_user_id);
+    Api.setIdentity('support'); await Api.request('GET', '/api/photos/' + pid);
+    Api.setIdentity('admin'); assert.strictEqual((await Api.get('/api/admin/audit-log')).entries.filter((e) => e.action === 'photo_view').length, 2, 'kiekvienas peržiūrėjimas įrašomas');
+  });
   console.log('api.test.js: ' + n + ' testai praėjo');
 })().catch((e) => { console.error('FAIL', e); process.exit(1); });

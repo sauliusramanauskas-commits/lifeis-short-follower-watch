@@ -99,7 +99,7 @@
   function load() {
     var raw = store.getItem(STORE_KEY), db = null;
     if (raw) { try { db = JSON.parse(raw); } catch (e) { db = null; } }
-    if (!db || db.v !== 1) { db = seed(nowFn()); save(db); }
+    if (!db || db.v !== 2) { db = seed(nowFn()); save(db); }
     return db;
   }
   function save(db) { store.setItem(STORE_KEY, JSON.stringify(db)); }
@@ -175,7 +175,7 @@
           { seq: 2, sender: U(7), kind: 'text', body: 'Labas! Užeik į mano kanalą, rasi daugiau: ***', at: iso(ago(100)) },
           { seq: 3, sender: U(7), kind: 'text', body: 'Labas! Užeik į mano kanalą, rasi daugiau: ***', at: iso(ago(95)) }] }),
       rep(6, { age: 4000, target_type: 'photo', target_id: mkId('PH', 1), target_user_id: U(5), reason: 'nudity', status: 'resolved', resolved_at: iso(ago(3900)), outcome: 'hide_content',
-        evidence: { photo_id: mkId('PH', 1), status: 'rejected', mime: 'image/jpeg', size_bytes: 482113, sha256: 'a3f1c0de5b7e49c2a1d8e6f03b94c7d2e5f60a1b8c93d4e7f2a6b5c0d1e8f934', uploaded_at: iso(ago(4100)), note: 'Paslėpta moderavimo (demo: vaizdas nerodomas).' } }),
+        evidence: { photo_id: mkId('PH', 1), status: 'rejected', mime: 'image/jpeg', size_bytes: 482113, sha256: 'a3f1c0de5b7e49c2a1d8e6f03b94c7d2e5f60a1b8c93d4e7f2a6b5c0d1e8f934', uploaded_at: iso(ago(4100)), note: 'Paslėpta moderavimo.' } }),
       rep(7, { age: 200, target_type: 'photo', target_id: mkId('PH', 2), target_user_id: U(4), reason: 'fake_profile', details: 'Nuotrauka atrodo kaip žinomo žmogaus nuotrauka iš žurnalo.',
         evidence: { photo_id: mkId('PH', 2), status: 'approved', mime: 'image/webp', size_bytes: 215876, sha256: '7be2d4a90c1f36e85a0b9d7c4e2f1a63b5d8c0e9f47a2b13c6d5e8f0a9b7c412', uploaded_at: iso(ago(30000)), note: null } })
     ];
@@ -192,7 +192,7 @@
     A(1500, STAFF.support.id, 'report_view', R(3), null); A(1495, STAFF.support.id, 'user_view', U(2), null); A(900, STAFF.admin.id, 'worktime_view', null, '2026-09-29..2026-10-28');
     A(150, STAFF.support.id, 'ticket_view', T(1), null); A(149, STAFF.support.id, 'billing_view', U(1), null); A(148, STAFF.support.id, 'refund_request', U(1), F(1));
     A(60, STAFF.support2.id, 'support_denied', null, 'GET /api/admin/audit-log'); A(12, STAFF.support2.id, 'refund_request', U(7), F(2));
-    return { v: 1, created_at: now, users: users, billing: bill, tickets: tickets, reports: reports, actions: [], refunds: refunds, audit: audit, activity: seedActivity(now), hb: {}, seq: 100 };
+    return { v: 2, created_at: now, users: users, billing: bill, tickets: tickets, reports: reports, actions: [], refunds: refunds, audit: audit, activity: seedActivity(now), hb: {}, seq: 100 };
   }
 
   // ------------------------------------------------------------------ teisių tikrinimas
@@ -430,6 +430,15 @@
     return { now: iso(now), idle_timeout_min: CFG.IDLE_TIMEOUT_MIN, staff: staff.sort(function (a, b) { return a.last_activity_at < b.last_activity_at ? 1 : -1; }) };
   });
 
+  // --- nuotrauka skundo įrodymui: GET /api/photos/:id (API.md: support tik skundo objektui; kitaip 404; kiekvienas peržiūrėjimas -> audit photo_view, detail report:<id>)
+  var PLACEHOLDER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640" role="img" aria-label="Neutrali vietos rezervavimo nuotrauka"><rect width="480" height="640" fill="#e5e7eb"/><circle cx="240" cy="250" r="78" fill="#cbd5e1"/><path d="M92 560c0-92 66-148 148-148s148 56 148 148z" fill="#cbd5e1"/><text x="240" y="610" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#64748b">Neutrali vietos rezervavimo nuotrauka (DEMO)</text></svg>';
+  route('GET', /^\/api\/photos\/([^/]+)$/, 'support', function (db, m) {
+    var rep = db.reports.find(function (r) { return r.target_type === 'photo' && r.target_id === m[1]; });
+    if (!rep) throw ApiError('not_found', 'Photo not found');
+    audit(db, 'photo_view', rep.target_user_id, 'report:' + rep.id);
+    return { _raw: PLACEHOLDER_SVG, _headers: { 'content-type': 'image/svg+xml', 'cache-control': 'private, max-age=60', 'x-photo-orientation': '1' } };
+  });
+
   // ------------------------------------------------------------------ pagrindinis įėjimas
   var SUPPORT_PREFIXES = ['/api/me', '/api/consents', '/api/support', '/api/admin', '/api/reports/mine'];
   function parseUrl(url) {
@@ -441,7 +450,7 @@
     var u = parseUrl(url), db = load(), now = nowFn(), staffNow = identity.role === 'support' || identity.role === 'admin';
     try {
       if (staffNow && u.path.indexOf('/api/admin/') === 0 && u.path.indexOf('/api/admin/worktime') !== 0) { (db.activity[identity.id] || (db.activity[identity.id] = [])).push(now); } // kiekviena /api/admin/* užklausa = aktyvumas, IŠSKYRUS /api/admin/worktime* (API.md)
-      if (identity.role === 'support' && !SUPPORT_PREFIXES.some(function (p) { return u.path === p || u.path.indexOf(p + '/') === 0; })) { audit(db, 'support_denied', null, method + ' ' + u.path); throw ApiError('forbidden', 'Support accounts cannot use this endpoint'); }
+      if (identity.role === 'support' && !(method === 'GET' && /^\/api\/photos\/[^/]+$/.test(u.path)) && !SUPPORT_PREFIXES.some(function (p) { return u.path === p || u.path.indexOf(p + '/') === 0; })) { audit(db, 'support_denied', null, method + ' ' + u.path); throw ApiError('forbidden', 'Support accounts cannot use this endpoint'); }
       for (var i = 0; i < routes.length; i++) {
         var r = routes[i], m = r.method === method && r.re.exec(u.path);
         if (!m) continue;
@@ -462,9 +471,17 @@
       var res;
       try { res = handle(method.toUpperCase(), url, body === undefined ? undefined : JSON.parse(JSON.stringify(body))); } catch (e) { if (e.name === 'ApiError') throw e; throw ApiError('internal', String(e && e.message || e)); }
       var out = res.out, status = out && out._status || 200;
+      if (out && out._raw !== undefined) return { status: 200, headers: out._headers, data: out._raw };
       if (out && out._csv !== undefined) return { status: 200, headers: out._headers, data: out._csv };
       if (out && out._status) { out = Object.assign({}, out); delete out._status; }
       return { status: status, headers: { 'content-type': 'application/json' }, data: JSON.parse(JSON.stringify(out)) };
+    });
+  }
+  /** GET <path> (baitai, pvz. /api/photos/:id) -> objectURL, tinkamas <img src>. Vėliau: fetch su Authorization: Bearer -> blob -> URL.createObjectURL. */
+  function getImageUrl(path) {
+    return request('GET', path).then(function (r) {
+      var blob = new Blob([r.data], { type: r.headers['content-type'] });
+      return { url: URL.createObjectURL(blob), content_type: r.headers['content-type'] };
     });
   }
   var unwrap = function (p) { return p.then(function (r) { return r.data; }); };
@@ -487,7 +504,7 @@
   }
 
   return {
-    request: request, heartbeat: heartbeat, attachHeartbeat: attachHeartbeat, setIdentity: setIdentity, reset: reset, ApiError: ApiError,
+    request: request, getImageUrl: getImageUrl, heartbeat: heartbeat, attachHeartbeat: attachHeartbeat, setIdentity: setIdentity, reset: reset, ApiError: ApiError,
     get: function (u) { return unwrap(request('GET', u)); }, post: function (u, b) { return unwrap(request('POST', u, b)); },
     patch: function (u, b) { return unwrap(request('PATCH', u, b)); }, del: function (u, b) { return unwrap(request('DELETE', u, b)); },
     config: CFG, STORE_KEY: STORE_KEY, TZ: TZ,
