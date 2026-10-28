@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Tikri pagalba – administratoriaus puslapis (DEMO)</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <h1>Tikri <small>· Administratorius</small></h1>
+  <span class="demo-badge" data-testid="demo-badge">DEMO – netikri duomenys</span>
+  <span class="spacer"></span>
+  <span class="pill">Prisijungęs: <b>Savininkas</b> (admin, MFA aal2)</span>
+  <a class="pill" href="index.html">← Darbuotojo skydelis</a>
+</header>
+<main style="padding-top:14px">
+
+  <div class="card" id="live-card">
+    <div class="live" id="live" data-testid="live"><span class="hint">Kraunama…</span></div>
+  </div>
+
+  <div class="cards3" id="stats" data-testid="stats"></div>
+
+  <div class="card">
+    <h2>Dirbtos valandos (Europe/Vilnius)</h2>
+    <div class="filters">
+      <div><label for="f-staff">Darbuotojas</label><select id="f-staff"><option value="">Visi</option></select></div>
+      <div><label for="f-from">Nuo</label><input type="date" id="f-from"></div>
+      <div><label for="f-to">Iki (imtinai)</label><input type="date" id="f-to"></div>
+      <div><div class="seg" id="f-group" role="group" aria-label="Grupavimas">
+        <button data-g="day" aria-pressed="true">Dienos</button><button data-g="week" aria-pressed="false">Savaitės</button><button data-g="month" aria-pressed="false">Mėnesiai</button></div></div>
+      <div><button class="btn" id="btn-refresh">Atnaujinti</button></div>
+      <div><button class="btn primary" id="csv-summary" data-testid="csv-summary">CSV: suvestinė</button> <button class="btn" id="csv-sessions" data-testid="csv-sessions">CSV: sesijos</button></div>
+    </div>
+    <p class="hint" id="total-line" data-testid="total-line"></p>
+    <div class="tablewrap"><table id="periods" data-testid="periods"><thead><tr><th>Laikotarpis</th><th>Darbuotojas</th><th class="num">Valandos</th><th></th><th class="num">Sesijos</th><th class="num">Veiksmai</th><th class="num">Užklausos</th><th class="num">Skundai</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Pagal darbuotoją (pasirinktas laikotarpis)</h2>
+    <div class="tablewrap"><table id="perstaff"><thead><tr><th>Darbuotojas</th><th>Rolė</th><th class="num">Valandos</th><th class="num">Sesijos</th><th class="num">Veiksmai</th><th class="num">Užklausos</th><th class="num">Skundai</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Grąžinimo prašymai, laukiantys sprendimo</h2>
+    <p class="hint">Tik administratorius (su MFA) gali patvirtinti ar atmesti. Prašančiojo savo prašymo spręsti negali. Patvirtinus „grąžinimo teikėjas“ šiame demo visada pavyksta.</p>
+    <div class="tablewrap"><table id="refunds" data-testid="refunds"><thead><tr><th>Prašyta</th><th>Vartotojas</th><th>Suma</th><th>Priežastis</th><th>Prašė</th><th>Pastaba</th><th>Sprendimas</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Darbo sesijos</h2>
+    <p class="hint">Sesija prasideda veiksmu; jei kitas veiksmas vėluoja daugiau nei 5 min., sesija baigiasi paskutiniu veiksmu (prastova neskaičiuojama). Rodomos naujausios 60.</p>
+    <div class="tablewrap"><table id="sessions" data-testid="sessions"><thead><tr><th>Darbuotojas</th><th>Pradžia</th><th>Pabaiga</th><th class="num">Minutės</th><th class="num">Veiksmai</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Audito žurnalas</h2>
+    <div class="tablewrap"><table id="audit" data-testid="audit"><thead><tr><th>Laikas</th><th>Darbuotojas</th><th>Veiksmas</th><th>Objektas</th><th>Detalės</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</main>
+
+<div id="toasts" aria-live="polite"></div>
+<footer class="foot">
+  <span>Laikas rodomas Europe/Vilnius zona. Tai statinis DEMO – duomenys yra naršyklės localStorage, serverio nėra. Atidarykite darbuotojo skydelį ir atlikite veiksmus – čia pasirodys „Dirba dabar“.</span>
+  <button class="btn" id="reset-demo" type="button">Atstatyti demo duomenis</button>
+</footer>
+
+<script src="assets/sessions.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Tikri pagalba – darbuotojo skydelis (DEMO)</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <h1>Tikri <small>· Pagalbos tarnyba</small></h1>
+  <span class="demo-badge" data-testid="demo-badge">DEMO – netikri duomenys</span>
+  <span class="spacer"></span>
+  <span class="pill">Darbuotojas: <b id="who">Rasa K.</b> (support)</span>
+  <span class="pill" title="POST /api/admin/heartbeat">Aktyvumo signalas: <b id="hb" data-testid="hb-time">–</b> <span id="hbn" data-testid="hb-count">0</span>×</span>
+  <a class="pill" href="admin.html">Administratoriaus puslapis →</a>
+</header>
+<div class="notice" data-testid="worktime-notice">Darbo laikas fiksuojamas pagal jūsų veiksmus sistemoje (užklausos ir aktyvumo signalas); pertrauka ilgesnė nei 5 min. neskaičiuojama. Ekranas, klaviatūra ir pelė <b>nestebimi</b>. Šiame skydelyje nerodomi mokėjimo kortelių duomenys, jautrūs profilio duomenys ir buvimo vieta; pokalbiai matomi tik skundo įrodymuose.</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" id="tab-tickets" aria-selected="true" data-tab="tickets">Užklausos</button>
+  <button role="tab" id="tab-reports" aria-selected="false" data-tab="reports">Profilių skundai</button>
+  <button role="tab" id="tab-refunds" aria-selected="false" data-tab="refunds">Grąžinimo prašymai</button>
+</nav>
+<main>
+  <section id="view-tickets" class="panel grid">
+    <div>
+      <div class="chips" id="ticket-filters">
+        <button class="chip" data-status="open" aria-pressed="true">Atviros</button>
+        <button class="chip" data-status="answered" aria-pressed="false">Atsakytos</button>
+        <button class="chip" data-status="closed" aria-pressed="false">Uždarytos</button>
+        <button class="chip" data-status="all" aria-pressed="false">Visos</button>
+      </div>
+      <ul class="list" id="ticket-list" data-testid="ticket-list"></ul>
+    </div>
+    <div id="ticket-detail"><div class="empty">Pasirinkite užklausą kairėje.</div></div>
+  </section>
+
+  <section id="view-reports" class="panel grid" hidden>
+    <div>
+      <div class="chips" id="report-filters">
+        <button class="chip" data-status="open" aria-pressed="true">Atviri</button>
+        <button class="chip" data-status="in_review" aria-pressed="false">Peržiūrimi</button>
+        <button class="chip" data-status="resolved" aria-pressed="false">Išspręsti</button>
+        <button class="chip" data-status="all" aria-pressed="false">Visi</button>
+      </div>
+      <ul class="list" id="report-list" data-testid="report-list"></ul>
+    </div>
+    <div id="report-detail"><div class="empty">Pasirinkite skundą kairėje.</div></div>
+  </section>
+
+  <section id="view-refunds" class="panel" hidden>
+    <h2 style="margin-top:0">Mano pateikti grąžinimo prašymai</h2>
+    <p class="hint">Darbuotojas gali tik <b>prašyti</b> grąžinimo. Patvirtinti ar atmesti gali tik administratorius (su MFA). Pinigai negrąžinami, kol prašymas nepatvirtintas.</p>
+    <div class="tablewrap"><table id="refund-table"><thead><tr><th>Sukurta</th><th>Vartotojas</th><th>Suma</th><th>Priežastis</th><th>Užklausa</th><th>Būsena</th></tr></thead><tbody></tbody></table></div>
+  </section>
+</main>
+
+<dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<div id="toasts" aria-live="polite"></div>
+<footer class="foot">
+  <span>Laikas rodomas Europe/Vilnius zona. Tai statinis DEMO – duomenys yra naršyklės localStorage, serverio nėra.</span>
+  <button class="btn" id="reset-demo" type="button">Atstatyti demo duomenis</button>
+</footer>
+
+<script src="assets/sessions.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/support.js"></script>
+</body>
+</html>
