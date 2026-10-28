@@ -85,3 +85,38 @@ window.TIKRI_CONFIG.ZODIAC = (function () {
   };
   return Z;
 })();
+
+/* ---- v5 (demo): patikra, „šiandien laisvas“, saugumas pokalbyje, profilio klausimai, balso demo. Visi duomenys netikri. ----
+   Serverio laukai (žr. FEATURES_V5.md): verified, available_until, voice_url, prompts. */
+window.TIKRI_CONFIG.V5 = {
+  CHECKED_IDS: ['p1', 'p2', 'p3', 'p5', 'p7', 'p9', 'p10', 'p13', 'p14'],     /* demo profiliai su ženkleliu „Patikrinta“ */
+  AVAILABLE_IDS: ['p1', 'p3', 'p4', 'p6', 'p9', 'p14', 'p16'],                /* demo profiliai, kurie šiandien laisvi */
+  VOICE_IDS: ['p1', 'p3', 'p9'],                                              /* demo profiliai su balso prisistatymu */
+  DURATIONS: [
+    { id: '1h', label: '1 val.', hours: 1 },
+    { id: '3h', label: '3 val.', hours: 3 },
+    { id: 'midnight', label: 'Iki vidurnakčio', hours: 0 }
+  ],
+  PROMPT_MAX: 140,
+  PROMPT_QUESTIONS: ['Mano idealus savaitgalis…', 'Negaliu gyventi be…', 'Pirmo pasimatymo idėja…', 'Geriausias vakaras – kai…', 'Mano keistas talentas…', 'Ieškau žmogaus, kuris…'],
+  DEFAULT_PROMPTS: [
+    { q: 'Mano idealus savaitgalis…', a: 'Lėtas rytas, turgus ir ilgas pasivaikščiojimas prie upės.' },
+    { q: 'Pirmo pasimatymo idėja…', a: 'Kava su vaizdu ir pokalbis, kurio nenori baigti.' },
+    { q: 'Mano keistas talentas…', a: 'Atpažįstu dainą iš pirmų trijų natų.' }
+  ],
+  /* pirmų žinučių šablonai pagal kito žmogaus klausimą; {a} – trumpas jo/jos atsakymo fragmentas */
+  OPENER_TEMPLATES: {
+    'Mano idealus savaitgalis…': 'Tavo idealus savaitgalis – „{a}“ – skamba puikiai. Kaip atrodytų artimiausio savaitgalio versija?',
+    'Negaliu gyventi be…': 'Parašei, kad negali gyventi be „{a}“. Kaip tai tapo tavo kasdienybės dalimi?',
+    'Pirmo pasimatymo idėja…': 'Patiko tavo pirmo pasimatymo idėja: „{a}“. Kada galėtume išbandyti?',
+    'Geriausias vakaras – kai…': 'Tavo geriausias vakaras – „{a}“. Kada paskutinį kartą toks nutiko?',
+    'Mano keistas talentas…': 'Keistas talentas: „{a}“. Gali įrodyti – pirmas klausimas už tave?',
+    'Ieškau žmogaus, kuris…': 'Rašai, kad ieškai žmogaus, kuris „{a}“. Kaip toks žmogus atrodo tavo akimis?'
+  },
+  /* Balso demo: trys švelnūs tonai (Web Audio, jokio įrašo). Dažniai Hz, trukmė s. */
+  VOICE: { notes: [[392, 0.55], [494, 0.55], [587, 0.9]], total: 2.1 },
+  /* Nuotraukos (API.md „Photos“): iki 6 (laukiančios + patvirtintos), 10 įkėlimų per valandą. Demo naudoja tą pačią DI nuotrauką su skirtingu iškirpimu. */
+  PHOTOS: { MAX: 6, PER_HOUR: 10, CROPS: ['50% 15%', '15% 30%', '85% 30%', '50% 80%', '25% 65%', '75% 65%'] },
+  /* Anti-spam demo ribos (API.md „Anti-spam“): rate_limited + reason like_velocity | first_message_velocity */
+  RATE: { LIKES_PER_HOUR: 25, FIRST_PER_HOUR: 8, WINDOW_MS: 3600000 }
+};
