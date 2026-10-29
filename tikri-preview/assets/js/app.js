@@ -1,4 +1,4 @@
-/* Tikri – PERŽIŪRA (statinė PWA). Jokio serverio; duomenys tik šioje naršyklėje (localStorage). */ /* v8: EN-redakcija (Incognito mode, apostrofai, slogan) · v7: visi ekranai – LT/EN per T() ir config.js V7 */
+/* Tikri – PERŽIŪRA (statinė PWA). Jokio serverio; duomenys tik šioje naršyklėje (localStorage). */ /* v9: Nematomas režimas = nemokamas nustatymas (invisible), Incognito tik Plus; planų sąrašai iš C.FEATURES · v8: EN-redakcija (Incognito mode, apostrofai, slogan) · v7: visi ekranai – LT/EN per T() ir config.js V7 */
 (function () {
   'use strict';
   var D = window.TIKRI_DATA, I = window.TIKRI_ICONS, C = window.TIKRI_CONFIG, PL = C.PLANS, LIM = C.LIMITS, Z = C.ZODIAC, V5 = C.V5;
@@ -75,6 +75,9 @@
   function bandIdx(p) { return Math.max(0, BANDS.indexOf(p.distLabel)); }
   function isPremium() { return !!S.premium; }
   function isPlus() { return S.premium === 'plus'; }
+  /* v9: funkcijų vėliavėlės iš config.js (kaip /api/me plan.features) */
+  function feat(k) { return C.FEATURES.has(S.premium || 'free', k); }
+  function invisibleCtl(on) { return feat('invisible_mode') ? sw('invisible', on) : '<button class="chip locked" data-action="locked" data-what="' + C.FEATURES.label('invisible_mode') + '" data-testid="invisible-locked">' + ic('lock', 14) + '</button>'; }
   /* ---------- Zodiakas (pramogai) ---------- */
   function mySign() { return Z.signFor(S.user.birth); }
   function theirSign(p) { return p.show_zodiac && p.zodiac ? Z.byId(p.zodiac) : null; } /* null, jei paslėpė (show_zodiac: false) */
@@ -272,9 +275,9 @@
       '<p class="tiny muted" style="margin:16px 0 0" data-testid="photo-note">' + (pend ? T('Naujos nuotraukos pirmiausia peržiūrimos. Ženklelį „Laukia patikrinimo“ matai tik tu – kiti mato tik patvirtintas nuotraukas.', 'New photos are reviewed first. Only you see the “Pending review” badge – others only see approved photos.') : T('Iki ' + max + ' nuotraukų. Naujos nuotraukos pirmiausia peržiūrimos; kol laukia, jas mato tik tu.', 'Up to ' + max + ' photos. New photos are reviewed first; while pending, only you can see them.')) + '</p></div>';
   }
   function incognitoCard() {
-    var on = !!S.settings.incognito, plus = isPlus();
+    var on = !!S.settings.incognito, plus = feat('incognito_mode');
     return '<div class="card" data-testid="incognito-card" style="margin-top:16px"><div class="switch-row" style="padding:0"><span class="lbl"><b>' + ic('eyeOff', 18) + ' Incognito ' + (plus ? '' : '<span class="tag gold">Plus</span>') + '</b>' +
-      '<small data-testid="incognito-desc">' + T('Tave mato tik tie, kuriuos pamėgai', 'Only people you like can see you') + '</small></span>' + sw('incognito', on) + '</div>' +
+      '<small data-testid="incognito-desc">' + C.FEATURES.note('incognito_mode') + '</small></span>' + sw('incognito', on) + '</div>' +
       (on ? '<p class="tiny muted" style="margin:12px 0 0" data-testid="incognito-on">' + T('Įjungta. Kai pamėgsti žmogų, jis gali pamatyti tavo profilį. Jei Plus baigsis, nustatymas liks įjungtas, bet pakartotinai įjungti be Plus negalėsi.', 'On. When you like someone, they can see your profile. If Plus ends the setting stays on, but you cannot turn it back on without Plus.') + '</p>' : '') + '</div>';
   }
   /* rate_limited (API.md „Anti-spam“): valandos ir dienos ribos, griežtesnės pirmas 24 val.; dienos patiktukų kvota pagal planą */
@@ -323,7 +326,7 @@
   function likeBlocked() { var r = rateCheck('likes'); if (r) { rateSheet(r); return true; } return false; }
   function plusSheet() {
     openSheet('<div class="row between"><h2 style="margin:0">' + T('Incognito – tik su Plus', 'Incognito needs Plus') + '</h2><button class="icon-btn" data-action="close-sheet" aria-label="' + T('Uždaryti', 'Close') + '">' + I.close + '</button></div>' +
-      '<p class="muted" style="margin:12px 0 8px">' + T('Tave mato tik tie, kuriuos pamėgai', 'Only people you like can see you') + '. ' + T('Šis režimas yra Plus plane. Mokėti nebūtina – nemokama versija veikia kaip anksčiau.', 'This mode is part of the Plus plan. Paying is optional – the free version works as before.') + '</p>' +
+      '<p class="muted" style="margin:12px 0 8px">' + C.FEATURES.note('incognito_mode') + '. ' + T('Šis režimas yra Plus plane. Mokėti nebūtina – nemokama versija veikia kaip anksčiau.', 'This mode is part of the Plus plan. Paying is optional – the free version works as before.') + '</p>' +
       '<p class="tiny faint" data-testid="plan-code" style="margin:0 0 24px">plan_required · required_plan: plus · current_plan: ' + (S.premium || 'free') + '</p>' +
       '<a class="btn block" href="#/premium" data-action="close-sheet" data-testid="incognito-upgrade">' + T('Peržiūrėti Plus', 'See Plus') + '</a><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">' + T('Ne dabar', 'Not now') + '</button>');
   }
@@ -760,8 +763,8 @@
           '<label class="field"><span>' + T('Draugo vardas', 'Friend\'s name') + '</span><input class="input" id="s-name" maxlength="30" placeholder="' + T('pvz. Inga', 'e.g. Anna') + '"></label>' +
           '<label class="field"><span>' + T('Kiek laiko dalintis', 'How long to share') + '</span><select class="input" id="s-dur"><option value="1">1 ' + T('val.', 'h') + '</option><option value="2" selected>2 ' + T('val.', 'h') + '</option><option value="3">3 ' + T('val.', 'h') + '</option><option value="4">4 ' + T('val.', 'h') + '</option></select></label>' +
           '<div class="err" id="err" role="alert"></div><button class="btn block" data-action="share-start" data-testid="share-start">' + T('Sukurti nuorodą ir pradėti', 'Create the link and start') + '</button><p class="tiny muted center" style="margin:0">' + T('Peržiūroje niekas nesiunčiama ir vieta nenaudojama.', 'In this preview nothing is sent and no location is used.') + '</p></div>') +
-      '<div class="card" style="margin-top:16px"><div class="switch-row" style="padding:0"><span class="lbl"><b>' + ic('eyeOff', 18) + ' ' + T('Nematomas režimas', 'Incognito mode') + '</b> ' + (isPremium() ? '' : '<span class="tag">Premium</span>') + '<small>' + T('Tavęs nesimato paieškoje „Šalia“ ir kiti nemato, kad peržiūrėjai jų profilį. Rašyti gali tik tiems, su kuriais jau kalbiesi.', 'You do not appear in “Nearby” search and others do not see that you viewed their profile. You can only message people you are already chatting with.') + '</small></span>' +
-      (isPremium() ? sw('invisible', S.settings.invisible) : '<button class="chip locked" data-action="locked" data-what="' + T('Nematomas režimas', 'Incognito mode') + '" data-testid="invisible-locked">' + ic('lock', 14) + '</button>') + '</div></div>' +
+      '<div class="card" style="margin-top:16px" data-testid="invisible-card"><div class="switch-row" style="padding:0"><span class="lbl"><b>' + ic('eyeOff', 18) + ' ' + C.FEATURES.label('invisible_mode') + '</b>' + (feat('invisible_mode') ? '' : ' <span class="tag">' + planLabel(C.FEATURES.MIN_PLAN.invisible_mode) + '</span>') + '<small data-testid="invisible-desc">' + C.FEATURES.note('invisible_mode') + '</small></span>' +
+      invisibleCtl(S.settings.invisible) + '</div></div>' +
       '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">' + T('Patarimai pirmam pasimatymui', 'Tips for a first date') + '</h3><ul class="small" style="padding-left:18px;line-height:1.8;margin:0 0 16px;color:var(--muted)"><li>' + T('Susitik viešoje vietoje.', 'Meet in a public place.') + '</li><li>' + T('Pasakyk draugui, kur ir su kuo eini.', 'Tell a friend where you are going and with whom.') + '</li><li>' + T('Pasirūpink savo transportu namo.', 'Arrange your own way home.') + '</li><li>' + T('Nesiųsk pinigų ir nesidalink kodais.', 'Never send money or share codes.') + '</li></ul><a class="btn danger block" href="tel:112">' + ic('phone', 18) + ' ' + T('Skubi pagalba: 112', 'Emergency: 112') + '</a></div>' };
   }
 
@@ -797,8 +800,10 @@
   function premium() {
     var cur = S.premium;
     var li = function (t) { return '<li>' + ic('check', 18) + '<span>' + t + '</span></li>'; };
+    var perkLis = function (plan) { return C.FEATURES.perks(plan).map(function (k) { return li(C.FEATURES.label(k)); }).join(''); };
     var cell = function (v, pl) { return '<td' + (pl ? ' class="plus"' : '') + '>' + (v === true ? '<span class="yes">' + ic('check', 18) + '</span>' : v === false ? '<span class="no">—</span>' : v) + '</td>'; };
     var row = function (n, a, b, c) { return '<tr><td>' + n + '</td>' + cell(a) + cell(b) + cell(c, true) + '</tr>'; };
+    var paidRows = function () { var F = C.FEATURES; return F.paid().map(function (k) { return row(F.label(k), F.has('free', k), F.has('premium', k), F.has('plus', k)); }).join(''); };
     var btn = function (plan, label) { return cur === plan ? '<button class="btn sage block" disabled>' + T('Aktyvus (demo)', 'Active (demo)') + '</button>' : '<button class="btn block' + (plan === 'premium' ? ' ghost' : '') + '" data-action="buy" data-plan="' + plan + '" data-testid="buy-' + plan + '">' + label + '</button>'; };
     var yr = yearly();
     var per = function (id) {
@@ -815,13 +820,13 @@
       '<div class="billing" role="group" aria-label="' + T('Apmokėjimo laikotarpis', 'Billing period') + '"><div class="seg"><button data-action="billing" data-b="month" aria-pressed="' + !yr + '" data-testid="bill-month">' + T('Kas mėnesį', 'Monthly') + '</button><button data-action="billing" data-b="year" aria-pressed="' + yr + '" data-testid="bill-year">' + T('Metams', 'Yearly') + '</button></div>' + '' + '</div>' +
       '<div class="plans">' +
       '<div class="plan"><div class="nm"><h3>' + PL.free.name + '</h3></div><div class="price">' + eur(0) + '</div><ul>' + li(T('Profilis ir asmenukės patvirtinimas', 'Profile and selfie verification')) + li(T('Paieška šalia – iki ' + FREE_LIMIT + ' profilių per dieną', 'Nearby search – up to ' + FREE_LIMIT + ' profiles a day')) + li(T('Pagrindiniai filtrai', 'Basic filters')) + li(T('Pokalbiai – iki ' + LIM.freeNewChatsPerDay + ' naujų per dieną', 'Chats – up to ' + LIM.freeNewChatsPerDay + ' new ones a day')) + li(T('Visi saugumo įrankiai', 'All safety tools')) + '</ul></div>' +
-      '<div class="plan"><div class="nm"><h3>' + PL.premium.name + '</h3>' + badge('premium') + '</div><div class="price">' + per('premium') + '</div><ul>' + li(T('Neribota paieška ir visi filtrai', 'Unlimited search and all filters')) + li(T('Kas peržiūrėjo tave', 'Who viewed you')) + li(T('Nematomas režimas', 'Incognito mode')) + li(T('Jokių pokalbių ribų', 'No chat limits')) + '</ul>' + btn('premium', T('Rinktis ', 'Choose ') + PL.premium.name) + '</div>' +
-      '<div class="plan hl"><span class="ribbon">' + T('Daugiausia galimybių', 'Get the most') + '</span><div class="nm"><h3>' + PL.plus.name + '</h3>' + badge('plus') + '</div><div class="price">' + per('plus') + '</div><ul>' + li(T('Viskas, kas yra ' + PL.premium.name, 'Everything in ' + PL.premium.name)) + li(T('AI atitikimo pasiūlymai pagal interesus', 'AI match suggestions based on interests')) + li(T('Išsamus zodiako suderinamumas ir filtras pagal ženklą', 'Detailed zodiac compatibility and a filter by sign')) + li(T('Profilio iškėlimas (boost) 1 kartą per savaitę', 'Profile boost once a week')) + li(T('Pirmenybė pagalbos tarnyboje', 'Priority support')) + '</ul>' + btn('plus', T('Rinktis ', 'Choose ') + PL.plus.name) + '</div>' +
+      '<div class="plan"><div class="nm"><h3>' + PL.premium.name + '</h3>' + badge('premium') + '</div><div class="price">' + per('premium') + '</div><ul>' + li(T('Neribota paieška ir visi filtrai', 'Unlimited search and all filters')) + li(T('Kas peržiūrėjo tave', 'Who viewed you')) + perkLis('premium') + li(T('Jokių pokalbių ribų', 'No chat limits')) + '</ul>' + btn('premium', T('Rinktis ', 'Choose ') + PL.premium.name) + '</div>' +
+      '<div class="plan hl"><span class="ribbon">' + T('Daugiausia galimybių', 'Get the most') + '</span><div class="nm"><h3>' + PL.plus.name + '</h3>' + badge('plus') + '</div><div class="price">' + per('plus') + '</div><ul>' + li(T('Viskas, kas yra ' + PL.premium.name, 'Everything in ' + PL.premium.name)) + li(T('AI atitikimo pasiūlymai pagal interesus', 'AI match suggestions based on interests')) + li(T('Išsamus zodiako suderinamumas ir filtras pagal ženklą', 'Detailed zodiac compatibility and a filter by sign')) + li(T('Profilio iškėlimas (boost) 1 kartą per savaitę', 'Profile boost once a week')) + li(T('Pirmenybė pagalbos tarnyboje', 'Priority support')) + perkLis('plus') + '</ul>' + btn('plus', T('Rinktis ', 'Choose ') + PL.plus.name) + '</div>' +
       '</div>' +
       '<h2 style="margin:40px 0 16px">' + T('Palyginimas', 'Comparison') + '</h2>' +
       '<div class="cmp-wrap"><table class="cmp"><thead><tr><th>' + T('Funkcija', 'Feature') + '</th><th>' + T('Nemok.', 'Free') + '</th><th>' + PL.premium.name + '</th><th class="plus">' + PL.plus.name + '</th></tr></thead><tbody>' +
       row(T('Profilis, patvirtinimas', 'Profile, verification'), true, true, true) + row(T('Paieška šalia', 'Nearby search'), T('iki ' + FREE_LIMIT + '/d.', 'up to ' + FREE_LIMIT + '/day'), T('be ribų', 'unlimited'), T('be ribų', 'unlimited')) + row(T('Išplėstiniai filtrai', 'Advanced filters'), false, true, true) +
-      row(T('Nauji pokalbiai', 'New chats'), T(LIM.freeNewChatsPerDay + '/d.', LIM.freeNewChatsPerDay + '/day'), T('be ribų', 'unlimited'), T('be ribų', 'unlimited')) + row(T('Kas peržiūrėjo tave', 'Who viewed you'), false, true, true) + row(T('Nematomas režimas', 'Incognito mode'), false, true, true) +
+      row(T('Nauji pokalbiai', 'New chats'), T(LIM.freeNewChatsPerDay + '/d.', LIM.freeNewChatsPerDay + '/day'), T('be ribų', 'unlimited'), T('be ribų', 'unlimited')) + row(T('Kas peržiūrėjo tave', 'Who viewed you'), false, true, true) + paidRows() +
       row(T('AI atitikimo pasiūlymai', 'AI match suggestions'), false, false, true) + row(T('Zodiako filtras', 'Zodiac filter'), false, false, true) + row(T('Iškėlimas (boost)', 'Boost'), false, false, T('1/sav.', '1/week')) + row(T('Saugumo įrankiai', 'Safety tools'), true, true, true) +
       '</tbody></table></div>' +
       '<div class="card terms"><p><b>' + T('Kainos nurodytos ' + C.VAT_NOTE + '.', 'Prices are shown ' + C.VAT_NOTE + '.') + '</b> ' + T('Prenumerata atsinaujina ' + (yr ? 'kas 12 mėn.' : 'kas ' + PL.premium.days + ' d.') + ', kol jos neatšauki.', 'The subscription renews ' + (yr ? 'every 12 months' : 'every ' + PL.premium.days + ' days') + ' until you cancel it.') + '</p>' + (yr ? '<p><b>' + T('Mokama vieną kartą metams.', 'Paid once a year.') + '</b> ' + T('Per 14 dienų gali atsisakyti ir atgausi pinigus. Prenumeratą gali atšaukti bet kada vienu paspaudimu.', 'Within 14 days you can withdraw and get your money back. You can cancel the subscription at any time with one tap.') + '</p>' : '') + '<p><b>' + T('Atšaukti gali bet kada', 'Cancel any time') + '</b> ' + T('– nustatymuose, vienu paspaudimu. Planas veiks iki apmokėto laikotarpio pabaigos, papildomų mokesčių nėra.', '– in settings, with one tap. The plan stays active until the end of the paid period, with no extra fees.') + '</p><p><b>' + T('Diskretiškai:', 'Discreet:') + '</b> ' + T('banko išraše matysi neutralų aprašą (pvz. „' + C.BANK_DESCRIPTOR + '“) – be žodžių „pažintys“ ar programėlės pavadinimo.', 'your bank statement will show a neutral descriptor (e.g. “' + C.BANK_DESCRIPTOR + '”) – without the word “dating” or the app name.') + '</p><p class="faint">' + T('Peržiūroje mokėjimai neveikia: mygtukai tik įjungia demo planą, kad galėtum išbandyti funkcijas.', 'Payments do not work in this preview: the buttons only switch on a demo plan so you can try the features.') + '</p></div>' };
@@ -835,7 +840,7 @@
       '<div class="switch-row"><span class="lbl">' + T('Slėpti mano atstumą', 'Hide my distance') + '<small>' + T('Kiti nematys net atstumo juostos.', 'Others will not even see the distance band.') + '</small></span>' + sw('hideDistance', st.hideDistance) + '</div>' +
       '<div class="switch-row"><span class="lbl">' + T('Rodyti mano amžių', 'Show my age') + '</span>' + sw('showAge', st.showAge) + '</div>' +
       '<div class="switch-row"><span class="lbl">' + T('Rodyti mano zodiako ženklą', 'Show my zodiac sign') + '<small>' + T('Išjungus kiti nemato tavo ženklo, bet tu matai jų.', 'If off, others cannot see your sign, but you can see theirs.') + '</small></span>' + sw('show_zodiac', st.show_zodiac) + '</div>' +
-      '<div class="switch-row"><span class="lbl">' + T('Nematomas režimas', 'Incognito mode') + ' ' + (isPremium() ? '' : '<span class="tag">Premium</span>') + '<small>' + T('Valdoma skiltyje „Saugumas“.', 'Managed in the “Safety” section.') + '</small></span>' + (isPremium() ? sw('invisible', st.invisible) : '<a class="chip locked" href="#/safety">' + ic('lock', 14) + '</a>') + '</div>' +
+      '<div class="switch-row" data-testid="invisible-row"><span class="lbl">' + C.FEATURES.label('invisible_mode') + '<small>' + C.FEATURES.note('invisible_mode') + '</small></span>' + invisibleCtl(st.invisible) + '</div>' +
       '<div class="switch-row"><span class="lbl">' + T('Pranešimai', 'Notifications') + '</span>' + sw('notifications', st.notifications) + '</div></div>' +
       '<h3 class="eyebrow" style="margin:32px 0 8px">' + T('Sutikimai', 'Consents') + '</h3><div class="card" style="padding:0 16px">' +
       '<div class="switch-row"><span class="lbl">' + T('Jautrūs duomenys (orientacija, apytikslė vieta)', 'Sensitive data (orientation, approximate location)') + '<small>' + T('Atšaukus – paieška „Šalia“ išjungiama ir šie duomenys ištrinami.', 'If withdrawn, “Nearby” search is turned off and this data is deleted.') + '</small></span>' + sw('consentSensitive', u.consentSensitive) + '</div>' +
@@ -1194,7 +1199,7 @@
         openSheet('<h2>' + pp.name + ' – ' + (yb ? eur(pp.yearPrice) + ' / ' + T('metams', 'year') : eur(pp.price) + ' / ' + pp.days + T(' d.', ' days')) + '</h2><p class="muted small" style="margin:8px 0 16px">' + T('Kaina su PVM. ', 'Price incl. VAT. ') + (yb ? T('Mokama vieną kartą metams. Per 14 dienų gali atsisakyti ir atgausi pinigus. ', 'Paid once a year. Within 14 days you can withdraw and get your money back. ') : T('Atsinaujina kas ' + pp.days + ' d., ', 'Renews every ' + pp.days + ' days. ')) + T('Atšaukti gali bet kada vienu paspaudimu. Banko išraše – neutralus aprašas „' + C.BANK_DESCRIPTOR + '“.', 'You can cancel at any time with one tap. Your bank statement shows a neutral descriptor “' + C.BANK_DESCRIPTOR + '”.') + '</p><div class="notice gold" style="margin-bottom:24px">' + ic('info') + '<span>' + T('Tai peržiūra – tikro mokėjimo nėra. Galime įjungti demo planą, kad išbandytum funkcijas.', 'This is a preview – there is no real payment. We can switch on a demo plan so you can try the features.') + '</span></div><button class="btn block" data-action="demo-activate" data-plan="' + plan + '" data-testid="demo-activate">' + T('Įjungti demo planą (be mokėjimo)', 'Switch on the demo plan (no payment)') + '</button><button class="btn ghost block" style="margin-top:8px" data-action="close-sheet">' + T('Atšaukti', 'Cancel') + '</button>'); break;
       }
       case 'demo-activate': S.premium = t.dataset.plan; if (S.premium !== 'plus') { S.filters.zodiacOnly = false; } save(); closeSheet(); render(); toast(T('Demo planas įjungtas.', 'Demo plan switched on.')); break;
-      case 'cancel-sub': S.premium = null; S.settings.invisible = false; S.filters.onlineOnly = false; S.filters.goal = ''; S.filters.zodiacOnly = false; save(); render(); toast(T('Prenumerata atšaukta.', 'Subscription cancelled.')); break;
+      case 'cancel-sub': S.premium = null; S.filters.onlineOnly = false; S.filters.goal = ''; S.filters.zodiacOnly = false; save(); render(); toast(T('Prenumerata atšaukta.', 'Subscription cancelled.')); break;
       case 'export': {
         var blob = new Blob([JSON.stringify(lang() === 'en' ? { note: 'Tikri preview – data only in this browser', data: S } : { pastaba: 'Tikri peržiūra – duomenys tik šioje naršyklėje', duomenys: S }, null, 2)], { type: 'application/json' });
         var aEl = document.createElement('a'); aEl.href = URL.createObjectURL(blob); aEl.download = T('tikri-mano-duomenys.json', 'tikri-my-data.json'); document.body.appendChild(aEl); aEl.click(); aEl.remove(); toast(T('Duomenų failas paruoštas.', 'Data file ready.')); break;
@@ -1210,7 +1215,7 @@
     var k = t.dataset.switch;
     if (k === 'f-verified' || k === 'f-online' || k === 'f-zodiac' || k === 'f-checked' || k === 'f-today') return; // taikoma paspaudus „Rodyti rezultatus“
     if (k === 'incognito') {
-      if (t.checked && !isPlus()) { t.checked = false; plusSheet(); return; }
+      if (t.checked && !feat('incognito_mode')) { t.checked = false; plusSheet(); return; }
       S.settings.incognito = t.checked; save(); render(); toast(t.checked ? T('Incognito įjungtas.', 'Incognito is on.') : T('Incognito išjungtas.', 'Incognito is off.')); return;
     }
     if (k === 'available') { if (t.checked) setAvail('1h'); else S.available = null; save(); render(); toast(t.checked ? T('Pažymėjai „Šiandien galiu susitikti“ 1 val.', 'You marked “Free to meet today” for 1 h') : T('Ženklelis „Šiandien ✓“ pašalintas.', 'The “Today ✓” badge was removed.')); return; }
@@ -1218,8 +1223,8 @@
       S.user[k] = t.checked;
       if (k === 'consentSensitive') toast(t.checked ? T('Sutikimas suteiktas – paieška įjungta.', 'Consent given – search is on.') : T('Sutikimas atšauktas – paieška išjungta.', 'Consent withdrawn – search is off.'));
     } else if (k === 'invisible') {
-      if (!isPremium()) { t.checked = false; premiumNudge(T('Nematomas režimas', 'Incognito mode')); return; }
-      S.settings.invisible = t.checked; toast(t.checked ? T('Nematomas režimas įjungtas.', 'Incognito mode is on.') : T('Nematomas režimas išjungtas.', 'Incognito mode is off.'));
+      if (!feat('invisible_mode')) { t.checked = false; premiumNudge(C.FEATURES.label('invisible_mode')); return; }
+      S.settings.invisible = t.checked; toast(t.checked ? T('Nematomas režimas įjungtas – tave mato tik tavo poros.', 'Your profile is hidden – only your matches can see you.') : T('Nematomas režimas išjungtas.', 'Your profile is visible again.'));
     } else { S.settings[k] = t.checked; }
     save();
   });

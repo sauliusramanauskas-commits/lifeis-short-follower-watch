@@ -253,4 +253,26 @@ window.TIKRI_CONFIG.V5 = {
     p6: { 0: 'Lengvas 20 km pasivažinėjimas pajūriu ir ledai pabaigoje.' },
     p9: { 0: 'Paroda, fotojuostos ritinėlis ir latte kiemelyje, kurio nerasi žemėlapyje.' }
   };
+  /* v9: funkcijų vėliavėlės – atspindi /api/plans ir /api/me plan.features (invisible_mode, incognito_mode); žr. dating-app/server/API.md „Incognito vs invisible“.
+     MIN_PLAN = mažiausias planas, kuriame funkcija įjungta (serveris: INVISIBLE_MIN_PLAN=free, INCOGNITO_PLAN=plus).
+     Planų sąrašai ir palyginimas statomi iš čia: funkcija rodoma kaip mokamas privalumas TIK plane, nuo kurio ji prasideda – nemokama „invisible_mode“ nerodoma niekur. */
+  C.FEATURES = {
+    MIN_PLAN: { invisible_mode: 'free', incognito_mode: 'plus' },
+    RANK: { free: 0, premium: 1, plus: 2 },
+    LABEL: {
+      invisible_mode: { lt: 'Nematomas režimas', en: 'Hide my profile' },
+      incognito_mode: { lt: 'Incognito režimas', en: 'Incognito mode' }
+    },
+    NOTE: {
+      invisible_mode: { lt: 'Tave mato tik tavo poros', en: 'Only your matches can see you' },
+      incognito_mode: { lt: 'Tave mato tik tie, kuriuos pamėgai, ir tavo poros', en: 'Only people you like and your matches can see you' }
+    },
+    has: function (plan, key) { var F = C.FEATURES; return F.RANK[plan || 'free'] >= F.RANK[F.MIN_PLAN[key]]; },
+    label: function (key) { var l = C.FEATURES.LABEL[key]; return C.lang() === 'en' ? l.en : l.lt; },
+    note: function (key) { var l = C.FEATURES.NOTE[key]; return C.lang() === 'en' ? l.en : l.lt; },
+    /* mokami privalumai, kurie prasideda būtent šiame plane (nemokamos funkcijos čia niekada nepatenka) */
+    perks: function (plan) { var F = C.FEATURES; return Object.keys(F.MIN_PLAN).filter(function (k) { return F.MIN_PLAN[k] === plan && plan !== 'free'; }); },
+    /* palyginimo lentelei: visos funkcijos, kurios nėra nemokamos */
+    paid: function () { var F = C.FEATURES; return Object.keys(F.MIN_PLAN).filter(function (k) { return F.MIN_PLAN[k] !== 'free'; }); }
+  };
 })();
