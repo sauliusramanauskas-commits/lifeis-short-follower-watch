@@ -257,13 +257,15 @@ window.TIKRI_CONFIG.V5 = {
      MIN_PLAN = mažiausias planas, kuriame funkcija įjungta (serveris: INVISIBLE_MIN_PLAN=free, INCOGNITO_PLAN=plus).
      Planų sąrašai ir palyginimas statomi iš čia: funkcija rodoma kaip mokamas privalumas TIK plane, nuo kurio ji prasideda – nemokama „invisible_mode“ nerodoma niekur. */
   C.FEATURES = {
-    MIN_PLAN: { invisible_mode: 'free', incognito_mode: 'plus' },
+    MIN_PLAN: { who_viewed_me: 'plus', invisible_mode: 'free', incognito_mode: 'plus' },
     RANK: { free: 0, premium: 1, plus: 2 },
     LABEL: {
+      who_viewed_me: { lt: 'Kas peržiūrėjo tave', en: 'Who viewed you' },
       invisible_mode: { lt: 'Nematomas režimas', en: 'Hide my profile' },
       incognito_mode: { lt: 'Incognito režimas', en: 'Incognito mode' }
     },
     NOTE: {
+      who_viewed_me: { lt: 'Pamatyk, kas peržiūrėjo tavo profilį', en: 'See who viewed your profile' },
       invisible_mode: { lt: 'Tave mato tik tavo poros', en: 'Only your matches can see you' },
       incognito_mode: { lt: 'Tave mato tik tie, kuriuos pamėgai, ir tavo poros', en: 'Only people you like and your matches can see you' }
     },
