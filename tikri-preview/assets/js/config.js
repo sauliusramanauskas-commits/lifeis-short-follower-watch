@@ -76,13 +76,31 @@ window.TIKRI_CONFIG.ZODIAC = (function () {
     pct: function (level) { return level ? Z.LEVELS[level].pct : null; },
     label: function (level) { return level ? Z.LEVELS[level].label : ''; },
     explain: function (a, b) {
-      var lv = Z.compat(a, b), A = Z.byId(a), B = Z.byId(b); if (!lv) return '';
-      if (lv === 'high') return A.el === B.el ? Z.TEXT.same[A.el] : Z.TEXT.complementary[[A.el, B.el].sort().join('+')];
-      return Z.TEXT[lv];
+      var lv = Z.compat(a, b), A = Z.byId(a), B = Z.byId(b), X = Z.lang() === 'en' ? Z.TEXT_EN : Z.TEXT; if (!lv) return '';
+      if (lv === 'high') return A.el === B.el ? X.same[A.el] : X.complementary[[A.el, B.el].sort().join('+')];
+      return X[lv];
     },
     /* Plus „išsamus suderinamumas“: ženklai pagal lygį nurodytam ženklui */
     byLevel: function (id, level) { return Z.SIGNS.filter(function (s) { return s.id !== id && Z.compat(id, s.id) === level; }); }
   };
+  /* ---- v7: anglų kalba (kopirašerio tekstai). Z.lang() nustatomas iš app.js; getter'iai leidžia visur naudoti sg.name, Z.NOTE, Z.label() ir pan. ---- */
+  Z.lang = function () { return 'lt'; };
+  function dual(obj, key, en) { var lt = obj[key]; Object.defineProperty(obj, key, { enumerable: true, configurable: true, get: function () { return Z.lang() === 'en' ? en : lt; } }); }
+  dual(Z, 'NOTE', 'Just for fun – the stars don\'t decide for you.');
+  var EN_EL = { fire: 'Fire', earth: 'Earth', air: 'Air', water: 'Water' };
+  Object.keys(EN_EL).forEach(function (k) { dual(Z.ELEMENTS, k, EN_EL[k]); });
+  var EN_LV = { high: 'A perfect match', medium: 'A good match', low: 'Opposites attract' };
+  Object.keys(EN_LV).forEach(function (k) { dual(Z.LEVELS[k], 'label', EN_LV[k]); });
+  var EN_SIGN = { capricorn: 'Capricorn', aquarius: 'Aquarius', pisces: 'Pisces', aries: 'Aries', taurus: 'Taurus', gemini: 'Gemini', cancer: 'Cancer', leo: 'Leo', virgo: 'Virgo', libra: 'Libra', scorpio: 'Scorpio', sagittarius: 'Sagittarius' };
+  Z.SIGNS.forEach(function (sg) { dual(sg, 'name', EN_SIGN[sg.id]); });
+  Z.TEXT_EN = {
+    same: { fire: 'Two Fire signs – lots of energy and passion.', earth: 'Two Earth signs – stability and a similar outlook on life.', air: 'Two Air signs – easy conversation and plenty of ideas.', water: 'Two Water signs – a deep emotional bond and intuition.' },
+    complementary: { 'air+fire': 'Air fuels Fire – a lively, inspiring duo.', 'earth+water': 'Water nourishes Earth – a calm, cosy connection.' },
+    medium: 'Different elements – it takes time to understand each other, but it can be interesting.',
+    low: 'Opposite elements – lots of differences, yet contrasts sometimes attract.'
+  };
+  Z.MUTUAL_EN = 'It\'s mutual! And the stars are on your side ✨';
+  Z.PLUS_FILTER_EN = 'Matching signs only – with Plus';
   return Z;
 })();
 
@@ -139,3 +157,95 @@ window.TIKRI_CONFIG.V5 = {
     PLAN_LIKES_DAY: { free: 30, premium: 150, plus: 400 }                  /* planų dienos kvota; Plus – neribota, bet ne daugiau nei 400/d. */
   }
 };
+
+/* ---- v7: anglų kalba likusiems ekranams. LT tekstai lieka data.js (jos nekeičiame); čia – EN atitikmenys, rodomi kai S.user.language = 'en'. ---- */
+(function () {
+  'use strict';
+  var C = window.TIKRI_CONFIG;
+  C.lang = function () { return 'lt'; };                                     /* app.js perrašo į tikrąją kalbą */
+  function dual(obj, key, en) { var lt = obj[key]; Object.defineProperty(obj, key, { enumerable: true, configurable: true, get: function () { return C.lang() === 'en' ? en : lt; } }); }
+  /* planų pavadinimai, PVM pastaba, pardavėjas – kainos nesikeičia, keičiasi tik žodžiai ir skaičių formatas (app.js fmt) */
+  dual(C.PLANS.free, 'name', 'Free');
+  dual(C, 'VAT_NOTE', 'incl. VAT');
+  dual(C, 'SELLER', 'Seller: Saulius Ramanauskas, sole proprietor, VAT LT100015491519');
+  C.ZODIAC.lang = function () { return C.lang(); };
+  C.V7 = { EN: {
+    INTERESTS: { 'Kava': 'Coffee', 'Žygiai': 'Hiking', 'Kinas': 'Cinema', 'Muzika': 'Music', 'Kelionės': 'Travel', 'Gaminimas': 'Cooking', 'Knygos': 'Books', 'Sportas': 'Sport',
+      'Joga': 'Yoga', 'Fotografija': 'Photography', 'Menas': 'Art', 'Gamta': 'Nature', 'Šokiai': 'Dancing', 'Stalo žaidimai': 'Board games', 'Dviračiai': 'Cycling', 'Teatras': 'Theatre',
+      'Gyvūnai': 'Animals', 'Technologijos': 'Technology', 'Sodininkystė': 'Gardening', 'Koncertai': 'Concerts' },
+    GOAL: { 'draugystė': { pill: 'Friendship', looks: 'Looking for friendship', filter: 'Friendship' }, 'pažintys': { pill: 'Dating', looks: 'Looking to date', filter: 'Dating' },
+      'santykiai': { pill: 'Relationship', looks: 'Looking for a relationship', filter: 'Relationship' } },
+    PROFILES: {
+      p1: { job: 'Educator', bio: "Mornings – coffee and a book by the window, evenings – yoga. I work with people, so I value quiet minutes. Looking for someone with whom it is fun both to laugh and to be silent.",
+        a: ["A slow morning, the market, a long walk in Vingis Park and a dinner we cook together.", "Well-brewed coffee and at least one unread book on the nightstand."] },
+      p2: { job: 'Urban planner', bio: "Weekends – the Curonian Spit or the forests of Dzūkija with a camera. By day I plan city spaces, in my free time I run from the city noise.",
+        a: ["I wake up early, catch the sunrise by the sea, and in the evening – hot soup and a good conversation.", "A short hike with a thermos of tea. If we don't click – at least the forest is beautiful."] },
+      p3: { job: 'Music producer', bio: "I play the ukulele (badly, but with love). I always know where the best concert of the evening is and I'm never late for the first song.",
+        a: ["A small club, live music, friends nearby and nobody looking at their phones.", "I can name a song from its first three notes. Try me."] },
+      p4: { job: 'Software developer', bio: "I code by day and bake bread by night. I own too many board games and too few shelves. Happy to teach you any game in 10 minutes.",
+        a: ["Fresh bread, a movie marathon and a board-game night with friends.", "is not afraid to lose and can laugh at themselves too."] },
+      p5: { job: 'Veterinarian', bio: "I have a dog called Bruknė and a balcony full of tomatoes. Looking for a serious relationship with someone for whom home is an important place, not just an address.",
+        a: ["Bruknė's wagging tail and the first tomato of summer.", "The vegetable garden, the dog park and long lunches on the balcony."] },
+      p6: { job: 'Physiotherapist', bio: "I've cycled around Lithuania – twice already. A third time – maybe together? In the evenings I listen to podcasts about travel stories.",
+        a: ["An easy 20 km ride along the coast and ice cream at the end.", "I fix a bike without instructions in 7 minutes."] },
+      p7: { job: 'Lawyer', bio: "I love theatre, long conversations and a good espresso. I can't stand lateness without a message, but I quickly forgive a good joke.",
+        a: ["After the play we argue about the ending over a glass of wine.", "reads more than the headlines and has opinions, yet knows how to listen."] },
+      p8: { job: 'Chef', bio: "I feel at home in the kitchen. Saturdays – the market, Sundays – long lunches with friends. Next summer – Georgia.",
+        a: ["The market in the morning, three courses in the evening and someone to cook them for.", "Knives I sharpen myself and fresh spices."] },
+      p9: { job: 'Gallery curator', bio: "I shoot on film and collect postcards from all my travels. I work in a gallery, so I know where the prettiest courtyards in Vilnius are hiding.",
+        a: ["An exhibition, a roll of film and a latte in a courtyard you won't find on the map.", "I can tell which season a photo was taken in – from the light alone."] },
+      p10: { job: 'Sound engineer', bio: "Vinyl, synthesizers and the occasional karaoke. Looking for someone with good taste in music, but not a snob – I like bad songs too, if they're fun.",
+        a: ["I put on an old record and nobody wants to talk until the last track.", "A record shop, and each of us picks one album for the other."] },
+      p11: { job: 'Dance coach', bio: "I dance salsa on Wednesdays. I'll teach you if you're not afraid of stepping on my toes. By day – training and a children's dance studio, evenings – peace and quiet.",
+        a: ["A morning workout, brunch with friends and salsa in the evening.", "I can fall asleep anywhere, but I never miss the beat."] },
+      p12: { job: 'Architect', bio: "I have a cat who thinks he is the boss here. I like quiet evenings, long walks and people who aren't afraid of silence.",
+        a: ["A morning walk and the evening purr of the cat.", "enjoys calm, but isn't afraid of spontaneous trips either."] },
+      p13: { job: 'Publishing editor', bio: "Book club organiser. If you've read something good – message me. If not yet – I'll suggest three you won't be able to put down.",
+        a: ["A bookshop, a cosy corner in a café and a chat about what we are reading now.", "Swap books and meet again once we've read them."] },
+      p14: { job: 'Product manager', bio: "Looking for a team for pub quizzes and someone for movie nights. I laugh well and lose even better at board games (it only looks that way).",
+        a: ["A board-game café, someone shouts \"I told you so!\" and everyone laughs.", "I remember the rules of every game, but not where my keys are."] },
+      p15: { job: 'Travel designer', bio: "I've visited 34 countries. Now I want a home that smells of cinnamon and where someone is waiting for me. I work at a company that creates journeys.",
+        a: ["The sea, a sunrise, a long breakfast table and not a single plan.", "A passport that still has empty pages."] },
+      p16: { job: 'Illustrator', bio: "Illustrator and game developer. I speak LT, EN and everyday drawings. Happy to share a corner of my workshop with someone curious.",
+        a: ["enjoys creating, isn't afraid of failed attempts and admits they can't draw.", "Every table covered in paper, quiet music playing and the coffee gone cold."] }
+    },
+    MSG: {
+      'Labas! Matau, kad tau irgi patinka koncertai.': "Hi! I see you like concerts too.",
+      'Labas, Gabija! Taip, ypač maži, jaukūs klubai.': "Hi, Gabija! Yes, especially small, cosy clubs.",
+      'Šį penktadienį vyksta akustinis vakaras senamiestyje. Gal žinai?': "There is an acoustic night in the Old Town this Friday. Did you know?",
+      'Tavo nuotraukos iš Dzūkijos – nuostabios!': "Your photos from Dzūkija are wonderful!",
+      'Ačiū! Ten rudenį ypač gražu. Ar esi buvęs(-usi) Marcinkonyse?': "Thanks! It's especially beautiful there in autumn. Have you been to Marcinkonys?",
+      'Dar ne, bet noriu. Gal turi maršrutą?': "Not yet, but I'd like to. Do you have a route?",
+      'Sveikas! Juostiniai fotoaparatai – tavo tema?': "Hello! Film cameras – your thing?",
+      'Mano darbus rasi čia: www.egle-foto.lt arba parašyk +370 600 12345': "You can find my work here: www.egle-foto.lt or message me on +370 600 12345",
+      'Štai vaizdas iš paskutinės kelionės po Dzūkiją.': "Here's a view from my latest trip around Dzūkija.",
+      'Smagu, kad parašei!': "Nice that you wrote!",
+      'Oho, įdomu. Papasakok daugiau!': "Oh, interesting. Tell me more!",
+      'Gera mintis. O tu?': "Good idea. And you?",
+      'Haha, sutinku 100 %.': "Haha, I agree 100%."
+    },
+    OPENERS: {
+      'Kava': "Hi! I see we both love coffee. What is your favourite café in the city?",
+      'Žygiai': "Hello! We both love hiking – which route in Lithuania is the most beautiful to you?",
+      'Kinas': "Hi! Which film would you recommend lately if I only had one evening?",
+      'Muzika': "Hi! What is on your headphones most often these days?",
+      'Kelionės': "Hello! I see you like to travel – which trip stayed with you the most?",
+      'Gaminimas': "Hi! What do you cook when you want to surprise someone?",
+      'Knygos': "Hi! What book are you reading now? I am looking for a new recommendation.",
+      'Sportas': "Hello! Which sport gets you going the most?",
+      'Joga': "Hi! Yoga in the morning or in the evening – which team are you on?",
+      'Fotografija': "Hi! What do you love photographing most – people, nature or the city?",
+      'Menas': "Hello! What was the last exhibition you really enjoyed?",
+      'Gamta': "Hi! Where in Lithuania do you go when you want to be in nature?",
+      'Šokiai': "Hi! What kind of dancing do you do? I am still learning.",
+      'Stalo žaidimai': "Hello! What is your favourite board game? I am looking for a new one.",
+      'Dviračiai': "Hi! What is the most beautiful cycling route you have tried?",
+      'Teatras': "Hello! Which play have you seen recently?",
+      'Gyvūnai': "Hi! Do you have a pet? I would love to hear its name.",
+      'Technologijos': "Hi! Which app or tool has made your life easier lately?",
+      'Sodininkystė': "Hello! What did you grow this year? My tomatoes turned out pretty bad.",
+      'Koncertai': "Hi! What is the best concert you have been to?",
+      '_': "Hi! Your profile looks really interesting – what are you into right now?"
+    }
+  } };
+})();
