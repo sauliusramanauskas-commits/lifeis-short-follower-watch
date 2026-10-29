@@ -1,4 +1,4 @@
-/* Tikri – PERŽIŪRA (statinė PWA). Jokio serverio; duomenys tik šioje naršyklėje (localStorage). */ /* v10: Kas peržiūrėjo tave = tik Plus (FEATURES.who_viewed_me); nematomo režimo pranešimas · v9: Nematomas režimas = nemokamas nustatymas (invisible), Incognito tik Plus; planų sąrašai iš C.FEATURES · v8: EN-redakcija (Incognito mode, apostrofai, slogan) · v7: visi ekranai – LT/EN per T() ir config.js V7 */
+/* Tikri – PERŽIŪRA (statinė PWA). Jokio serverio; duomenys tik šioje naršyklėje (localStorage). */ /* v11: „Kas peržiūrėjo tave“ ne Plus – tik siluetai, jokių profilių/nuotraukų; views_count užuomina · v10: Kas peržiūrėjo tave = tik Plus (FEATURES.who_viewed_me); nematomo režimo pranešimas · v9: Nematomas režimas = nemokamas nustatymas (invisible), Incognito tik Plus; planų sąrašai iš C.FEATURES · v8: EN-redakcija (Incognito mode, apostrofai, slogan) · v7: visi ekranai – LT/EN per T() ir config.js V7 */
 (function () {
   'use strict';
   var D = window.TIKRI_DATA, I = window.TIKRI_ICONS, C = window.TIKRI_CONFIG, PL = C.PLANS, LIM = C.LIMITS, Z = C.ZODIAC, V5 = C.V5;
@@ -732,7 +732,11 @@
     var u = S.user, a = ageFrom(u.birth), prem = isPremium();
     var plan = S.premium ? planLabel(S.premium) : PL.free.name;
     var vOk = feat('who_viewed_me');
-    var viewers = ['p7', 'p13', 'p10'].map(function (id) { var p = byId(id); return vOk ? '<a class="avatar sm" href="#/profile/' + id + '" title="' + esc(p.name) + '">' + photo(p) + '</a>' : '<a class="avatar sm" role="button" tabindex="0" style="cursor:pointer" data-action="plus-sheet" data-feature="who_viewed_me">' + photo(p) + '</a>'; }).join('');
+    /* Plus: tikras sąrašas. Ne Plus: serveris grąžintų 403 plan_required be duomenų – nei profilių, nei nuotraukų čia nekraunama (tik bendrinės siluetų ikonos). */
+    var SIL = '<svg viewBox="0 0 44 44" width="100%" height="100%" aria-hidden="true" focusable="false"><rect width="44" height="44" fill="#e3e5ec"/><circle cx="22" cy="17" r="7.5" fill="#b4b8c6"/><path d="M7 44c0-9.4 6.7-15 15-15s15 5.6 15 15z" fill="#b4b8c6"/></svg>';
+    var viewers = vOk ? ['p7', 'p13', 'p10'].map(function (id) { var p = byId(id); return '<a class="avatar sm" href="#/profile/' + id + '" title="' + esc(p.name) + '">' + photo(p) + '</a>'; }).join('')
+      : [0, 1, 2].map(function () { return '<a class="avatar sm sil" role="button" tabindex="0" style="cursor:pointer" data-testid="viewer-placeholder" data-action="plus-sheet" data-feature="who_viewed_me">' + SIL + '</a>'; }).join('');
+    var vCount = vOk ? T('3 per pastarąją savaitę', '3 in the past week') : C.FEATURES.viewsLine(S.views_count);
     return { tab: 'me', html:
       '<div class="topbar"><h1>' + T('Mano profilis', 'My profile') + '</h1><a class="icon-btn" href="#/settings" aria-label="' + T('Nustatymai', 'Settings') + '" data-testid="settings-link">' + I.gear + '</a></div>' +
       '<div class="me-hero">' + meAvatar('lg ring') + '<div class="nm">' + esc(u.name ? dispName(u.name) : T('Tu', 'You')) + (a ? ', ' + a : '') + (u.verified ? I.verified : '') + '</div>' +
@@ -747,7 +751,7 @@
       promptsCard() +
       '<div class="card" style="margin-top:16px" data-testid="voice-card"><h3 style="margin-bottom:12px">' + ic('spark', 18) + ' ' + T('Balso prisistatymas (demo)', 'Voice intro (demo)') + '</h3>' + voiceCard('voice-me', T('Balso prisistatymas (demo)', 'Voice intro (demo)'), T('Vietos rezervas: čia bus tavo balso įrašas (voice_url). Dabar – tonų signalas.', 'Placeholder: your voice recording (voice_url) will go here. For now – a demo tone.')) + '</div>' +
       '<div class="card" data-testid="viewers-card" style="margin-top:16px"><div class="row between"><h3>' + ic('eye', 18) + ' ' + C.FEATURES.label('who_viewed_me') + '</h3>' + (vOk ? '' : '<span class="tag">Plus</span>') + '</div>' +
-      '<div class="row" style="margin-top:16px;gap:12px"><span class="row' + (vOk ? '' : ' blur-row') + '" style="gap:12px">' + viewers + '</span><span class="small muted">' + T('3 per pastarąją savaitę', '3 in the past week') + '</span></div>' +
+      '<div class="row" style="margin-top:16px;gap:12px"><span class="row" style="gap:12px">' + viewers + '</span>' + (vCount ? '<span class="small muted" data-testid="views-count">' + vCount + '</span>' : '') + '</div>' +
       (vOk ? '' : '<button class="btn soft small" style="margin-top:16px" data-action="plus-sheet" data-feature="who_viewed_me" data-testid="viewers-locked">' + ic('lock', 16) + ' ' + T('Pamatyti', 'View') + '</button>') + '</div>' +
       '<ul class="menu" style="margin-top:16px">' +
       '<li><a href="#/safety" data-testid="safety-link">' + I.shield + '<span class="grow">' + T('Saugumas ir pasimatymai', 'Safety and dating') + '</span>' + (S.share ? '<span class="pulse"></span>' : '') + '<span class="chev">' + I.chevron + '</span></a></li>' +

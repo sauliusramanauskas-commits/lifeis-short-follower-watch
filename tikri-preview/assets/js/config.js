@@ -269,6 +269,14 @@ window.TIKRI_CONFIG.V5 = {
       invisible_mode: { lt: 'Tave mato tik tavo poros', en: 'Only your matches can see you' },
       incognito_mode: { lt: 'Tave mato tik tie, kuriuos pamėgai, ir tavo poros', en: 'Only people you like and your matches can see you' }
     },
+    /* GET /api/viewers: tik Plus; kitiems 403 plan_required be jokių duomenų. views_count (serveris pridės) – tik skaičius, neprivalomas. */
+    viewsLine: function (n) {
+      if (typeof n !== 'number' || !isFinite(n)) return '';
+      n = Math.floor(n); if (n <= 0) return '';
+      if (C.lang() === 'en') return n + (n === 1 ? ' person' : ' people') + ' viewed your profile';
+      var m10 = n % 10, m100 = n % 100, w = (m10 === 1 && m100 !== 11) ? 'žmogus' : (m10 === 0 || (m100 >= 11 && m100 <= 19)) ? 'žmonių' : 'žmonės';
+      return n + ' ' + w + ' peržiūrėjo tavo profilį';
+    },
     has: function (plan, key) { var F = C.FEATURES; return F.RANK[plan || 'free'] >= F.RANK[F.MIN_PLAN[key]]; },
     label: function (key) { var l = C.FEATURES.LABEL[key]; return C.lang() === 'en' ? l.en : l.lt; },
     note: function (key) { var l = C.FEATURES.NOTE[key]; return C.lang() === 'en' ? l.en : l.lt; },

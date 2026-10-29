@@ -629,3 +629,4 @@ textarea.input{min-height:76px;padding:12px var(--s2);font:inherit;font-size:16p
 .ptile .pendb .ico{flex:none;width:11px;height:11px}
 .ptile .pmain{font-size:10px;padding:2px 6px;max-width:calc(100% - 44px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ptile .pmain{top:auto;bottom:6px;max-width:none;overflow:visible}
+.avatar.sil svg{display:block}
